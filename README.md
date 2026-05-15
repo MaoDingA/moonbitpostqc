@@ -5,6 +5,7 @@
 </p>
 
 <p align="left">
+  <a href="https://github.com/MaoDingA/moonbitpostqc/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/MaoDingA/moonbitpostqc/actions/workflows/ci.yml/badge.svg"></a>
   <a href="README.md"><img alt="简体中文 current" src="https://img.shields.io/badge/%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-current-0f766e?style=flat-square"></a>
   <a href="README.en.md"><img alt="English README" src="https://img.shields.io/badge/English-README-64748b?style=flat-square"></a>
   <img alt="MoonBit native" src="https://img.shields.io/badge/MoonBit-native-8b5cf6?style=flat-square">
@@ -431,6 +432,22 @@ moonpost/
 ├── wasm-demo/       浏览器 demo shell 和构建脚本
 └── examples/        示例字幕文件
 ```
+
+## CI
+
+仓库包含 GitHub Actions 工作流
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml)，会在 push、pull
+request 和手动触发时运行。
+
+CI 覆盖：
+
+- `moon fmt` 后检查是否产生未提交 diff。
+- `moon info` 后检查 `pkg.generated.mbti` 等生成接口摘要是否同步。
+- `moon check --target native` 和 `moon check --target wasm-gc`。
+- `moon build --target native` 和 `moon build --target wasm-gc`。
+- `moon test --target native` 和 `moon test --target wasm-gc`。
+- Wasm demo release 构建和 `wasm-demo/public/moonpost_qc.wasm` 产物检查。
+- CLI 冒烟测试：timecode、subtitle convert、QC report。
 
 ## 开发
 

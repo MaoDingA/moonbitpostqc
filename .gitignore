@@ -5,6 +5,10 @@
 !.gitignore
 !.gitattributes
 !.editorconfig
+!.github/
+!.github/workflows/
+!.github/workflows/*.yml
+!.github/workflows/*.yaml
 
 # Agent instructions and vendored/local agent material.
 AGENTS.md

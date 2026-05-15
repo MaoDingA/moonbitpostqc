@@ -5,6 +5,7 @@ English | <a href="README.md">简体中文</a>
 </p>
 
 <p align="left">
+  <a href="https://github.com/MaoDingA/moonbitpostqc/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/MaoDingA/moonbitpostqc/actions/workflows/ci.yml/badge.svg"></a>
   <a href="README.en.md"><img alt="English current" src="https://img.shields.io/badge/English-current-0f766e?style=flat-square"></a>
   <a href="README.md"><img alt="简体中文 README" src="https://img.shields.io/badge/%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-README-64748b?style=flat-square"></a>
   <img alt="MoonBit native" src="https://img.shields.io/badge/MoonBit-native-8b5cf6?style=flat-square">
@@ -441,6 +442,22 @@ moonpost/
 ├── wasm-demo/       Browser demo shell and build script
 └── examples/        Sample subtitle files
 ```
+
+## CI
+
+This repository includes a GitHub Actions workflow at
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml). It runs on push, pull
+request, and manual dispatch.
+
+CI covers:
+
+- Run `moon fmt` and fail if formatting produces an uncommitted diff.
+- Run `moon info` and fail if generated package interfaces are out of sync.
+- Run `moon check --target native` and `moon check --target wasm-gc`.
+- Run `moon build --target native` and `moon build --target wasm-gc`.
+- Run `moon test --target native` and `moon test --target wasm-gc`.
+- Build the Wasm demo release asset and verify `wasm-demo/public/moonpost_qc.wasm`.
+- Run CLI smoke tests for timecode, subtitle conversion, and QC reports.
 
 ## Development
 

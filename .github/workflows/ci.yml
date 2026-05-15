@@ -1,0 +1,174 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Format, metadata, and checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install MoonBit
+        shell: bash
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: Show MoonBit version
+        shell: bash
+        run: moon --version
+
+      - name: Update package registry
+        shell: bash
+        run: moon update
+
+      - name: Check formatting
+        shell: bash
+        run: |
+          moon fmt
+          git diff --exit-code -- .
+
+      - name: Check generated package interfaces
+        shell: bash
+        run: |
+          moon info
+          git diff --exit-code -- .
+
+      - name: Check native target
+        shell: bash
+        run: moon check --target native
+
+      - name: Check wasm-gc target
+        shell: bash
+        run: moon check --target wasm-gc
+
+  build-and-test:
+    name: Build and test (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - native
+          - wasm-gc
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install MoonBit
+        shell: bash
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: Show MoonBit version
+        shell: bash
+        run: moon --version
+
+      - name: Update package registry
+        shell: bash
+        run: moon update
+
+      - name: Build ${{ matrix.target }}
+        shell: bash
+        run: moon build --target ${{ matrix.target }}
+
+      - name: Test ${{ matrix.target }}
+        shell: bash
+        run: moon test --target ${{ matrix.target }}
+
+  wasm-demo:
+    name: Build Wasm demo
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install MoonBit
+        shell: bash
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: Show MoonBit version
+        shell: bash
+        run: moon --version
+
+      - name: Update package registry
+        shell: bash
+        run: moon update
+
+      - name: Build wasm-gc package
+        shell: bash
+        run: moon build wasm_demo/core --target wasm-gc --release
+
+      - name: Build browser demo asset
+        shell: bash
+        run: ./wasm-demo/build.sh
+
+      - name: Verify browser demo asset
+        shell: bash
+        run: test -s wasm-demo/public/moonpost_qc.wasm
+
+  cli-smoke:
+    name: CLI smoke tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs:
+      - build-and-test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install MoonBit
+        shell: bash
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: Show MoonBit version
+        shell: bash
+        run: moon --version
+
+      - name: Update package registry
+        shell: bash
+        run: moon update
+
+      - name: Run timecode smoke test
+        shell: bash
+        run: |
+          output="$(moon run cmd/main --target native -- timecode to-frames 01:00:00:00 --fps 25)"
+          test "$output" = "01:00:00:00 @25fps = 90000 frames"
+
+      - name: Run subtitle conversion smoke test
+        shell: bash
+        run: |
+          moon run cmd/main --target native -- subtitle convert examples/good.srt --to webvtt > /tmp/good.vtt
+          grep -q '^WEBVTT$' /tmp/good.vtt
+
+      - name: Run QC smoke test
+        shell: bash
+        run: |
+          moon run cmd/main --target native -- qc examples/bad.srt --fps 25 --profile streaming > /tmp/qc-report.txt
+          grep -q 'summary: 3 errors, 7 warnings' /tmp/qc-report.txt
+          grep -q 'ERROR E101 cue#1' /tmp/qc-report.txt
