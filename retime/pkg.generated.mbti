@@ -1,0 +1,23 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "phenom8010/moonpost/retime"
+
+import {
+  "phenom8010/moonpost/subtitle",
+  "phenom8010/moonpost/timecode",
+}
+
+// Values
+pub fn convert_fps_cues(Array[@subtitle.Cue], @timecode.FrameRate, @timecode.FrameRate) -> Array[@subtitle.Cue]
+
+pub fn offset_cues(Array[@subtitle.Cue], Int) -> Array[@subtitle.Cue]
+
+pub fn snap_cues_to_frames(Array[@subtitle.Cue], @timecode.FrameRate) -> Array[@subtitle.Cue]
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

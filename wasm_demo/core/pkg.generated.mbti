@@ -1,0 +1,14 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "phenom8010/moonpost/wasm_demo/core"
+
+// Values
+pub fn qc_subtitle(String, String) -> String
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

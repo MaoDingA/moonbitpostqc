@@ -1,0 +1,14 @@
+import {
+  "phenom8010/moonpost/qc" @qc,
+  "phenom8010/moonpost/subtitle" @subtitle,
+}
+
+options(
+  link: {
+    "wasm-gc": {
+      "exports": [ "qc_subtitle" ],
+      "use-js-builtin-string": true,
+      "imported-string-constants": "_",
+    },
+  },
+)

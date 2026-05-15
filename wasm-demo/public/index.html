@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MoonPost QC</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">MoonPost</p>
+          <h1>Subtitle QC</h1>
+        </div>
+        <div class="status" id="runtime-status" aria-live="polite">
+          Loading Wasm
+        </div>
+      </header>
+
+      <section class="workspace" aria-label="Subtitle quality control">
+        <div class="pane input-pane">
+          <div class="pane-head">
+            <div>
+              <h2>Input</h2>
+              <p id="file-label">Paste SRT/WebVTT or drop a file</p>
+            </div>
+            <div class="actions">
+              <label class="icon-button" title="Open subtitle file">
+                <input
+                  id="file-input"
+                  type="file"
+                  accept=".srt,.vtt,.webvtt,text/plain"
+                />
+                <span aria-hidden="true">Open</span>
+              </label>
+              <button id="sample-button" type="button" title="Load sample">
+                Sample
+              </button>
+            </div>
+          </div>
+
+          <textarea
+            id="subtitle-input"
+            spellcheck="false"
+            aria-label="Subtitle text"
+          ></textarea>
+
+          <div
+            id="drop-zone"
+            class="drop-zone"
+            aria-label="Drop subtitle file here"
+          >
+            Drop subtitle here
+          </div>
+        </div>
+
+        <div class="pane report-pane">
+          <div class="pane-head">
+            <div>
+              <h2>Report</h2>
+              <p id="summary-label">No report yet</p>
+            </div>
+            <div class="controls">
+              <label>
+                Profile
+                <select id="profile-select" aria-label="QC profile">
+                  <option value="streaming">Streaming</option>
+                  <option value="cinema">Cinema</option>
+                  <option value="social-video">Social video</option>
+                  <option value="default">Default</option>
+                </select>
+              </label>
+              <button id="run-button" type="button">Run QC</button>
+            </div>
+          </div>
+
+          <pre id="report-output" aria-label="QC report"></pre>
+
+          <div class="report-actions">
+            <button id="copy-button" type="button" disabled>Copy Report</button>
+            <button id="download-button" type="button" disabled>
+              Download .txt
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

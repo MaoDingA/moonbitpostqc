@@ -1,0 +1,53 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "phenom8010/moonpost/qc"
+
+import {
+  "moonbitlang/core/debug",
+  "phenom8010/moonpost/subtitle",
+  "phenom8010/moonpost/timecode",
+}
+
+// Values
+pub fn check_cues(Array[@subtitle.Cue], QcProfile) -> Array[QcIssue]
+
+pub fn cinema_profile() -> QcProfile
+
+pub fn default_profile() -> QcProfile
+
+pub fn format_report(String, Array[QcIssue]) -> Array[String]
+
+pub fn profile_by_name(String) -> QcProfile?
+
+pub fn social_video_profile() -> QcProfile
+
+pub fn streaming_profile() -> QcProfile
+
+// Errors
+
+// Types and methods
+pub(all) struct QcIssue {
+  severity : Severity
+  code : String
+  cue_index : Int?
+  message : String
+} derive(Eq, @debug.Debug)
+
+pub(all) struct QcProfile {
+  max_cpl : Int
+  max_cps : Int
+  max_lines : Int
+  min_duration_ms : Int
+  max_duration_ms : Int
+  min_gap_frames : Int
+  frame_rate : @timecode.FrameRate?
+} derive(Eq, @debug.Debug)
+
+pub(all) enum Severity {
+  Error
+  Warning
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits
+

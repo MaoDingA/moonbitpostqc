@@ -1,0 +1,84 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "phenom8010/moonpost/cli"
+
+import {
+  "moonbitlang/core/debug",
+  "phenom8010/moonpost/timecode",
+}
+
+// Values
+pub fn help_lines(HelpTopic) -> Array[String]
+
+pub fn parse_command(Array[String]) -> Command
+
+pub fn parse_frame_rate(String) -> @timecode.FrameRate?
+
+// Errors
+
+// Types and methods
+pub(all) enum Command {
+  Qc(QcOptions)
+  Timecode(TimecodeCommand)
+  Subtitle(SubtitleCommand)
+  Retime(RetimeOptions)
+  Help(HelpTopic)
+} derive(Eq, @debug.Debug)
+
+pub(all) struct FrameCountOptions {
+  frames : Int
+  frame_rate : @timecode.FrameRate
+} derive(Eq, @debug.Debug)
+
+pub(all) enum HelpTopic {
+  RootHelp
+  QcHelp
+  TimecodeHelp
+  SubtitleHelp
+} derive(Eq, @debug.Debug)
+
+pub(all) struct QcOptions {
+  input : String
+  profile : String
+  frame_rate : @timecode.FrameRate?
+} derive(Eq, @debug.Debug)
+
+pub(all) struct RetimeOptions {
+  input : String
+  output : String?
+  offset_ms : Int
+  source_rate : @timecode.FrameRate?
+  target_rate : @timecode.FrameRate?
+  snap_rate : @timecode.FrameRate?
+} derive(Eq, @debug.Debug)
+
+pub(all) enum SubtitleCommand {
+  Convert(SubtitleConvertOptions)
+} derive(Eq, @debug.Debug)
+
+pub(all) struct SubtitleConvertOptions {
+  input : String
+  target : String
+  output : String?
+} derive(Eq, @debug.Debug)
+
+pub(all) enum TimecodeCommand {
+  ToFrames(TimecodeValueOptions)
+  FromFrames(FrameCountOptions)
+  ConvertTimecode(TimecodeConvertOptions)
+} derive(Eq, @debug.Debug)
+
+pub(all) struct TimecodeConvertOptions {
+  value : String
+  source_rate : @timecode.FrameRate
+  target_rate : @timecode.FrameRate
+} derive(Eq, @debug.Debug)
+
+pub(all) struct TimecodeValueOptions {
+  value : String
+  frame_rate : @timecode.FrameRate
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits
+

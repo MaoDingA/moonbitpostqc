@@ -1,0 +1,16 @@
+import {
+  "moonbitlang/async",
+  "moonbitlang/core/env" @env,
+  "moonbitlang/async/fs" @fs,
+  "phenom8010/moonpost/cli" @cli,
+  "phenom8010/moonpost/qc" @qc,
+  "phenom8010/moonpost/retime" @retime,
+  "phenom8010/moonpost/subtitle" @subtitle,
+  "phenom8010/moonpost/timecode" @timecode,
+}
+
+supported_targets = "+native"
+
+options(
+  is_main: true,
+)

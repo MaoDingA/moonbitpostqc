@@ -1,0 +1,19 @@
+{
+  "name": "phenom8010/moonpost",
+  "version": "0.1.0",
+  "readme": "README.md",
+  "repository": "",
+  "license": "Apache-2.0",
+  "keywords": [
+    "subtitle",
+    "timecode",
+    "qc",
+    "post-production",
+    "webvtt",
+    "srt"
+  ],
+  "description": "Pure MoonBit toolkit for subtitles, timecode, and post-production QC.",
+  "deps": {
+    "moonbitlang/async": "0.18.1"
+  }
+}

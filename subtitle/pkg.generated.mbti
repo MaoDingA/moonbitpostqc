@@ -1,0 +1,48 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "phenom8010/moonpost/subtitle"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn format_srt_timestamp(Int) -> String
+
+pub fn format_vtt_timestamp(Int) -> String
+
+pub fn parse_srt(String) -> SubtitleTrack?
+
+pub fn parse_timestamp_ms(String) -> Int?
+
+pub fn parse_webvtt(String) -> SubtitleTrack?
+
+pub fn write_srt(SubtitleTrack) -> String
+
+pub fn write_webvtt(SubtitleTrack) -> String
+
+// Errors
+
+// Types and methods
+pub(all) struct Cue {
+  index : Int?
+  identifier : String?
+  start_ms : Int
+  end_ms : Int
+  text : Array[String]
+  settings : String
+} derive(Eq, @debug.Debug)
+
+pub(all) enum SubtitleFormat {
+  Srt
+  WebVtt
+} derive(Eq, @debug.Debug)
+
+pub(all) struct SubtitleTrack {
+  format : SubtitleFormat
+  cues : Array[Cue]
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits
+

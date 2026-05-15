@@ -1,0 +1,25 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "phenom8010/moonpost/align"
+
+import {
+  "moonbitlang/core/debug",
+  "phenom8010/moonpost/subtitle",
+}
+
+// Values
+pub fn merge_bilingual(Array[@subtitle.Cue], Array[@subtitle.Cue], tolerance_ms~ : Int) -> Array[@subtitle.Cue]
+
+pub fn split_bilingual(Array[@subtitle.Cue]) -> BilingualSplit
+
+// Errors
+
+// Types and methods
+pub(all) struct BilingualSplit {
+  primary : Array[@subtitle.Cue]
+  secondary : Array[@subtitle.Cue]
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits
+
