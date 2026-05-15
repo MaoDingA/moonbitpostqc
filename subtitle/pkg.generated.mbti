@@ -12,9 +12,13 @@ pub fn format_vtt_timestamp(Int) -> String
 
 pub fn parse_srt(String) -> SubtitleTrack?
 
+pub fn parse_srt_detailed(String) -> Result[SubtitleTrack, ParseError]
+
 pub fn parse_timestamp_ms(String) -> Int?
 
 pub fn parse_webvtt(String) -> SubtitleTrack?
+
+pub fn parse_webvtt_detailed(String) -> Result[SubtitleTrack, ParseError]
 
 pub fn write_srt(SubtitleTrack) -> String
 
@@ -31,6 +35,14 @@ pub(all) struct Cue {
   text : Array[String]
   settings : String
 } derive(Eq, @debug.Debug)
+
+pub(all) struct ParseError {
+  format : SubtitleFormat?
+  block : Int
+  line : Int
+  message : String
+} derive(Eq, @debug.Debug)
+pub fn ParseError::format_message(Self) -> String
 
 pub(all) enum SubtitleFormat {
   Srt

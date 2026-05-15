@@ -7,6 +7,14 @@ fn Severity::label(self : Severity) -> String {
 }
 
 ///|
+fn Severity::json_label(self : Severity) -> String {
+  match self {
+    Error => "error"
+    Warning => "warning"
+  }
+}
+
+///|
 fn QcIssue::line(self : QcIssue) -> String {
   let cue = match self.cue_index {
     Some(index) => " cue#\{index}"
@@ -26,6 +34,16 @@ fn issue_counts(issues : Array[QcIssue]) -> (Int, Int) {
     }
   }
   (errors, warnings)
+}
+
+///|
+pub fn has_errors(issues : Array[QcIssue]) -> Bool {
+  for issue in issues {
+    if issue.severity == Error {
+      return true
+    }
+  }
+  false
 }
 
 ///|
@@ -55,4 +73,50 @@ pub fn format_report(name : String, issues : Array[QcIssue]) -> Array[String] {
     }
   }
   lines
+}
+
+///|
+fn int_json(value : Int) -> Json {
+  Json::number(Double::from_int(value), repr="\{value}")
+}
+
+///|
+fn optional_int_json(value : Int?) -> Json {
+  match value {
+    Some(value) => int_json(value)
+    None => Json::null()
+  }
+}
+
+///|
+fn issue_json(issue : QcIssue) -> Json {
+  Json::object(
+    Map([
+      ("severity", Json::string(issue.severity.json_label())),
+      ("code", Json::string(issue.code)),
+      ("cue_index", optional_int_json(issue.cue_index)),
+      ("message", Json::string(issue.message)),
+    ]),
+  )
+}
+
+///|
+pub fn format_json_report(name : String, issues : Array[QcIssue]) -> String {
+  let (errors, warnings) = issue_counts(issues)
+  let issue_values : Array[Json] = []
+  for issue in issues {
+    issue_values.push(issue_json(issue))
+  }
+  Json::object(
+    Map([
+      ("name", Json::string(name)),
+      (
+        "summary",
+        Json::object(
+          Map([("errors", int_json(errors)), ("warnings", int_json(warnings))]),
+        ),
+      ),
+      ("issues", Json::array(issue_values)),
+    ]),
+  ).stringify()
 }

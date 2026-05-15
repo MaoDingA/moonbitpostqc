@@ -154,21 +154,43 @@ jobs:
         shell: bash
         run: moon update
 
+      - name: Build native CLI executable
+        shell: bash
+        run: moon build cmd/main --target native
+
       - name: Run timecode smoke test
         shell: bash
         run: |
-          moon run cmd/main --target native -- timecode to-frames 01:00:00:00 --fps 25 > /tmp/timecode.txt
+          _build/native/debug/build/cmd/main/main.exe timecode to-frames 01:00:00:00 --fps 25 > /tmp/timecode.txt
           grep -q '01:00:00:00 @25fps = 90000 frames' /tmp/timecode.txt
 
       - name: Run subtitle conversion smoke test
         shell: bash
         run: |
-          moon run cmd/main --target native -- subtitle convert examples/good.srt --to webvtt > /tmp/good.vtt
+          _build/native/debug/build/cmd/main/main.exe subtitle convert examples/good.srt --to webvtt > /tmp/good.vtt
           grep -q '^WEBVTT$' /tmp/good.vtt
 
       - name: Run QC smoke test
         shell: bash
         run: |
-          moon run cmd/main --target native -- qc examples/bad.srt --fps 25 --profile streaming > /tmp/qc-report.txt
+          _build/native/debug/build/cmd/main/main.exe qc examples/bad.srt --fps 25 --profile streaming > /tmp/qc-report.txt
           grep -q 'summary: 3 errors, 7 warnings' /tmp/qc-report.txt
           grep -q 'ERROR E101 cue#1' /tmp/qc-report.txt
+
+      - name: Run QC fail-on-error smoke test
+        shell: bash
+        run: |
+          set +e
+          _build/native/debug/build/cmd/main/main.exe qc examples/bad.srt --fail-on-error > /tmp/qc-fail.txt
+          status=$?
+          set -e
+          test "$status" -eq 1
+          grep -q 'summary: 3 errors' /tmp/qc-fail.txt
+
+      - name: Run bilingual CLI smoke test
+        shell: bash
+        run: |
+          _build/native/debug/build/cmd/main/main.exe merge examples/good.srt examples/good.srt --tolerance 0ms > /tmp/merged.srt
+          grep -q 'Hello, welcome to MoonBit.' /tmp/merged.srt
+          _build/native/debug/build/cmd/main/main.exe split-bilingual examples/bilingual.srt --primary /tmp/primary.srt --secondary /tmp/secondary.srt
+          grep -q 'MoonBit makes subtitle tooling compact.' /tmp/secondary.srt

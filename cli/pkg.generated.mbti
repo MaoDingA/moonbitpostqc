@@ -21,6 +21,8 @@ pub(all) enum Command {
   Timecode(TimecodeCommand)
   Subtitle(SubtitleCommand)
   Retime(RetimeOptions)
+  Merge(MergeOptions)
+  SplitBilingual(SplitBilingualOptions)
   Help(HelpTopic)
 } derive(Eq, @debug.Debug)
 
@@ -34,12 +36,23 @@ pub(all) enum HelpTopic {
   QcHelp
   TimecodeHelp
   SubtitleHelp
+  MergeHelp
+  SplitBilingualHelp
+} derive(Eq, @debug.Debug)
+
+pub(all) struct MergeOptions {
+  primary : String
+  secondary : String
+  output : String?
+  tolerance_ms : Int
 } derive(Eq, @debug.Debug)
 
 pub(all) struct QcOptions {
   input : String
   profile : String
   frame_rate : @timecode.FrameRate?
+  output_json : Bool
+  fail_on_error : Bool
 } derive(Eq, @debug.Debug)
 
 pub(all) struct RetimeOptions {
@@ -49,6 +62,12 @@ pub(all) struct RetimeOptions {
   source_rate : @timecode.FrameRate?
   target_rate : @timecode.FrameRate?
   snap_rate : @timecode.FrameRate?
+} derive(Eq, @debug.Debug)
+
+pub(all) struct SplitBilingualOptions {
+  input : String
+  primary_output : String?
+  secondary_output : String?
 } derive(Eq, @debug.Debug)
 
 pub(all) enum SubtitleCommand {

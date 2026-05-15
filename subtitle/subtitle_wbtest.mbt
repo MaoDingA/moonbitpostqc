@@ -88,8 +88,33 @@ test "srt parser rejects malformed timing" {
 }
 
 ///|
+test "srt parser exposes line and block for malformed timing" {
+  match parse_srt_detailed("1\n00:00:61,000 --> 00:00:02,000\nBad\n") {
+    Err(error) => {
+      assert_true(error.format == Some(Srt))
+      assert_eq(error.block, 1)
+      assert_eq(error.line, 2)
+      assert_true(error.message.contains("timing"))
+    }
+    Ok(_) => fail("expected parse error")
+  }
+}
+
+///|
 test "webvtt parser rejects missing header" {
   assert_true(parse_webvtt("00:00:01.000 --> 00:00:02.000\nHello\n") is None)
+}
+
+///|
+test "webvtt parser exposes missing header error" {
+  match parse_webvtt_detailed("00:00:01.000 --> 00:00:02.000\nHello\n") {
+    Err(error) => {
+      assert_true(error.format == Some(WebVtt))
+      assert_eq(error.line, 1)
+      assert_true(error.message.contains("WEBVTT"))
+    }
+    Ok(_) => fail("expected parse error")
+  }
 }
 
 ///|

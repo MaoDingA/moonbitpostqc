@@ -60,6 +60,47 @@ test "human report includes filename and issue details" {
 }
 
 ///|
+test "json report includes summary and issue payload" {
+  let issues = [
+    QcIssue::{
+      severity: Error,
+      code: "E101",
+      cue_index: Some(42),
+      message: "overlaps cue#43 by 160ms",
+    },
+  ]
+  let report = format_json_report("movie.zh.srt", issues)
+  assert_true(report.contains("\"name\":\"movie.zh.srt\""))
+  assert_true(report.contains("\"errors\":1"))
+  assert_true(report.contains("\"severity\":\"error\""))
+  assert_true(report.contains("\"cue_index\":42"))
+}
+
+///|
+test "qc can detect whether issues contain errors" {
+  assert_true(
+    has_errors([
+      QcIssue::{
+        severity: Error,
+        code: "E101",
+        cue_index: Some(1),
+        message: "overlap",
+      },
+    ]),
+  )
+  assert_false(
+    has_errors([
+      QcIssue::{
+        severity: Warning,
+        code: "W203",
+        cue_index: Some(1),
+        message: "line too long",
+      },
+    ]),
+  )
+}
+
+///|
 test "qc exposes named delivery profiles" {
   match profile_by_name("cinema") {
     Some(profile) => {

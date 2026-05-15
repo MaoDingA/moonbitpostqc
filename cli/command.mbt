@@ -3,6 +3,8 @@ pub(all) struct QcOptions {
   input : String
   profile : String
   frame_rate : @timecode.FrameRate?
+  output_json : Bool
+  fail_on_error : Bool
 } derive(Eq, Debug)
 
 ///|
@@ -42,6 +44,21 @@ pub(all) struct RetimeOptions {
 } derive(Eq, Debug)
 
 ///|
+pub(all) struct MergeOptions {
+  primary : String
+  secondary : String
+  output : String?
+  tolerance_ms : Int
+} derive(Eq, Debug)
+
+///|
+pub(all) struct SplitBilingualOptions {
+  input : String
+  primary_output : String?
+  secondary_output : String?
+} derive(Eq, Debug)
+
+///|
 pub(all) enum TimecodeCommand {
   ToFrames(TimecodeValueOptions)
   FromFrames(FrameCountOptions)
@@ -59,6 +76,8 @@ pub(all) enum HelpTopic {
   QcHelp
   TimecodeHelp
   SubtitleHelp
+  MergeHelp
+  SplitBilingualHelp
 } derive(Eq, Debug)
 
 ///|
@@ -67,6 +86,8 @@ pub(all) enum Command {
   Timecode(TimecodeCommand)
   Subtitle(SubtitleCommand)
   Retime(RetimeOptions)
+  Merge(MergeOptions)
+  SplitBilingual(SplitBilingualOptions)
   Help(HelpTopic)
 } derive(Eq, Debug)
 
@@ -101,6 +122,11 @@ fn option_string(args : Array[String], flag : String) -> String? {
 ///|
 fn has_help(args : Array[String]) -> Bool {
   args.contains("--help") || args.contains("-h")
+}
+
+///|
+fn has_flag(args : Array[String], flag : String) -> Bool {
+  args.contains(flag)
 }
 
 ///|
@@ -177,6 +203,8 @@ fn parse_qc(args : Array[String]) -> Command {
       ),
       profile: option_value(args, "--profile", "default"),
       frame_rate: parse_frame_rate(option_value(args, "--fps", "")),
+      output_json: has_flag(args, "--json"),
+      fail_on_error: has_flag(args, "--fail-on-error"),
     })
   }
 }
@@ -275,12 +303,64 @@ fn parse_retime(args : Array[String]) -> Command {
 }
 
 ///|
+fn output_option(args : Array[String]) -> String? {
+  match option_string(args, "-o") {
+    Some(value) => Some(value)
+    None => option_string(args, "--output")
+  }
+}
+
+///|
+fn parse_merge(args : Array[String]) -> Command {
+  if has_help(args) {
+    Help(MergeHelp)
+  } else {
+    Merge({
+      primary: match args.get(2) {
+        Some(value) => value
+        None => ""
+      },
+      secondary: match args.get(3) {
+        Some(value) => value
+        None => ""
+      },
+      output: output_option(args),
+      tolerance_ms: parse_offset_ms(option_value(args, "--tolerance", "800ms")),
+    })
+  }
+}
+
+///|
+fn parse_split_bilingual(args : Array[String]) -> Command {
+  if has_help(args) {
+    Help(SplitBilingualHelp)
+  } else {
+    SplitBilingual({
+      input: match args.get(2) {
+        Some(value) => value
+        None => ""
+      },
+      primary_output: match option_string(args, "--primary") {
+        Some(value) => Some(value)
+        None => option_string(args, "--zh")
+      },
+      secondary_output: match option_string(args, "--secondary") {
+        Some(value) => Some(value)
+        None => option_string(args, "--en")
+      },
+    })
+  }
+}
+
+///|
 pub fn parse_command(args : Array[String]) -> Command {
   match args.get(1) {
     Some("qc") => parse_qc(args)
     Some("timecode") => parse_timecode(args)
     Some("subtitle") => parse_subtitle(args)
     Some("retime") => parse_retime(args)
+    Some("merge") => parse_merge(args)
+    Some("split-bilingual") => parse_split_bilingual(args)
     Some("--help") | Some("-h") => Help(RootHelp)
     _ => Help(RootHelp)
   }
@@ -294,10 +374,13 @@ pub fn help_lines(topic : HelpTopic) -> Array[String] {
         "MoonPost - subtitle, timecode and post-production QC toolkit", "", "Usage:",
         "  moonpost <command> [options]", "", "Commands:", "  qc          Check subtitle delivery quality",
         "  timecode    Convert SMPTE-style timecode and frame counts", "  subtitle    Convert subtitle formats",
-        "  retime      Shift, speed-convert, or snap subtitle timing",
+        "  retime      Shift, speed-convert, or snap subtitle timing", "  merge       Merge two subtitle tracks into bilingual cues",
+        "  split-bilingual", "              Split bilingual cues into two subtitle tracks",
       ]
     QcHelp =>
-      ["Usage:", "  moonpost qc <file> [--fps <rate>] [--profile <name>]"]
+      [
+        "Usage:", "  moonpost qc <file> [--fps <rate>] [--profile <name>] [--json] [--fail-on-error]",
+      ]
     TimecodeHelp =>
       [
         "Usage:", "  moonpost timecode to-frames <tc> --fps <rate>", "  moonpost timecode from-frames <frames> --fps <rate>",
@@ -306,6 +389,14 @@ pub fn help_lines(topic : HelpTopic) -> Array[String] {
     SubtitleHelp =>
       [
         "Usage:", "  moonpost subtitle convert <file> --to <srt|webvtt> [-o <file>]",
+      ]
+    MergeHelp =>
+      [
+        "Usage:", "  moonpost merge <primary.srt> <secondary.srt> [--tolerance <ms>] [-o <file>]",
+      ]
+    SplitBilingualHelp =>
+      [
+        "Usage:", "  moonpost split-bilingual <file> --primary <file> --secondary <file>",
       ]
   }
 }

@@ -14,22 +14,34 @@ fn is_blank(line : String) -> Bool {
 }
 
 ///|
-fn split_blocks(input : String) -> Array[Array[String]] {
-  let blocks : Array[Array[String]] = []
+priv struct SubtitleBlock {
+  line : Int
+  lines : Array[String]
+}
+
+///|
+fn split_blocks_with_lines(input : String) -> Array[SubtitleBlock] {
+  let blocks : Array[SubtitleBlock] = []
   let mut current : Array[String] = []
+  let mut current_line = 1
+  let mut line_number = 1
   for raw in input.split("\n") {
     let line = clean_line(raw.to_owned())
     if is_blank(line) {
       if current.length() > 0 {
-        blocks.push(current)
+        blocks.push({ line: current_line, lines: current })
         current = []
       }
     } else {
+      if current.length() == 0 {
+        current_line = line_number
+      }
       current.push(line)
     }
+    line_number += 1
   }
   if current.length() > 0 {
-    blocks.push(current)
+    blocks.push({ line: current_line, lines: current })
   }
   blocks
 }
@@ -65,23 +77,48 @@ fn parse_timing(line : String) -> (Int, Int, String)? {
 }
 
 ///|
-fn parse_srt_block(block : Array[String]) -> Cue? {
-  match block {
+fn parse_error(
+  format : SubtitleFormat,
+  block : Int,
+  line : Int,
+  message : String,
+) -> ParseError {
+  { format: Some(format), block, line, message }
+}
+
+///|
+fn parse_srt_block_detailed(
+  block : SubtitleBlock,
+  block_index : Int,
+) -> Result[Cue, ParseError] {
+  match block.lines {
     [first, second, .. rest] =>
-      match (parse_int(first), parse_timing(second)) {
-        (Some(index), Some((start_ms, end_ms, settings))) =>
-          Some({
-            index: Some(index),
-            identifier: None,
-            start_ms,
-            end_ms,
-            text: rest.to_owned(),
-            settings,
-          })
-        _ =>
+      match parse_int(first) {
+        Some(index) =>
+          match parse_timing(second) {
+            Some((start_ms, end_ms, settings)) =>
+              Ok({
+                index: Some(index),
+                identifier: None,
+                start_ms,
+                end_ms,
+                text: rest.to_owned(),
+                settings,
+              })
+            None =>
+              Err(
+                parse_error(
+                  Srt,
+                  block_index,
+                  block.line + 1,
+                  "invalid SRT timing line",
+                ),
+              )
+          }
+        None =>
           match parse_timing(first) {
             Some((start_ms, end_ms, settings)) =>
-              Some({
+              Ok({
                 index: None,
                 identifier: None,
                 start_ms,
@@ -89,13 +126,21 @@ fn parse_srt_block(block : Array[String]) -> Cue? {
                 text: [second] + rest.to_owned(),
                 settings,
               })
-            None => None
+            None =>
+              Err(
+                parse_error(
+                  Srt,
+                  block_index,
+                  block.line,
+                  "expected SRT timing line",
+                ),
+              )
           }
       }
     [only] =>
       match parse_timing(only) {
         Some((start_ms, end_ms, settings)) =>
-          Some({
+          Ok({
             index: None,
             identifier: None,
             start_ms,
@@ -103,61 +148,104 @@ fn parse_srt_block(block : Array[String]) -> Cue? {
             text: [],
             settings,
           })
-        None => None
+        None =>
+          Err(
+            parse_error(
+              Srt,
+              block_index,
+              block.line,
+              "expected SRT timing line",
+            ),
+          )
       }
-    _ => None
+    _ =>
+      Err(
+        parse_error(Srt, block_index, block.line, "expected non-empty SRT cue"),
+      )
   }
+}
+
+///|
+pub fn parse_srt_detailed(input : String) -> Result[SubtitleTrack, ParseError] {
+  let cues : Array[Cue] = []
+  let blocks = split_blocks_with_lines(input)
+  for index in 0..<blocks.length() {
+    match parse_srt_block_detailed(blocks[index], index + 1) {
+      Ok(cue) => cues.push(cue)
+      Err(error) => return Err(error)
+    }
+  }
+  Ok({ format: Srt, cues })
 }
 
 ///|
 pub fn parse_srt(input : String) -> SubtitleTrack? {
-  let cues : Array[Cue] = []
-  for block in split_blocks(input) {
-    match parse_srt_block(block) {
-      Some(cue) => cues.push(cue)
-      None => return None
-    }
+  match parse_srt_detailed(input) {
+    Ok(track) => Some(track)
+    Err(_) => None
   }
-  Some({ format: Srt, cues })
 }
 
 ///|
-fn parse_webvtt_block(block : Array[String]) -> Cue? {
-  match block {
+fn parse_webvtt_block_detailed(
+  block : SubtitleBlock,
+  block_index : Int,
+) -> Result[Cue, ParseError] {
+  match block.lines {
     [first, .. rest] =>
-      if first == "WEBVTT" || first.has_prefix("WEBVTT ") {
-        None
-      } else {
-        match parse_timing(first) {
-          Some((start_ms, end_ms, settings)) =>
-            Some({
-              index: None,
-              identifier: None,
-              start_ms,
-              end_ms,
-              text: rest.to_owned(),
-              settings,
-            })
-          None =>
-            match rest {
-              [timing, .. text] =>
-                match parse_timing(timing) {
-                  Some((start_ms, end_ms, settings)) =>
-                    Some({
-                      index: None,
-                      identifier: Some(first),
-                      start_ms,
-                      end_ms,
-                      text: text.to_owned(),
-                      settings,
-                    })
-                  None => None
-                }
-              _ => None
-            }
-        }
+      match parse_timing(first) {
+        Some((start_ms, end_ms, settings)) =>
+          Ok({
+            index: None,
+            identifier: None,
+            start_ms,
+            end_ms,
+            text: rest.to_owned(),
+            settings,
+          })
+        None =>
+          match rest {
+            [timing, .. text] =>
+              match parse_timing(timing) {
+                Some((start_ms, end_ms, settings)) =>
+                  Ok({
+                    index: None,
+                    identifier: Some(first),
+                    start_ms,
+                    end_ms,
+                    text: text.to_owned(),
+                    settings,
+                  })
+                None =>
+                  Err(
+                    parse_error(
+                      WebVtt,
+                      block_index,
+                      block.line + 1,
+                      "invalid WebVTT timing line",
+                    ),
+                  )
+              }
+            _ =>
+              Err(
+                parse_error(
+                  WebVtt,
+                  block_index,
+                  block.line,
+                  "expected WebVTT timing line",
+                ),
+              )
+          }
       }
-    _ => None
+    _ =>
+      Err(
+        parse_error(
+          WebVtt,
+          block_index,
+          block.line,
+          "expected non-empty WebVTT cue",
+        ),
+      )
   }
 }
 
@@ -170,29 +258,49 @@ fn is_webvtt_metadata_block(first : String) -> Bool {
 }
 
 ///|
-pub fn parse_webvtt(input : String) -> SubtitleTrack? {
-  let blocks = split_blocks(input)
+pub fn parse_webvtt_detailed(
+  input : String,
+) -> Result[SubtitleTrack, ParseError] {
+  let blocks = split_blocks_with_lines(input)
   let cues : Array[Cue] = []
   let mut saw_header = false
   for block in blocks {
-    match block.get(0) {
+    match block.lines.get(0) {
       Some(first) =>
         if first == "WEBVTT" || first.has_prefix("WEBVTT ") {
           saw_header = true
+        }
+      None => ()
+    }
+  }
+  if !saw_header {
+    return Err(parse_error(WebVtt, 1, 1, "missing WEBVTT header"))
+  }
+  let mut cue_block = 0
+  for block in blocks {
+    match block.lines.get(0) {
+      Some(first) =>
+        if first == "WEBVTT" || first.has_prefix("WEBVTT ") {
+          ()
         } else if is_webvtt_metadata_block(first) {
           ()
         } else {
-          match parse_webvtt_block(block) {
-            Some(cue) => cues.push(cue)
-            None => return None
+          cue_block += 1
+          match parse_webvtt_block_detailed(block, cue_block) {
+            Ok(cue) => cues.push(cue)
+            Err(error) => return Err(error)
           }
         }
       None => ()
     }
   }
-  if saw_header {
-    Some({ format: WebVtt, cues })
-  } else {
-    None
+  Ok({ format: WebVtt, cues })
+}
+
+///|
+pub fn parse_webvtt(input : String) -> SubtitleTrack? {
+  match parse_webvtt_detailed(input) {
+    Ok(track) => Some(track)
+    Err(_) => None
   }
 }

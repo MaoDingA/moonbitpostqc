@@ -76,14 +76,24 @@ pub fn FrameRate::frame_duration_ms(self : FrameRate) -> Int {
 }
 
 ///|
+fn scale_rounded(value : Int, numerator : Int, denominator : Int) -> Int {
+  if value < 0 {
+    -scale_rounded(-value, numerator, denominator)
+  } else {
+    let scaled = Int64::from_int(value) * Int64::from_int(numerator)
+    let divisor = Int64::from_int(denominator)
+    ((scaled + divisor / Int64::from_int(2)) / divisor).to_int()
+  }
+}
+
+///|
 pub fn FrameRate::frames_to_ms(self : FrameRate, frames : Int) -> Int {
-  (frames * self.denominator() * 1000 + self.numerator() / 2) / self.numerator()
+  scale_rounded(frames, self.denominator() * 1000, self.numerator())
 }
 
 ///|
 pub fn FrameRate::ms_to_frames(self : FrameRate, ms : Int) -> Int {
-  let denominator = self.denominator() * 1000
-  (ms * self.numerator() + denominator / 2) / denominator
+  scale_rounded(ms, self.numerator(), self.denominator() * 1000)
 }
 
 ///|
@@ -253,7 +263,7 @@ pub fn rescale_ms_between_rates(
   source_rate : FrameRate,
   target_rate : FrameRate,
 ) -> Int {
-  let numerator = ms * source_rate.numerator() * target_rate.denominator()
+  let numerator = source_rate.numerator() * target_rate.denominator()
   let denominator = source_rate.denominator() * target_rate.numerator()
-  (numerator + denominator / 2) / denominator
+  scale_rounded(ms, numerator, denominator)
 }

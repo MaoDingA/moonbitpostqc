@@ -19,3 +19,16 @@ pub(all) struct SubtitleTrack {
   format : SubtitleFormat
   cues : Array[Cue]
 } derive(Eq, Debug)
+
+///|
+pub(all) struct ParseError {
+  format : SubtitleFormat?
+  block : Int
+  line : Int
+  message : String
+} derive(Eq, Debug)
+
+///|
+pub fn ParseError::format_message(self : ParseError) -> String {
+  "line \{self.line}, block \{self.block}: \{self.message}"
+}

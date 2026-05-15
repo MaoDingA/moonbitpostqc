@@ -119,6 +119,9 @@ Commands:
   timecode    Convert SMPTE-style timecode and frame counts
   subtitle    Convert subtitle formats
   retime      Shift, speed-convert, or snap subtitle timing
+  merge       Merge two subtitle tracks into bilingual cues
+  split-bilingual
+              Split bilingual cues into two subtitle tracks
 ```
 
 ## Subtitle QC
@@ -127,6 +130,20 @@ Run QC on an SRT or WebVTT file:
 
 ```bash
 moon run cmd/main --target native -- qc examples/bad.srt --fps 25 --profile streaming
+```
+
+Emit a JSON report:
+
+```bash
+moon run cmd/main --target native -- qc examples/good.srt --json
+```
+
+After building the native CLI, `--fail-on-error` returns a non-zero exit code
+when Error-level issues are found:
+
+```bash
+moon build cmd/main --target native
+_build/native/debug/build/cmd/main/main.exe qc examples/bad.srt --fail-on-error
 ```
 
 Example report:
@@ -356,7 +373,9 @@ Subtitle:
 
 ```text
 parse_srt(String) -> SubtitleTrack?
+parse_srt_detailed(String) -> Result[SubtitleTrack, ParseError]
 parse_webvtt(String) -> SubtitleTrack?
+parse_webvtt_detailed(String) -> Result[SubtitleTrack, ParseError]
 write_srt(SubtitleTrack) -> String
 write_webvtt(SubtitleTrack) -> String
 parse_timestamp_ms(String) -> Int?
@@ -374,6 +393,8 @@ social_video_profile() -> QcProfile
 profile_by_name(String) -> QcProfile?
 check_cues(Array[Cue], QcProfile) -> Array[QcIssue]
 format_report(String, Array[QcIssue]) -> Array[String]
+format_json_report(String, Array[QcIssue]) -> String
+has_errors(Array[QcIssue]) -> Bool
 ```
 
 Retime:

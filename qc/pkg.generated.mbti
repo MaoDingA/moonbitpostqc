@@ -14,7 +14,11 @@ pub fn cinema_profile() -> QcProfile
 
 pub fn default_profile() -> QcProfile
 
+pub fn format_json_report(String, Array[QcIssue]) -> String
+
 pub fn format_report(String, Array[QcIssue]) -> Array[String]
+
+pub fn has_errors(Array[QcIssue]) -> Bool
 
 pub fn profile_by_name(String) -> QcProfile?
 

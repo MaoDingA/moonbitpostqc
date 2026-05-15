@@ -37,6 +37,26 @@ test "23.976 to 25 conversion preserves real time" {
 }
 
 ///|
+test "23.976 hour conversion avoids integer overflow" {
+  let source = Timecode::{
+    hour: 1,
+    minute: 0,
+    second: 0,
+    frame: 0,
+    rate: Fps23976,
+  }
+  assert_eq(Fps23976.frames_to_ms(source.to_frames()), 3603600)
+  let converted = convert_timecode(source, Fps25)
+  assert_eq(converted.to_frames(), 90090)
+  assert_eq(converted.format(), "01:00:03:15")
+}
+
+///|
+test "fps retime helper avoids integer overflow on long cues" {
+  assert_eq(rescale_ms_between_rates(3600000, Fps23976, Fps25), 3452547)
+}
+
+///|
 test "invalid frame number is rejected" {
   assert_true(parse_timecode("00:00:01:25", Fps25) is None)
   assert_true(parse_timecode("00:00:01;02", Fps2997NonDrop) is None)
