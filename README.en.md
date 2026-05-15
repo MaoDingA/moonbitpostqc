@@ -63,39 +63,15 @@ Common workflows:
 
 ## Intended Users
 
-MoonPost is built for people and teams who work with subtitle text, delivery
-checks, and time-based post-production data.
+MoonPost is primarily for users who directly handle subtitle files and delivery
+checks.
 
 | User | How MoonPost helps |
 | --- | --- |
 | Subtitle editors | Finds overlaps, empty cues, long lines, short durations, and reading-speed issues before handoff. |
-| Localization teams | Provides repeatable SRT/WebVTT checks during translation and review. |
-| Post-production assistants | Converts frame counts, validates timecode, and retimes subtitle files after timeline changes. |
-| Streaming and media QA teams | Produces consistent human-readable QC reports for delivery review. |
-| Creators and publishers | Converts SRT/WebVTT files and catches common subtitle problems before upload. |
-| Tool builders | Reuses pure MoonBit parser, QC, retime, and Wasm-ready packages in custom workflows. |
-| MoonBit developers | Offers a practical example of text parsing, CLI tooling, tests, and WebAssembly integration. |
-
-## Project Status
-
-MoonPost is currently an early project. The core packages are usable for local
-tools and demos, but public APIs may still evolve before a stable release.
-
-Current implemented scope:
-
-| Area | Status |
-| --- | --- |
-| Timecode | Implemented |
-| SRT parser/writer | Implemented |
-| WebVTT parser/writer | Implemented |
-| Subtitle QC | Implemented |
-| CLI | Implemented |
-| Retime helpers | Implemented |
-| Bilingual merge/split helpers | Implemented in library API |
-| Browser Wasm demo | Implemented |
-| ASS/SSA | Not implemented |
-| TTML/IMSC | Not implemented |
-| Media container inspection | Not implemented |
+| Localization teams | Runs repeatable SRT/WebVTT checks during translation, review, and handoff. |
+| Post-production and media QA | Checks timecode, frame grids, cue gaps, and readable QC reports. |
+| Creators and publishers | Converts subtitle formats and catches common subtitle problems before upload. |
 
 ## Requirements
 
