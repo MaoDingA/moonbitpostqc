@@ -1,130 +1,123 @@
 # MoonPost
 
 <p align="right">
-English | <a href="README.zh-CN.md">简体中文</a>
+<a href="README.en.md">English</a> | 简体中文
 </p>
 
-MoonPost is a pure MoonBit toolkit for subtitles, timecode, and post-production
-quality control.
+MoonPost 是一个用 MoonBit 编写的字幕、时间码与后期交付质检工具包。
 
-It is designed for text-based media delivery work: checking SRT/WebVTT subtitle
-files, converting subtitle formats, calculating SMPTE-style timecode, retiming
-cues, and running the same core logic from a native CLI or a browser-local
-WebAssembly demo.
+它面向文本型媒体交付工作：检查 SRT/WebVTT 字幕文件、转换字幕格式、
+计算 SMPTE 风格时间码、重定时字幕 cue，并让同一套核心逻辑可以运行在
+native CLI 和浏览器本地 WebAssembly demo 中。
 
-MoonPost does not decode video, transcode media, or wrap FFmpeg. Its scope is
-the post-production infrastructure layer that can be implemented
-deterministically in MoonBit: parsers, data models, QC rules, reports, CLI
-tools, and Wasm-ready core packages.
+MoonPost 不做视频解码、转码或 FFmpeg 封装。项目关注的是适合用 MoonBit
+确定性实现的后期基础设施层：parser、数据模型、QC 规则、报告、CLI 工具
+和 Wasm-ready 核心包。
 
-## Features
+## 功能
 
-- Parse and write SRT subtitle files.
-- Parse and write WebVTT subtitle files.
-- Convert SRT to WebVTT and WebVTT to SRT.
-- Parse and format SMPTE-style timecode.
-- Convert timecode to frame counts and frame counts to timecode.
-- Support common frame rates: `23.976`, `24`, `25`, `29.97`, `29.97df`, `30`,
-  `50`, `59.94`, and `59.94df`.
-- Run subtitle QC checks for overlap, invalid duration, empty cue text,
-  duration limits, line length, line count, reading speed, frame alignment, and
-  minimum cue gaps.
-- Retime subtitles by offset, frame-rate conversion, or frame snapping.
-- Merge and split bilingual subtitle tracks in the library API.
-- Build a browser-local Wasm demo that checks subtitles without uploading files.
+- 解析和写出 SRT 字幕文件。
+- 解析和写出 WebVTT 字幕文件。
+- 支持 SRT 与 WebVTT 相互转换。
+- 解析和格式化 SMPTE 风格时间码。
+- 支持时间码与帧数互转。
+- 支持常用帧率：`23.976`、`24`、`25`、`29.97`、`29.97df`、`30`、
+  `50`、`59.94`、`59.94df`。
+- 提供字幕 QC 检查：时间重叠、非法时长、空字幕、时长上下限、单行字符数、
+  行数、阅读速度、帧网格对齐和最小 cue 间隔。
+- 支持按整体偏移、帧率转换或帧吸附重定时字幕。
+- 在库 API 中提供双语字幕合并和拆分能力。
+- 提供浏览器本地 Wasm demo，不上传字幕文件即可运行 QC。
 
-## Use Cases
+## 使用场景
 
-MoonPost is useful when a subtitle or post-production workflow needs a small,
-repeatable checker before files are delivered or published.
+MoonPost 适合需要在交付或发布前对字幕、时间码和后期文本数据做稳定检查的
+工作流。
 
-Common workflows:
+常见场景：
 
-- Check a subtitle file before delivery to a streaming or publishing platform.
-- Convert creator subtitles between SRT and WebVTT.
-- Verify that subtitle cues do not overlap.
-- Catch very short, very long, empty, or hard-to-read cues.
-- Check whether subtitle timing aligns with a target frame grid.
-- Shift subtitles after an edit or sync change.
-- Convert cue timing between frame-rate assumptions.
-- Run QC in a browser without sending subtitle text to a server.
+- 在交付给流媒体平台或发布平台前检查字幕文件。
+- 在创作者工具链中转换 SRT 和 WebVTT。
+- 检查字幕 cue 是否存在时间重叠。
+- 发现过短、过长、空文本或阅读速度过高的字幕。
+- 检查字幕时间点是否对齐目标帧网格。
+- 在剪辑变更后整体平移字幕。
+- 在不同帧率假设之间转换 cue 时间。
+- 在浏览器中本地运行 QC，不把字幕文本发送到服务器。
 
-## Intended Users
+## 适用人群
 
-MoonPost is built for people and teams who work with subtitle text, delivery
-checks, and time-based post-production data.
+MoonPost 面向处理字幕文本、交付检查和时间型后期数据的个人与团队。
 
-| User | How MoonPost helps |
+| 用户 | MoonPost 能提供什么 |
 | --- | --- |
-| Subtitle editors | Finds overlaps, empty cues, long lines, short durations, and reading-speed issues before handoff. |
-| Localization teams | Provides repeatable SRT/WebVTT checks during translation and review. |
-| Post-production assistants | Converts frame counts, validates timecode, and retimes subtitle files after timeline changes. |
-| Streaming and media QA teams | Produces consistent human-readable QC reports for delivery review. |
-| Creators and publishers | Converts SRT/WebVTT files and catches common subtitle problems before upload. |
-| Tool builders | Reuses pure MoonBit parser, QC, retime, and Wasm-ready packages in custom workflows. |
-| MoonBit developers | Offers a practical example of text parsing, CLI tooling, tests, and WebAssembly integration. |
+| 字幕编辑 | 在交付前发现重叠、空字幕、超长行、过短时长和阅读速度问题。 |
+| 本地化团队 | 在翻译、审校和回传过程中提供可重复的 SRT/WebVTT 检查。 |
+| 后期助理 | 转换帧数、验证时间码，并在时间线调整后重定时字幕文件。 |
+| 流媒体与媒体 QA 团队 | 生成一致、可读的人类友好型交付 QC 报告。 |
+| 创作者与发布者 | 在上传前转换 SRT/WebVTT 并捕获常见字幕问题。 |
+| 工具开发者 | 在自定义工作流中复用纯 MoonBit parser、QC、retime 和 Wasm-ready 包。 |
+| MoonBit 开发者 | 参考一个覆盖文本解析、CLI、测试和 WebAssembly 集成的实际项目。 |
 
-## Project Status
+## 项目状态
 
-MoonPost is currently an early project. The core packages are usable for local
-tools and demos, but public APIs may still evolve before a stable release.
+MoonPost 目前处于早期阶段。核心包已经可用于本地工具和 demo，但公开 API
+在稳定版本前仍可能调整。
 
-Current implemented scope:
+当前实现范围：
 
-| Area | Status |
+| 模块 | 状态 |
 | --- | --- |
-| Timecode | Implemented |
-| SRT parser/writer | Implemented |
-| WebVTT parser/writer | Implemented |
-| Subtitle QC | Implemented |
-| CLI | Implemented |
-| Retime helpers | Implemented |
-| Bilingual merge/split helpers | Implemented in library API |
-| Browser Wasm demo | Implemented |
-| ASS/SSA | Not implemented |
-| TTML/IMSC | Not implemented |
-| Media container inspection | Not implemented |
+| Timecode | 已实现 |
+| SRT parser/writer | 已实现 |
+| WebVTT parser/writer | 已实现 |
+| 字幕 QC | 已实现 |
+| CLI | 已实现 |
+| Retime helpers | 已实现 |
+| 双语合并/拆分 helpers | 已在库 API 中实现 |
+| 浏览器 Wasm demo | 已实现 |
+| ASS/SSA | 未实现 |
+| TTML/IMSC | 未实现 |
+| 媒体容器信息检查 | 未实现 |
 
-## Requirements
+## 环境要求
 
-- MoonBit toolchain.
-- A shell environment for running `moon` commands.
-- Python 3 only if you want to serve the local Wasm demo with the example
-  command below.
+- MoonBit 工具链。
+- 可运行 `moon` 命令的 shell 环境。
+- 如果要用示例命令启动本地 Wasm demo，需要 Python 3。
 
-This repository is tested with the current local MoonBit toolchain used during
-development:
+开发过程中测试过的本地 MoonBit 工具链：
 
 ```text
 moon 0.1.20260512
 moonc v0.9.2
 ```
 
-## Quick Start
+## 快速开始
 
-Clone the repository and run the test suite:
+克隆仓库后运行测试：
 
 ```bash
 moon test --target native
 moon test --target wasm-gc
 ```
 
-Run the CLI from source:
+从源码运行 CLI：
 
 ```bash
 moon run cmd/main --target native -- --help
 ```
 
-The source-run prefix is:
+源码运行前缀是：
 
 ```bash
 moon run cmd/main --target native --
 ```
 
-The examples below use that prefix. If the command is packaged as a standalone
-binary later, replace the prefix with `moonpost`.
+下面的示例都会使用这个前缀。如果之后发布独立二进制，可以把该前缀替换为
+`moonpost`。
 
-## CLI Overview
+## CLI 概览
 
 ```text
 MoonPost - subtitle, timecode and post-production QC toolkit
@@ -139,15 +132,15 @@ Commands:
   retime      Shift, speed-convert, or snap subtitle timing
 ```
 
-## Subtitle QC
+## 字幕 QC
 
-Run QC on an SRT or WebVTT file:
+检查 SRT 或 WebVTT 文件：
 
 ```bash
 moon run cmd/main --target native -- qc examples/bad.srt --fps 25 --profile streaming
 ```
 
-Example report:
+示例报告：
 
 ```text
 examples/bad.srt
@@ -167,74 +160,73 @@ ERROR E101 cue#1 | overlaps cue#2 by 100ms
 
 ### QC Profiles
 
-Profiles provide practical defaults for different delivery contexts.
+Profiles 为不同交付上下文提供实用默认值。
 
-| Profile | Max CPL | Max CPS | Max lines | Min duration | Max duration | Min gap | Frame grid |
+| Profile | 最大 CPL | 最大 CPS | 最大行数 | 最小时长 | 最大时长 | 最小间隔 | 帧网格 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-| `default` | 42 | 20 | 2 | 800ms | 7000ms | 2 frames | none |
+| `default` | 42 | 20 | 2 | 800ms | 7000ms | 2 frames | 无 |
 | `streaming` | 42 | 20 | 2 | 800ms | 7000ms | 2 frames | 25fps |
 | `cinema` | 32 | 17 | 2 | 1000ms | 6000ms | 2 frames | 24fps |
 | `social-video` | 30 | 24 | 2 | 500ms | 5000ms | 1 frame | 30fps |
 
-The CLI also accepts `--fps <rate>` to override the profile frame grid for a QC
-run.
+CLI 也支持通过 `--fps <rate>` 覆盖当前 profile 的帧网格。
 
-### QC Rule Codes
+### QC 规则代码
 
-| Code | Severity | Meaning |
+| Code | 级别 | 含义 |
 | --- | --- | --- |
-| `E101` | Error | Cue overlaps the next cue. |
-| `E102` | Error | Cue end time is not after start time. |
-| `E201` | Error | Cue text is empty. |
-| `W201` | Warning | Cue duration is shorter than the active profile allows. |
-| `W202` | Warning | Cue duration is longer than the active profile allows. |
-| `W203` | Warning | A text line exceeds the active CPL limit. |
-| `W204` | Warning | Cue has more lines than the active profile allows. |
-| `W310` | Warning | Reading speed exceeds the active CPS limit. |
-| `W401` | Warning | Cue timing is not aligned to the active frame grid. |
-| `W402` | Warning | Gap to the next cue is below the active frame-gap limit. |
+| `E101` | Error | 当前 cue 与下一个 cue 时间重叠。 |
+| `E102` | Error | cue 结束时间不晚于开始时间。 |
+| `E201` | Error | cue 文本为空。 |
+| `W201` | Warning | cue 时长短于当前 profile 允许值。 |
+| `W202` | Warning | cue 时长长于当前 profile 允许值。 |
+| `W203` | Warning | 某一行文本超过当前 CPL 限制。 |
+| `W204` | Warning | cue 行数超过当前 profile 允许值。 |
+| `W310` | Warning | 阅读速度超过当前 CPS 限制。 |
+| `W401` | Warning | cue 时间未对齐当前帧网格。 |
+| `W402` | Warning | 与下一个 cue 的间隔低于当前帧间隔限制。 |
 
-## Timecode
+## 时间码
 
-Convert a SMPTE-style timecode value to frames:
+把 SMPTE 风格时间码转换为帧数：
 
 ```bash
 moon run cmd/main --target native -- timecode to-frames 01:00:00:00 --fps 25
 ```
 
-Output:
+输出：
 
 ```text
 01:00:00:00 @25fps = 90000 frames
 ```
 
-Convert a frame count back to timecode:
+把帧数转换回时间码：
 
 ```bash
 moon run cmd/main --target native -- timecode from-frames 90000 --fps 25
 ```
 
-Output:
+输出：
 
 ```text
 90000 frames @25fps = 01:00:00:00
 ```
 
-Convert a timecode between frame-rate assumptions:
+在不同帧率假设之间转换时间码：
 
 ```bash
 moon run cmd/main --target native -- timecode convert 01:00:00:00 --from 23.976 --to 25
 ```
 
-Output:
+输出：
 
 ```text
 01:00:00:00 @23.976fps = 00:00:24:12 @25fps
 ```
 
-Supported CLI frame-rate values:
+支持的 CLI 帧率值：
 
-| Value | Meaning |
+| Value | 含义 |
 | --- | --- |
 | `23.976`, `23976` | 23.976fps |
 | `24` | 24fps |
@@ -246,47 +238,46 @@ Supported CLI frame-rate values:
 | `59.94`, `5994` | 59.94 non-drop |
 | `59.94df`, `59.94DF`, `59.94-drop`, `5994df` | 59.94 drop-frame |
 
-## Subtitle Conversion
+## 字幕转换
 
-Convert SRT to WebVTT:
+SRT 转 WebVTT：
 
 ```bash
 moon run cmd/main --target native -- subtitle convert examples/good.srt --to webvtt
 ```
 
-Write converted output to a file:
+写出到文件：
 
 ```bash
 moon run cmd/main --target native -- subtitle convert examples/good.srt --to webvtt -o output.vtt
 ```
 
-Convert WebVTT to SRT:
+WebVTT 转 SRT：
 
 ```bash
 moon run cmd/main --target native -- subtitle convert examples/good.vtt --to srt -o output.srt
 ```
 
-Implemented parser behavior:
+已实现的 parser 行为：
 
-- SRT cues may include numeric cue indexes.
-- SRT cues without numeric indexes are accepted.
-- WebVTT files must include a `WEBVTT` header.
-- WebVTT cue identifiers are preserved.
-- WebVTT cue settings are preserved when writing WebVTT.
-- WebVTT `NOTE`, `STYLE`, and `REGION` metadata blocks are skipped by the
-  parser.
-- UTF-8 BOM at the start of a subtitle file is tolerated.
-- CRLF line endings are tolerated.
+- SRT cue 可以包含数字序号。
+- SRT cue 没有数字序号时也可解析。
+- WebVTT 文件必须包含 `WEBVTT` header。
+- WebVTT cue identifier 会被保留。
+- 写出 WebVTT 时会保留 cue settings。
+- WebVTT `NOTE`、`STYLE`、`REGION` metadata block 会被 parser 跳过。
+- 可处理文件开头的 UTF-8 BOM。
+- 可处理 CRLF 行尾。
 
 ## Retime
 
-Shift all cues by an offset:
+整体平移所有 cue：
 
 ```bash
 moon run cmd/main --target native -- retime examples/good.srt --offset +1200ms
 ```
 
-Output:
+输出：
 
 ```text
 1
@@ -298,66 +289,65 @@ Hello, welcome to MoonBit.
 This subtitle is ready for QC.
 ```
 
-Write retimed output to a file:
+把重定时结果写入文件：
 
 ```bash
 moon run cmd/main --target native -- retime examples/good.srt --offset -500ms -o shifted.srt
 ```
 
-Convert cue timing between frame-rate assumptions:
+在不同帧率假设之间转换 cue 时间：
 
 ```bash
 moon run cmd/main --target native -- retime examples/good.srt --from-fps 23.976 --to-fps 25 -o converted.srt
 ```
 
-Snap cue timing to a frame grid:
+把 cue 时间吸附到帧网格：
 
 ```bash
 moon run cmd/main --target native -- retime examples/good.srt --snap-fps 25 -o snapped.srt
 ```
 
-## Browser-Local Wasm Demo
+## 浏览器本地 Wasm Demo
 
-MoonPost includes a small browser demo for local subtitle QC. The demo loads
-the MoonBit `wasm-gc` build and runs QC in the browser. Subtitle text stays in
-the local browser session.
+MoonPost 包含一个本地字幕 QC 浏览器 demo。该 demo 加载 MoonBit `wasm-gc`
+构建产物，并在浏览器中运行 QC。字幕文本保留在本地浏览器会话中。
 
-Build the Wasm asset:
+构建 Wasm 产物：
 
 ```bash
 ./wasm-demo/build.sh
 ```
 
-Serve the demo:
+启动本地服务：
 
 ```bash
 python3 -m http.server 8765 --directory wasm-demo/public
 ```
 
-Open:
+打开：
 
 ```text
 http://localhost:8765
 ```
 
-The demo expects a browser with WebAssembly GC and JS string builtins support.
+该 demo 需要浏览器支持 WebAssembly GC 和 JS string builtins。
 
 ## Library Packages
 
-MoonPost is organized as small MoonBit packages. Public APIs are summarized by
-the generated `pkg.generated.mbti` files.
+MoonPost 由多个小型 MoonBit package 组成。公开 API 可参考生成的
+`pkg.generated.mbti` 文件。
 
-| Package | Purpose |
+| Package | 用途 |
 | --- | --- |
-| `phenom8010/moonpost/timecode` | Frame rates, timecode parsing, frame conversion, drop-frame math. |
-| `phenom8010/moonpost/subtitle` | SRT/WebVTT parsing, timestamp formatting, subtitle writing. |
-| `phenom8010/moonpost/qc` | QC profiles, issue model, cue checks, report formatting. |
-| `phenom8010/moonpost/retime` | Offset, frame-rate conversion, frame snapping for cues. |
-| `phenom8010/moonpost/align` | Bilingual merge and split helpers. |
-| `phenom8010/moonpost/cli` | CLI argument parser. |
-| `phenom8010/moonpost/wasm_demo/core` | Wasm-exported `qc_subtitle` entry point for the demo. |
+| `phenom8010/moonpost/timecode` | 帧率、时间码解析、帧数转换、drop-frame 计算。 |
+| `phenom8010/moonpost/subtitle` | SRT/WebVTT 解析、时间戳格式化、字幕写出。 |
+| `phenom8010/moonpost/qc` | QC profiles、issue 模型、cue 检查、报告格式化。 |
+| `phenom8010/moonpost/retime` | cue 的整体偏移、帧率转换和帧吸附。 |
+| `phenom8010/moonpost/align` | 双语字幕合并和拆分 helpers。 |
+| `phenom8010/moonpost/cli` | CLI 参数解析。 |
+| `phenom8010/moonpost/wasm_demo/core` | demo 使用的 Wasm 导出 `qc_subtitle`。 |
 
-### Core Public APIs
+### 核心公开 API
 
 Timecode:
 
@@ -415,93 +405,91 @@ Wasm demo core:
 qc_subtitle(String, String) -> String
 ```
 
-## Repository Layout
+## 仓库结构
 
 ```text
 moonpost/
-├── timecode/        SMPTE-style timecode and frame-rate helpers
-├── subtitle/        SRT/WebVTT parser and writer
-├── qc/              Subtitle delivery QC rules and report formatting
-├── retime/          Offset, frame-rate conversion, and frame snapping
-├── align/           Bilingual subtitle helpers
-├── cli/             Command parser
-├── cmd/main/        Native CLI entry point
-├── wasm_demo/core/  MoonBit Wasm export package
-├── wasm-demo/       Browser demo shell and build script
-└── examples/        Sample subtitle files
+├── timecode/        SMPTE 风格时间码和帧率 helpers
+├── subtitle/        SRT/WebVTT parser 和 writer
+├── qc/              字幕交付 QC 规则和报告格式化
+├── retime/          整体偏移、帧率转换和帧吸附
+├── align/           双语字幕 helpers
+├── cli/             命令解析
+├── cmd/main/        Native CLI 入口
+├── wasm_demo/core/  MoonBit Wasm 导出包
+├── wasm-demo/       浏览器 demo shell 和构建脚本
+└── examples/        示例字幕文件
 ```
 
-## Development
+## 开发
 
-Run all native tests:
+运行 native 测试：
 
 ```bash
 moon test --target native
 ```
 
-Run Wasm-GC compatible tests:
+运行 Wasm-GC 兼容测试：
 
 ```bash
 moon test --target wasm-gc
 ```
 
-Check native and Wasm-GC targets:
+检查 native 和 Wasm-GC target：
 
 ```bash
 moon check --target native
 moon check --target wasm-gc
 ```
 
-Format source:
+格式化源码：
 
 ```bash
 moon fmt
 ```
 
-Regenerate public interface summaries:
+重新生成公开接口摘要：
 
 ```bash
 moon info
 ```
 
-Build the Wasm demo core:
+构建 Wasm demo core：
 
 ```bash
 moon build wasm_demo/core --target wasm-gc --release
 ```
 
-## Design Principles
+## 设计原则
 
-- Keep the core pure MoonBit.
-- Prefer deterministic checks over media decoding.
-- Keep subtitle text local by default.
-- Make CLI output readable by editors, subtitle authors, and developers.
-- Keep library packages small enough to reuse independently.
-- Treat generated files and local caches as build artifacts, not source.
+- 核心逻辑保持纯 MoonBit。
+- 优先实现确定性检查，而不是媒体解码。
+- 默认让字幕文本保留在本地。
+- CLI 输出需要对剪辑、字幕、QA 和开发者都可读。
+- 保持各 library package 足够小，方便独立复用。
+- 生成文件和本地缓存视为构建产物，而不是源文件。
 
-## Limitations
+## 限制
 
-- ASS/SSA, TTML, and IMSC are not implemented.
-- The CLI currently focuses on file-based operations and human-readable output.
-- The WebAssembly demo depends on browser support for WebAssembly GC and JS
-  string builtins.
-- QC profiles are built in; external profile files are not implemented yet.
-- The project does not inspect video, audio, MP4, MOV, WAV, or BWF container
-  metadata.
+- 暂未实现 ASS/SSA、TTML 和 IMSC。
+- CLI 当前聚焦文件操作和人类可读输出。
+- WebAssembly demo 依赖浏览器对 WebAssembly GC 和 JS string builtins 的支持。
+- QC profiles 当前是内置的；暂未实现外部 profile 文件。
+- 项目不检查视频、音频、MP4、MOV、WAV 或 BWF 容器元数据。
 
 ## Roadmap
 
-Planned areas for future versions:
+后续版本计划方向：
 
-- Custom QC profiles from JSON or TOML.
-- Machine-readable JSON report output.
-- ASS/SSA parser and writer.
-- TTML/IMSC subset support.
-- CMX3600 EDL parsing.
-- BWF/iXML sound metadata inspection.
-- Packaged native binary release.
-- Published Mooncakes package.
+- 从 JSON 或 TOML 读取自定义 QC profiles。
+- 输出机器可读 JSON report。
+- ASS/SSA parser 和 writer。
+- TTML/IMSC 子集支持。
+- CMX3600 EDL 解析。
+- BWF/iXML 声音元数据检查。
+- 发布 native binary。
+- 发布到 Mooncakes。
 
-## License
+## 许可证
 
-Apache-2.0. See [LICENSE](LICENSE).
+Apache-2.0。见 [LICENSE](LICENSE)。
