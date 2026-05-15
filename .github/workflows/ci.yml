@@ -157,8 +157,8 @@ jobs:
       - name: Run timecode smoke test
         shell: bash
         run: |
-          output="$(moon run cmd/main --target native -- timecode to-frames 01:00:00:00 --fps 25)"
-          test "$output" = "01:00:00:00 @25fps = 90000 frames"
+          moon run cmd/main --target native -- timecode to-frames 01:00:00:00 --fps 25 > /tmp/timecode.txt
+          grep -q '01:00:00:00 @25fps = 90000 frames' /tmp/timecode.txt
 
       - name: Run subtitle conversion smoke test
         shell: bash
