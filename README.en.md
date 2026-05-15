@@ -47,19 +47,13 @@ tools, and Wasm-ready core packages.
 
 ## Use Cases
 
-MoonPost is useful when a subtitle or post-production workflow needs a small,
-repeatable checker before files are delivered or published.
+MoonPost fits subtitle delivery, media QA, and creator publishing workflows as
+a lightweight, repeatable subtitle checker and timecode utility.
 
-Common workflows:
-
-- Check a subtitle file before delivery to a streaming or publishing platform.
-- Convert creator subtitles between SRT and WebVTT.
-- Verify that subtitle cues do not overlap.
-- Catch very short, very long, empty, or hard-to-read cues.
-- Check whether subtitle timing aligns with a target frame grid.
-- Shift subtitles after an edit or sync change.
-- Convert cue timing between frame-rate assumptions.
-- Run QC in a browser without sending subtitle text to a server.
+- Check SRT/WebVTT files for overlaps, duration, line length, and reading speed before delivery.
+- Shift subtitles, convert frame-rate assumptions, or snap cue timing after edits and version changes.
+- Convert SRT/WebVTT files and run basic QC in creator and localization workflows.
+- Run browser-local QC through the Wasm demo without uploading subtitle text.
 
 ## Intended Users
 
