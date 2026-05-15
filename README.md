@@ -1,5 +1,9 @@
 # MoonPost
 
+<p align="right">
+English | <a href="README.zh-CN.md">简体中文</a>
+</p>
+
 MoonPost is a pure MoonBit toolkit for subtitles, timecode, and post-production
 quality control.
 
@@ -500,4 +504,4 @@ Planned areas for future versions:
 
 ## License
 
-Apache-2.0.
+Apache-2.0. See [LICENSE](LICENSE).
