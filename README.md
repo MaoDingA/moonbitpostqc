@@ -4,6 +4,17 @@
 <a href="README.en.md">English</a> | 简体中文
 </p>
 
+<p align="left">
+  <a href="README.md"><img alt="简体中文 current" src="https://img.shields.io/badge/%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-current-0f766e?style=flat-square"></a>
+  <a href="README.en.md"><img alt="English README" src="https://img.shields.io/badge/English-README-64748b?style=flat-square"></a>
+  <img alt="MoonBit native" src="https://img.shields.io/badge/MoonBit-native-8b5cf6?style=flat-square">
+  <img alt="license Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-22c55e?style=flat-square">
+  <img alt="terminal first" src="https://img.shields.io/badge/terminal-first-475569?style=flat-square">
+  <img alt="mode CLI + Wasm" src="https://img.shields.io/badge/mode-CLI%20%2B%20Wasm-2563eb?style=flat-square">
+  <img alt="formats SRT + WebVTT" src="https://img.shields.io/badge/formats-SRT%20%2B%20WebVTT-f97316?style=flat-square">
+  <img alt="QC ready" src="https://img.shields.io/badge/QC-ready-0ea5e9?style=flat-square">
+</p>
+
 MoonPost 是一个用 MoonBit 编写的字幕、时间码与后期交付质检工具包。
 
 它面向文本型媒体交付工作：检查 SRT/WebVTT 字幕文件、转换字幕格式、

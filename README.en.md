@@ -4,6 +4,17 @@
 English | <a href="README.md">简体中文</a>
 </p>
 
+<p align="left">
+  <a href="README.en.md"><img alt="English current" src="https://img.shields.io/badge/English-current-0f766e?style=flat-square"></a>
+  <a href="README.md"><img alt="简体中文 README" src="https://img.shields.io/badge/%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-README-64748b?style=flat-square"></a>
+  <img alt="MoonBit native" src="https://img.shields.io/badge/MoonBit-native-8b5cf6?style=flat-square">
+  <img alt="license Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-22c55e?style=flat-square">
+  <img alt="terminal first" src="https://img.shields.io/badge/terminal-first-475569?style=flat-square">
+  <img alt="mode CLI + Wasm" src="https://img.shields.io/badge/mode-CLI%20%2B%20Wasm-2563eb?style=flat-square">
+  <img alt="formats SRT + WebVTT" src="https://img.shields.io/badge/formats-SRT%20%2B%20WebVTT-f97316?style=flat-square">
+  <img alt="QC ready" src="https://img.shields.io/badge/QC-ready-0ea5e9?style=flat-square">
+</p>
+
 MoonPost is a pure MoonBit toolkit for subtitles, timecode, and post-production
 quality control.
 
