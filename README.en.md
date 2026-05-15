@@ -468,38 +468,6 @@ Build the Wasm demo core:
 moon build wasm_demo/core --target wasm-gc --release
 ```
 
-## Design Principles
-
-- Keep the core pure MoonBit.
-- Prefer deterministic checks over media decoding.
-- Keep subtitle text local by default.
-- Make CLI output readable by editors, subtitle authors, and developers.
-- Keep library packages small enough to reuse independently.
-- Treat generated files and local caches as build artifacts, not source.
-
-## Limitations
-
-- ASS/SSA, TTML, and IMSC are not implemented.
-- The CLI currently focuses on file-based operations and human-readable output.
-- The WebAssembly demo depends on browser support for WebAssembly GC and JS
-  string builtins.
-- QC profiles are built in; external profile files are not implemented yet.
-- The project does not inspect video, audio, MP4, MOV, WAV, or BWF container
-  metadata.
-
-## Roadmap
-
-Planned areas for future versions:
-
-- Custom QC profiles from JSON or TOML.
-- Machine-readable JSON report output.
-- ASS/SSA parser and writer.
-- TTML/IMSC subset support.
-- CMX3600 EDL parsing.
-- BWF/iXML sound metadata inspection.
-- Packaged native binary release.
-- Published Mooncakes package.
-
 ## License
 
 Apache-2.0. See [LICENSE](LICENSE).

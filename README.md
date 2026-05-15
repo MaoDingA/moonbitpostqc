@@ -458,36 +458,6 @@ moon info
 moon build wasm_demo/core --target wasm-gc --release
 ```
 
-## 设计原则
-
-- 核心逻辑保持纯 MoonBit。
-- 优先实现确定性检查，而不是媒体解码。
-- 默认让字幕文本保留在本地。
-- CLI 输出需要对剪辑、字幕、QA 和开发者都可读。
-- 保持各 library package 足够小，方便独立复用。
-- 生成文件和本地缓存视为构建产物，而不是源文件。
-
-## 限制
-
-- 暂未实现 ASS/SSA、TTML 和 IMSC。
-- CLI 当前聚焦文件操作和人类可读输出。
-- WebAssembly demo 依赖浏览器对 WebAssembly GC 和 JS string builtins 的支持。
-- QC profiles 当前是内置的；暂未实现外部 profile 文件。
-- 项目不检查视频、音频、MP4、MOV、WAV 或 BWF 容器元数据。
-
-## Roadmap
-
-后续版本计划方向：
-
-- 从 JSON 或 TOML 读取自定义 QC profiles。
-- 输出机器可读 JSON report。
-- ASS/SSA parser 和 writer。
-- TTML/IMSC 子集支持。
-- CMX3600 EDL 解析。
-- BWF/iXML 声音元数据检查。
-- 发布 native binary。
-- 发布到 Mooncakes。
-
 ## 许可证
 
 Apache-2.0。见 [LICENSE](LICENSE)。
