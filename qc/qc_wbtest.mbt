@@ -146,3 +146,64 @@ test "qc ok report has zero summary" {
   assert_eq(report[1], "summary: 0 errors, 0 warnings")
   assert_true(report.any(line => line.contains("OK no issues found")))
 }
+
+///|
+test "qc text style warnings are opt in" {
+  let cues = [cue(1, 1000, 2500, ["你好, world！！"])]
+  let issues = check_cues(cues, default_profile())
+  assert_false(issues.any(issue => issue.code == "W501"))
+  assert_false(issues.any(issue => issue.code == "W502"))
+}
+
+///|
+test "qc bilingual text style reports focused warning codes" {
+  let cues = [
+    cue(1, 1000, 2500, ["你好, world！！"]),
+    cue(2, 3000, 4500, ["Hello（world)"]),
+    cue(3, 5000, 6500, ["SupercalifragilisticexpialidociousNoBreakText"]),
+    cue(4, 7000, 8500, ["你"]),
+    cue(5, 9000, 10500, ["请先登陆 MoonPost"]),
+  ]
+  let issues = check_cues_with_text_style(
+    cues,
+    default_profile(),
+    bilingual_text_style_profile(),
+  )
+  assert_true(issues.any(issue => issue.code == "W501"))
+  assert_true(issues.any(issue => issue.code == "W502"))
+  assert_true(issues.any(issue => issue.code == "W503"))
+  assert_true(issues.any(issue => issue.code == "W510"))
+  assert_true(issues.any(issue => issue.code == "W511"))
+  assert_true(issues.any(issue => issue.code == "W520"))
+}
+
+///|
+test "json report includes text style warning codes" {
+  let issues = [
+    QcIssue::{
+      severity: Warning,
+      code: "W501",
+      cue_index: Some(1),
+      message: "mixed punctuation style",
+    },
+  ]
+  let report = format_json_report("mixed.srt", issues)
+  assert_true(report.contains("\"code\":\"W501\""))
+  assert_true(report.contains("\"severity\":\"warning\""))
+}
+
+///|
+test "punctuation normalization supports zh en and bilingual modes" {
+  assert_eq(
+    normalize_punctuation("你好, world!", mode=TextStyleBilingual),
+    "你好， world!",
+  )
+  assert_eq(
+    normalize_punctuation("Hello，world！", mode=TextStyleEn),
+    "Hello,world!",
+  )
+  assert_eq(
+    normalize_punctuation("你好,世界!", mode=TextStyleZh),
+    "你好，世界！",
+  )
+}

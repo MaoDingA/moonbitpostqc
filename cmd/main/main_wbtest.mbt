@@ -17,6 +17,36 @@ test "subtitle convert text writes webvtt from srt" {
 }
 
 ///|
+test "subtitle normalize text preserves timing and changes punctuation" {
+  let input = "1\n00:00:01,000 --> 00:00:02,000\n你好,世界!\n"
+  match
+    normalize_subtitle_text(input, @cli.SubtitleNormalizeOptions::{
+      input: "demo.srt",
+      punctuation: "zh",
+      output: None,
+    }) {
+    Some(output) => {
+      assert_true(output.contains("00:00:01,000 --> 00:00:02,000"))
+      assert_true(output.contains("你好，世界！"))
+    }
+    None => fail("expected normalized subtitle")
+  }
+}
+
+///|
+test "subtitle normalize rejects unknown punctuation mode" {
+  let input = "1\n00:00:01,000 --> 00:00:02,000\n你好,世界!\n"
+  assert_true(
+    normalize_subtitle_text(input, @cli.SubtitleNormalizeOptions::{
+      input: "demo.srt",
+      punctuation: "typo",
+      output: None,
+    })
+    is None,
+  )
+}
+
+///|
 test "subtitle auto parser accepts webvtt input" {
   let input = "WEBVTT\n\n00:00:01.000 --> 00:00:02.000\nHello\n"
   match parse_subtitle_text(input) {
@@ -32,6 +62,7 @@ test "qc report for text includes detected issues" {
     input: "bad.srt",
     profile: "streaming",
     frame_rate: Some(@timecode.Fps25),
+    text_style: None,
     output_json: false,
     fail_on_error: true,
   })
@@ -50,6 +81,7 @@ test "qc report uses named cinema profile" {
     input: "cinema.srt",
     profile: "cinema",
     frame_rate: None,
+    text_style: None,
     output_json: false,
     fail_on_error: true,
   })
@@ -66,6 +98,7 @@ test "qc result can emit json" {
     input: "short.srt",
     profile: "default",
     frame_rate: None,
+    text_style: None,
     output_json: true,
     fail_on_error: false,
   })
@@ -81,11 +114,44 @@ test "qc parse failure includes line information" {
     input: "bad.srt",
     profile: "default",
     frame_rate: None,
+    text_style: None,
     output_json: false,
     fail_on_error: false,
   })
   let report = result.lines.join("\n")
   assert_true(report.contains("line 2"))
+  assert_eq(result.exit_code, 2)
+}
+
+///|
+test "qc result includes opt in text style warnings" {
+  let input = "1\n00:00:01,000 --> 00:00:03,000\n你好, world！！\n"
+  let result = qc_result_for_text("mixed.srt", input, @cli.QcOptions::{
+    input: "mixed.srt",
+    profile: "default",
+    frame_rate: None,
+    text_style: Some("bilingual"),
+    output_json: false,
+    fail_on_error: false,
+  })
+  let report = result.lines.join("\n")
+  assert_true(report.contains("W501"))
+  assert_true(report.contains("W502"))
+  assert_eq(result.exit_code, 0)
+}
+
+///|
+test "qc result rejects unknown text style before subtitle checking" {
+  let result = qc_result_for_text("mixed.srt", "", @cli.QcOptions::{
+    input: "mixed.srt",
+    profile: "default",
+    frame_rate: None,
+    text_style: Some("typo"),
+    output_json: false,
+    fail_on_error: false,
+  })
+  let report = result.lines.join("\n")
+  assert_true(report.contains("unknown text style: typo"))
   assert_eq(result.exit_code, 2)
 }
 

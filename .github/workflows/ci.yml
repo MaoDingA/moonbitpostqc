@@ -169,6 +169,13 @@ jobs:
         run: |
           _build/native/debug/build/cmd/main/main.exe subtitle convert examples/good.srt --to webvtt > /tmp/good.vtt
           grep -q '^WEBVTT$' /tmp/good.vtt
+          cat > /tmp/mixed.srt <<'EOF'
+          1
+          00:00:01,000 --> 00:00:03,000
+          你好,世界!
+          EOF
+          _build/native/debug/build/cmd/main/main.exe subtitle normalize /tmp/mixed.srt --punctuation zh > /tmp/mixed-normalized.srt
+          grep -q '你好，世界！' /tmp/mixed-normalized.srt
 
       - name: Run QC smoke test
         shell: bash
@@ -176,6 +183,14 @@ jobs:
           _build/native/debug/build/cmd/main/main.exe qc examples/bad.srt --fps 25 --profile streaming > /tmp/qc-report.txt
           grep -q 'summary: 3 errors, 7 warnings' /tmp/qc-report.txt
           grep -q 'ERROR E101 cue#1' /tmp/qc-report.txt
+          cat > /tmp/mixed-style.srt <<'EOF'
+          1
+          00:00:01,000 --> 00:00:03,000
+          你好, world！！
+          EOF
+          _build/native/debug/build/cmd/main/main.exe qc /tmp/mixed-style.srt --text-style bilingual > /tmp/qc-text-style.txt
+          grep -q 'W501' /tmp/qc-text-style.txt
+          grep -q 'W502' /tmp/qc-text-style.txt
 
       - name: Run QC fail-on-error smoke test
         shell: bash

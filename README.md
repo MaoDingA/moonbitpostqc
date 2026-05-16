@@ -37,6 +37,9 @@ MoonPost 不做视频解码、转码或 FFmpeg 封装。项目关注的是适合
   `50`、`59.94`、`59.94df`。
 - 提供字幕 QC 检查：时间重叠、非法时长、空字幕、时长上下限、单行字符数、
   行数、阅读速度、帧网格对齐和最小 cue 间隔。
+- 可显式开启中英双语文本规范检查：混用标点、重复标点、括号/引号配对、
+  超长连续字符块、孤立单字行和小型术语词库。
+- 支持字幕标点半角/全角规范化转换。
 - 支持按整体偏移、帧率转换或帧吸附重定时字幕。
 - 在库 API 中提供双语字幕合并和拆分能力。
 - 提供浏览器本地 Wasm demo，不上传字幕文件即可运行 QC。
@@ -131,6 +134,15 @@ moon run cmd/main --target native -- qc examples/bad.srt --fps 25 --profile stre
 moon run cmd/main --target native -- qc examples/good.srt --json
 ```
 
+显式开启中英双语文本规范检查：
+
+```bash
+moon run cmd/main --target native -- qc examples/good.srt --text-style bilingual
+```
+
+`--text-style` 默认关闭，不会改变普通 `qc` 结果。可选值包括 `bilingual`、
+`zh` 和 `en`。
+
 构建 native CLI 后，可以用 `--fail-on-error` 在发现 Error 级问题时返回非零退出码：
 
 ```bash
@@ -183,6 +195,12 @@ CLI 也支持通过 `--fps <rate>` 覆盖当前 profile 的帧网格。
 | `W310` | Warning | 阅读速度超过当前 CPS 限制。 |
 | `W401` | Warning | cue 时间未对齐当前帧网格。 |
 | `W402` | Warning | 与下一个 cue 的间隔低于当前帧间隔限制。 |
+| `W501` | Warning | 显式开启文本规范检查后，发现混用标点风格。 |
+| `W502` | Warning | 显式开启文本规范检查后，发现重复标点。 |
+| `W503` | Warning | 显式开启文本规范检查后，发现可疑括号或引号配对。 |
+| `W510` | Warning | 显式开启文本规范检查后，发现超长连续字符块。 |
+| `W511` | Warning | 显式开启文本规范检查后，发现孤立单字行。 |
+| `W520` | Warning | 显式开启文本规范检查后，发现词库中的疑似错别字或术语问题。 |
 
 ## 时间码
 
@@ -255,6 +273,15 @@ WebVTT 转 SRT：
 ```bash
 moon run cmd/main --target native -- subtitle convert examples/good.vtt --to srt -o output.srt
 ```
+
+标点半角/全角规范化转换：
+
+```bash
+moon run cmd/main --target native -- subtitle normalize examples/good.srt --punctuation bilingual -o fixed.srt
+```
+
+`--punctuation` 可选值包括 `bilingual`、`zh` 和 `en`。该命令只改 cue 文本中的
+常见标点，不会重写词语、重排字幕行或改变时间码。
 
 已实现的 parser 行为：
 

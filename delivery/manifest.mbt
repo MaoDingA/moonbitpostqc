@@ -70,7 +70,9 @@ fn parse_required_asset(raw : String) -> AssetKind? {
 }
 
 ///|
-fn parse_required_assets(raw_assets : Array[String]) -> Result[Array[AssetKind], String] {
+fn parse_required_assets(
+  raw_assets : Array[String],
+) -> Result[Array[AssetKind], String] {
   let assets : Array[AssetKind] = []
   for raw in raw_assets {
     match parse_required_asset(raw) {
@@ -102,9 +104,7 @@ fn parse_duration_ms(
 
 ///|
 pub fn parse_manifest(raw : String) -> Result[DeliveryManifest, String] {
-  let json = try {
-    @json.parse(raw)
-  } catch {
+  let json = @json.parse(raw) catch {
     error => return Err("invalid manifest json: \{error.to_string()}")
   }
   match json {
@@ -113,11 +113,13 @@ pub fn parse_manifest(raw : String) -> Result[DeliveryManifest, String] {
         Some(raw_rate) => parse_manifest_frame_rate(raw_rate)
         None => None
       }
-      let duration_ms = match parse_duration_ms(manifest_string(obj, "duration"), frame_rate) {
+      let duration_ms = match
+        parse_duration_ms(manifest_string(obj, "duration"), frame_rate) {
         Ok(value) => value
         Err(message) => return Err(message)
       }
-      let required_subtitles = match manifest_string_array(obj, "required_subtitles") {
+      let required_subtitles = match
+        manifest_string_array(obj, "required_subtitles") {
         Ok(values) => values
         Err(message) => return Err(message)
       }

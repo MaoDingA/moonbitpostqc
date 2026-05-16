@@ -41,6 +41,10 @@ tools, and Wasm-ready core packages.
 - Run subtitle QC checks for overlap, invalid duration, empty cue text,
   duration limits, line length, line count, reading speed, frame alignment, and
   minimum cue gaps.
+- Opt in to bilingual text style QC for mixed punctuation, repeated
+  punctuation, paired punctuation, long unbroken text blocks, isolated
+  single-character lines, and small terminology dictionaries.
+- Normalize subtitle punctuation between half-width and full-width styles.
 - Retime subtitles by offset, frame-rate conversion, or frame snapping.
 - Merge and split bilingual subtitle tracks in the library API.
 - Build a browser-local Wasm demo that checks subtitles without uploading files.
@@ -138,6 +142,15 @@ Emit a JSON report:
 moon run cmd/main --target native -- qc examples/good.srt --json
 ```
 
+Opt in to Chinese-English text style checks:
+
+```bash
+moon run cmd/main --target native -- qc examples/good.srt --text-style bilingual
+```
+
+`--text-style` is disabled by default, so regular `qc` output is unchanged.
+Available values are `bilingual`, `zh`, and `en`.
+
 After building the native CLI, `--fail-on-error` returns a non-zero exit code
 when Error-level issues are found:
 
@@ -192,6 +205,12 @@ run.
 | `W310` | Warning | Reading speed exceeds the active CPS limit. |
 | `W401` | Warning | Cue timing is not aligned to the active frame grid. |
 | `W402` | Warning | Gap to the next cue is below the active frame-gap limit. |
+| `W501` | Warning | Opt-in text style check found mixed punctuation style. |
+| `W502` | Warning | Opt-in text style check found repeated punctuation. |
+| `W503` | Warning | Opt-in text style check found suspicious paired punctuation. |
+| `W510` | Warning | Opt-in text style check found a long unbroken text block. |
+| `W511` | Warning | Opt-in text style check found an isolated single-character line. |
+| `W520` | Warning | Opt-in text style check found a dictionary typo or terminology issue. |
 
 ## Timecode
 
@@ -264,6 +283,16 @@ Convert WebVTT to SRT:
 ```bash
 moon run cmd/main --target native -- subtitle convert examples/good.vtt --to srt -o output.srt
 ```
+
+Normalize half-width/full-width punctuation:
+
+```bash
+moon run cmd/main --target native -- subtitle normalize examples/good.srt --punctuation bilingual -o fixed.srt
+```
+
+`--punctuation` accepts `bilingual`, `zh`, and `en`. This command only rewrites
+common punctuation in cue text; it does not replace words, reflow subtitle
+lines, or change timing.
 
 Implemented parser behavior:
 

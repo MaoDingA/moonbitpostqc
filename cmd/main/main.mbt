@@ -113,6 +113,49 @@ fn write_track(track : @subtitle.SubtitleTrack) -> String {
 }
 
 ///|
+fn punctuation_mode_from_name(name : String) -> @qc.TextStyleMode? {
+  match name {
+    "bilingual" => Some(@qc.TextStyleBilingual)
+    "zh" | "chinese" => Some(@qc.TextStyleZh)
+    "en" | "english" => Some(@qc.TextStyleEn)
+    "none" => Some(@qc.TextStyleNone)
+    _ => None
+  }
+}
+
+///|
+fn normalize_subtitle_text(
+  input : String,
+  options : @cli.SubtitleNormalizeOptions,
+) -> String? {
+  match
+    (
+      parse_subtitle_text(input),
+      punctuation_mode_from_name(options.punctuation),
+    ) {
+    (Some(track), Some(mode)) => {
+      let cues : Array[@subtitle.Cue] = []
+      for cue in track.cues {
+        let text : Array[String] = []
+        for line in cue.text {
+          text.push(@qc.normalize_punctuation(line, mode~))
+        }
+        cues.push({
+          index: cue.index,
+          identifier: cue.identifier,
+          start_ms: cue.start_ms,
+          end_ms: cue.end_ms,
+          text,
+          settings: cue.settings,
+        })
+      }
+      Some(write_track({ format: track.format, cues }))
+    }
+    _ => None
+  }
+}
+
+///|
 fn retime_text(input : String, options : @cli.RetimeOptions) -> String? {
   match parse_subtitle_text(input) {
     Some(track) => {
@@ -159,15 +202,54 @@ fn profile_from_name(
 }
 
 ///|
+fn text_style_profile_from_options(
+  options : @cli.QcOptions,
+) -> Result[@qc.TextStyleProfile, String] {
+  match options.text_style {
+    Some(name) =>
+      match @qc.text_style_profile_by_name(name) {
+        Some(profile) => Ok(profile)
+        None => Err("unknown text style: \{name}")
+      }
+    None => Ok(@qc.no_text_style_profile())
+  }
+}
+
+///|
 fn qc_result_for_text(
   name : String,
   input : String,
   options : @cli.QcOptions,
 ) -> QcCliResult {
+  let text_style = match text_style_profile_from_options(options) {
+    Ok(profile) => profile
+    Err(message) => {
+      let issues = [
+        @qc.QcIssue::{
+          severity: @qc.Error,
+          code: "E000",
+          cue_index: None,
+          message,
+        },
+      ]
+      return {
+        lines: if options.output_json {
+          [@qc.format_json_report(name, issues)]
+        } else {
+          @qc.format_report(name, issues)
+        },
+        exit_code: 2,
+      }
+    }
+  }
   match parse_subtitle_text_detailed(input) {
     Ok(track) => {
       let profile = profile_from_name(options.profile, options.frame_rate)
-      let issues = @qc.check_cues(track.cues, profile)
+      let issues = @qc.check_cues_with_text_style(
+        track.cues,
+        profile,
+        text_style,
+      )
       let lines = if options.output_json {
         [@qc.format_json_report(name, issues)]
       } else {
@@ -268,6 +350,13 @@ async fn write_text_file(path : String, content : String) -> Bool {
 
 ///|
 async fn run_qc(options : @cli.QcOptions) -> Int {
+  match text_style_profile_from_options(options) {
+    Ok(_) => ()
+    Err(message) => {
+      println(message)
+      return 2
+    }
+  }
   match read_text_file(options.input) {
     Some(text) => {
       let result = qc_result_for_text(options.input, text, options)
@@ -302,6 +391,44 @@ async fn run_subtitle_convert(options : @cli.SubtitleConvertOptions) -> Int {
           }
         None => {
           println("could not convert subtitle to \{options.target}")
+          2
+        }
+      }
+    None => {
+      println("could not read file: \{options.input}")
+      2
+    }
+  }
+}
+
+///|
+async fn run_subtitle_normalize(options : @cli.SubtitleNormalizeOptions) -> Int {
+  match punctuation_mode_from_name(options.punctuation) {
+    Some(_) => ()
+    None => {
+      println("unknown punctuation mode: \{options.punctuation}")
+      return 2
+    }
+  }
+  match read_text_file(options.input) {
+    Some(text) =>
+      match normalize_subtitle_text(text, options) {
+        Some(output) =>
+          match options.output {
+            Some(path) =>
+              if !write_text_file(path, output) {
+                println("could not write file: \{path}")
+                2
+              } else {
+                0
+              }
+            None => {
+              println(output)
+              0
+            }
+          }
+        None => {
+          println("could not normalize subtitle: \{options.input}")
           2
         }
       }
@@ -417,6 +544,7 @@ async fn run_command(command : @cli.Command) -> Int {
       0
     }
     @cli.Subtitle(@cli.Convert(options)) => run_subtitle_convert(options)
+    @cli.Subtitle(@cli.Normalize(options)) => run_subtitle_normalize(options)
     @cli.Retime(options) => run_retime(options)
     @cli.Merge(options) => run_merge(options)
     @cli.SplitBilingual(options) => run_split_bilingual(options)

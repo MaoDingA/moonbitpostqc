@@ -55,8 +55,20 @@ pub fn classify_asset(name : String) -> AssetKind {
 ///|
 fn known_language_token(token : String) -> Bool {
   match token {
-    "zh" | "zh-Hans" | "zh-Hant" | "en" | "en-US" | "en-GB" | "ja" | "ko" |
-    "es" | "fr" | "de" | "pt" | "pt-BR" | "it" => true
+    "zh"
+    | "zh-Hans"
+    | "zh-Hant"
+    | "en"
+    | "en-US"
+    | "en-GB"
+    | "ja"
+    | "ko"
+    | "es"
+    | "fr"
+    | "de"
+    | "pt"
+    | "pt-BR"
+    | "it" => true
     _ => false
   }
 }

@@ -3,6 +3,7 @@ pub(all) struct QcOptions {
   input : String
   profile : String
   frame_rate : @timecode.FrameRate?
+  text_style : String?
   output_json : Bool
   fail_on_error : Bool
 } derive(Eq, Debug)
@@ -30,6 +31,13 @@ pub(all) struct TimecodeConvertOptions {
 pub(all) struct SubtitleConvertOptions {
   input : String
   target : String
+  output : String?
+} derive(Eq, Debug)
+
+///|
+pub(all) struct SubtitleNormalizeOptions {
+  input : String
+  punctuation : String
   output : String?
 } derive(Eq, Debug)
 
@@ -68,6 +76,7 @@ pub(all) enum TimecodeCommand {
 ///|
 pub(all) enum SubtitleCommand {
   Convert(SubtitleConvertOptions)
+  Normalize(SubtitleNormalizeOptions)
 } derive(Eq, Debug)
 
 ///|
@@ -203,6 +212,7 @@ fn parse_qc(args : Array[String]) -> Command {
       ),
       profile: option_value(args, "--profile", "default"),
       frame_rate: parse_frame_rate(option_value(args, "--fps", "")),
+      text_style: option_string(args, "--text-style"),
       output_json: has_flag(args, "--json"),
       fail_on_error: has_flag(args, "--fail-on-error"),
     })
@@ -273,6 +283,17 @@ fn parse_subtitle(args : Array[String]) -> Command {
               Some(value) => Some(value)
               None => option_string(args, "--output")
             },
+          }),
+        )
+      Some("normalize") =>
+        Subtitle(
+          Normalize({
+            input: match args.get(3) {
+              Some(value) => value
+              None => ""
+            },
+            punctuation: option_value(args, "--punctuation", "bilingual"),
+            output: output_option(args),
           }),
         )
       _ => Help(SubtitleHelp)
@@ -379,7 +400,7 @@ pub fn help_lines(topic : HelpTopic) -> Array[String] {
       ]
     QcHelp =>
       [
-        "Usage:", "  moonpost qc <file> [--fps <rate>] [--profile <name>] [--json] [--fail-on-error]",
+        "Usage:", "  moonpost qc <file> [--fps <rate>] [--profile <name>] [--text-style <bilingual|zh|en>] [--json] [--fail-on-error]",
       ]
     TimecodeHelp =>
       [
@@ -389,6 +410,7 @@ pub fn help_lines(topic : HelpTopic) -> Array[String] {
     SubtitleHelp =>
       [
         "Usage:", "  moonpost subtitle convert <file> --to <srt|webvtt> [-o <file>]",
+        "  moonpost subtitle normalize <file> --punctuation <bilingual|zh|en> [-o <file>]",
       ]
     MergeHelp =>
       [

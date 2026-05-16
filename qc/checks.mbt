@@ -193,3 +193,16 @@ pub fn check_cues(
   }
   issues
 }
+
+///|
+pub fn check_cues_with_text_style(
+  cues : Array[@subtitle.Cue],
+  profile : QcProfile,
+  text_style : TextStyleProfile,
+) -> Array[QcIssue] {
+  let issues = check_cues(cues, profile)
+  for issue in check_text_style_cues(cues, text_style) {
+    issues.push(issue)
+  }
+  issues
+}

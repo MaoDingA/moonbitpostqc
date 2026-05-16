@@ -43,16 +43,17 @@ test "creator and distribution profiles expose delivery requirements" {
 
 ///|
 test "delivery manifest parses strict delivery metadata" {
-  let raw = #|{
-  #|  "series": "Moon Drama",
-  #|  "season": "S01",
-  #|  "episode": "E01",
-  #|  "title": "Episode 1",
-  #|  "frame_rate": "25",
-  #|  "duration": "00:08:12:00",
-  #|  "required_subtitles": ["zh-Hans", "en-US"],
-  #|  "required_assets": ["video", "subtitle", "metadata", "checksum"]
-  #|}
+  let raw =
+    #|{
+    #|  "series": "Moon Drama",
+    #|  "season": "S01",
+    #|  "episode": "E01",
+    #|  "title": "Episode 1",
+    #|  "frame_rate": "25",
+    #|  "duration": "00:08:12:00",
+    #|  "required_subtitles": ["zh-Hans", "en-US"],
+    #|  "required_assets": ["video", "subtitle", "metadata", "checksum"]
+    #|}
   match parse_manifest(raw) {
     Ok(manifest) => {
       assert_true(manifest.series == Some("Moon Drama"))
@@ -76,7 +77,8 @@ test "delivery manifest reports malformed json and unknown assets" {
     Err(message) => assert_true(message.contains("invalid manifest json"))
     Ok(_) => fail("expected parse error")
   }
-  let bad_asset = #|{"required_assets":["codec"]}
+  let bad_asset =
+    #|{"required_assets":["codec"]}
   match parse_manifest(bad_asset) {
     Err(message) => assert_true(message.contains("unknown required asset"))
     Ok(_) => fail("expected unknown asset error")

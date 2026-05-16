@@ -51,6 +51,7 @@ pub(all) struct QcOptions {
   input : String
   profile : String
   frame_rate : @timecode.FrameRate?
+  text_style : String?
   output_json : Bool
   fail_on_error : Bool
 } derive(Eq, @debug.Debug)
@@ -72,11 +73,18 @@ pub(all) struct SplitBilingualOptions {
 
 pub(all) enum SubtitleCommand {
   Convert(SubtitleConvertOptions)
+  Normalize(SubtitleNormalizeOptions)
 } derive(Eq, @debug.Debug)
 
 pub(all) struct SubtitleConvertOptions {
   input : String
   target : String
+  output : String?
+} derive(Eq, @debug.Debug)
+
+pub(all) struct SubtitleNormalizeOptions {
+  input : String
+  punctuation : String
   output : String?
 } derive(Eq, @debug.Debug)
 

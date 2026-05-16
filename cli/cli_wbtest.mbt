@@ -9,8 +9,23 @@ test "cli parses qc command with fps profile and output" {
       assert_eq(options.input, "movie.zh.srt")
       assert_eq(options.profile, "streaming")
       assert_true(options.frame_rate == Some(@timecode.Fps25))
+      assert_true(options.text_style is None)
       assert_true(options.output_json)
       assert_true(options.fail_on_error)
+    }
+    _ => fail("expected qc command")
+  }
+}
+
+///|
+test "cli parses opt in qc text style" {
+  let command = parse_command([
+    "moonpost", "qc", "movie.zh_en.srt", "--text-style", "bilingual",
+  ])
+  match command {
+    Qc(options) => {
+      assert_eq(options.input, "movie.zh_en.srt")
+      assert_true(options.text_style == Some("bilingual"))
     }
     _ => fail("expected qc command")
   }
@@ -42,6 +57,22 @@ test "cli parses subtitle convert target and output" {
       assert_true(options.output == Some("demo.vtt"))
     }
     _ => fail("expected subtitle convert")
+  }
+}
+
+///|
+test "cli parses subtitle normalize punctuation and output" {
+  let command = parse_command([
+    "moonpost", "subtitle", "normalize", "demo.srt", "--punctuation", "bilingual",
+    "-o", "fixed.srt",
+  ])
+  match command {
+    Subtitle(Normalize(options)) => {
+      assert_eq(options.input, "demo.srt")
+      assert_eq(options.punctuation, "bilingual")
+      assert_true(options.output == Some("fixed.srt"))
+    }
+    _ => fail("expected subtitle normalize")
   }
 }
 

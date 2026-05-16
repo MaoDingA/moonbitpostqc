@@ -1,0 +1,60 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "phenom8010/moonpost/delivery"
+
+import {
+  "moonbitlang/core/debug",
+  "phenom8010/moonpost/qc",
+  "phenom8010/moonpost/timecode",
+}
+
+// Values
+pub fn classify_asset(String) -> AssetKind
+
+pub fn creator_profile() -> DeliveryProfile
+
+pub fn delivery_profile_by_name(String) -> DeliveryProfile?
+
+pub fn distribution_profile() -> DeliveryProfile
+
+pub fn language_from_subtitle_name(String) -> String?
+
+pub fn parse_manifest(String) -> Result[DeliveryManifest, String]
+
+// Errors
+
+// Types and methods
+pub(all) enum AssetKind {
+  VideoAsset
+  SubtitleAsset
+  PosterAsset
+  MetadataAsset
+  ChecksumAsset
+  ManifestAsset
+  OtherAsset
+} derive(Eq, @debug.Debug)
+
+pub(all) struct DeliveryManifest {
+  series : String?
+  season : String?
+  episode : String?
+  title : String?
+  frame_rate : @timecode.FrameRate?
+  duration_ms : Int?
+  required_subtitles : Array[String]
+  required_assets : Array[AssetKind]
+} derive(Eq, @debug.Debug)
+
+pub(all) struct DeliveryProfile {
+  name : String
+  require_video : Bool
+  require_subtitle : Bool
+  require_metadata : Bool
+  require_checksum : Bool
+  warn_missing_poster : Bool
+  subtitle_qc : @qc.QcProfile
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits
+
