@@ -21,6 +21,9 @@ agent.md
 .claude/
 .cursor/
 
+# Local planning/design notes.
+docs/
+
 # MoonBit generated state and dependency cache.
 _build/
 .mooncakes/
