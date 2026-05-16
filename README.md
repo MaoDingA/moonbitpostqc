@@ -436,18 +436,23 @@ qc_subtitle(String, String) -> String
 
 ## 仓库结构
 
+更完整的层级说明见 [`docs/project-structure.md`](docs/project-structure.md)。
+
 ```text
 moonpost/
 ├── timecode/        SMPTE 风格时间码和帧率 helpers
-├── subtitle/        SRT/WebVTT parser 和 writer
-├── qc/              字幕交付 QC 规则和报告格式化
+├── subtitle/        SRT/WebVTT parser、timestamp 和 writer
+├── qc/              字幕 QC、报告、双语文本规范和标点规范化
 ├── retime/          整体偏移、帧率转换和帧吸附
-├── align/           双语字幕 helpers
-├── cli/             命令解析
-├── cmd/main/        Native CLI 入口
+├── align/           双语字幕 merge/split helpers
+├── delivery/        单集交付预检模型和 manifest 解析
+├── cli/             CLI 参数模型和命令解析
+├── cmd/main/        Native CLI 入口和文件系统 I/O
 ├── wasm_demo/core/  MoonBit Wasm 导出包
-├── wasm-demo/       浏览器 demo shell 和构建脚本
-└── examples/        示例字幕文件
+├── wasm-demo/       浏览器 demo shell、构建脚本和静态资源
+├── examples/        示例字幕文件
+├── docs/            项目结构、设计文档和实施计划
+└── .github/         CI workflow
 ```
 
 ## CI

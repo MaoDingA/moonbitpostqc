@@ -449,18 +449,24 @@ qc_subtitle(String, String) -> String
 
 ## Repository Layout
 
+See [`docs/project-structure.md`](docs/project-structure.md) for the detailed
+directory map.
+
 ```text
 moonpost/
 ├── timecode/        SMPTE-style timecode and frame-rate helpers
-├── subtitle/        SRT/WebVTT parser and writer
-├── qc/              Subtitle delivery QC rules and report formatting
+├── subtitle/        SRT/WebVTT parser, timestamp, and writer
+├── qc/              Subtitle QC, reports, text style, and punctuation normalization
 ├── retime/          Offset, frame-rate conversion, and frame snapping
-├── align/           Bilingual subtitle helpers
-├── cli/             Command parser
-├── cmd/main/        Native CLI entry point
+├── align/           Bilingual subtitle merge/split helpers
+├── delivery/        Single-episode delivery preflight models and manifest parsing
+├── cli/             CLI argument model and parser
+├── cmd/main/        Native CLI entry point and filesystem I/O
 ├── wasm_demo/core/  MoonBit Wasm export package
-├── wasm-demo/       Browser demo shell and build script
-└── examples/        Sample subtitle files
+├── wasm-demo/       Browser demo shell, build script, and static assets
+├── examples/        Sample subtitle files
+├── docs/            Project structure, design docs, and implementation plans
+└── .github/         CI workflow
 ```
 
 ## CI
