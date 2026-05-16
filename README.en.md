@@ -36,6 +36,10 @@ the post-production infrastructure layer that can be implemented
 deterministically in MoonBit: parsers, data models, QC rules, reports, CLI
 tools, and Wasm-ready core packages.
 
+MoonPost is an original MoonBit project rather than a port of a specific
+third-party library. If future work references or ports another open-source
+project, the source, license, and scope will be documented.
+
 ## Features
 
 - Parse and write SRT subtitle files.
