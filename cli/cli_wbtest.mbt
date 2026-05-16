@@ -32,6 +32,113 @@ test "cli parses opt in qc text style" {
 }
 
 ///|
+test "cli parses creator check command" {
+  let command = parse_command([
+    "moonpost", "creator", "check", "video.srt", "--profile", "douyin", "--json",
+    "--fail-on-error",
+  ])
+  match command {
+    Creator(CreatorCheck(options)) => {
+      assert_eq(options.input, "video.srt")
+      assert_eq(options.profile, "douyin")
+      assert_true(options.output_json)
+      assert_true(options.fail_on_error)
+    }
+    _ => fail("expected creator check command")
+  }
+}
+
+///|
+test "cli parses creator check default profile" {
+  let command = parse_command(["moonpost", "creator", "check", "file.srt"])
+  match command {
+    Creator(CreatorCheck(options)) => {
+      assert_eq(options.input, "file.srt")
+      assert_eq(options.profile, "douyin")
+      assert_false(options.output_json)
+      assert_false(options.fail_on_error)
+    }
+    _ => fail("expected creator check command")
+  }
+}
+
+///|
+test "cli parses creator clean command" {
+  let command = parse_command([
+    "moonpost", "creator", "clean", "video.srt", "--profile", "douyin", "-o", "fixed.srt",
+  ])
+  match command {
+    Creator(CreatorClean(options)) => {
+      assert_eq(options.input, "video.srt")
+      assert_eq(options.profile, "douyin")
+      assert_true(options.output == Some("fixed.srt"))
+    }
+    _ => fail("expected creator clean command")
+  }
+}
+
+///|
+test "cli parses creator clean defaults and long output flag" {
+  let command = parse_command([
+    "moonpost", "creator", "clean", "video.srt", "--output", "fixed.srt",
+  ])
+  match command {
+    Creator(CreatorClean(options)) => {
+      assert_eq(options.input, "video.srt")
+      assert_eq(options.profile, "douyin")
+      assert_true(options.output == Some("fixed.srt"))
+    }
+    _ => fail("expected creator clean command")
+  }
+  let default_output = parse_command([
+    "moonpost", "creator", "clean", "video.srt",
+  ])
+  match default_output {
+    Creator(CreatorClean(options)) => {
+      assert_eq(options.input, "video.srt")
+      assert_eq(options.profile, "douyin")
+      assert_true(options.output is None)
+    }
+    _ => fail("expected creator clean command")
+  }
+}
+
+///|
+test "cli parses delivery subtitle check command" {
+  let command = parse_command([
+    "moonpost", "delivery", "subtitle-check", "episode.zh.srt", "--profile", "ott-zh",
+    "--fps", "25", "--json", "--fail-on-error",
+  ])
+  match command {
+    Delivery(DeliverySubtitleCheck(options)) => {
+      assert_eq(options.input, "episode.zh.srt")
+      assert_eq(options.profile, "ott-zh")
+      assert_true(options.frame_rate == Some(@timecode.Fps25))
+      assert_true(options.output_json)
+      assert_true(options.fail_on_error)
+    }
+    _ => fail("expected delivery subtitle-check command")
+  }
+}
+
+///|
+test "cli parses delivery subtitle check default profile" {
+  let command = parse_command([
+    "moonpost", "delivery", "subtitle-check", "file.srt",
+  ])
+  match command {
+    Delivery(DeliverySubtitleCheck(options)) => {
+      assert_eq(options.input, "file.srt")
+      assert_eq(options.profile, "ott-zh")
+      assert_true(options.frame_rate is None)
+      assert_false(options.output_json)
+      assert_false(options.fail_on_error)
+    }
+    _ => fail("expected delivery subtitle-check command")
+  }
+}
+
+///|
 test "cli parses timecode conversion" {
   let command = parse_command([
     "moonpost", "timecode", "to-frames", "01:00:00:00", "--fps", "25",
@@ -127,12 +234,27 @@ test "cli parses bilingual split command" {
 test "help lines describe core commands" {
   let lines = help_lines(RootHelp)
   let text = lines.join("\n")
+  assert_true(text.contains("creator"))
+  assert_true(text.contains("delivery"))
   assert_true(text.contains("qc"))
   assert_true(text.contains("timecode"))
   assert_true(text.contains("subtitle"))
   assert_true(text.contains("retime"))
   assert_true(text.contains("merge"))
   assert_true(text.contains("split-bilingual"))
+}
+
+///|
+test "creator help describes creator commands" {
+  let text = help_lines(CreatorHelp).join("\n")
+  assert_true(text.contains("creator check"))
+  assert_true(text.contains("creator clean"))
+}
+
+///|
+test "delivery help describes subtitle check command" {
+  let text = help_lines(DeliveryHelp).join("\n")
+  assert_true(text.contains("delivery subtitle-check"))
 }
 
 ///|

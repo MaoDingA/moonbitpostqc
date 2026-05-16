@@ -84,3 +84,50 @@ test "delivery manifest reports malformed json and unknown assets" {
     Ok(_) => fail("expected unknown asset error")
   }
 }
+
+///|
+test "delivery subtitle profiles map film and ott qc defaults" {
+  match delivery_subtitle_profile_by_name("ott-zh") {
+    Some(profile) => {
+      assert_eq(profile.name, "ott-zh")
+      assert_true(profile.qc_profile == @qc.streaming_profile())
+      assert_true(profile.text_style.mode == @qc.TextStyleNone)
+    }
+    None => fail("expected ott-zh profile")
+  }
+  match delivery_subtitle_profile_by_name("cinema-zh") {
+    Some(profile) => {
+      assert_eq(profile.name, "cinema-zh")
+      assert_true(profile.qc_profile == @qc.cinema_profile())
+    }
+    None => fail("expected cinema-zh profile")
+  }
+  assert_true(delivery_subtitle_profile_by_name("douyin") is None)
+}
+
+///|
+test "delivery subtitle profile aliases resolve public defaults" {
+  match delivery_subtitle_profile_by_name("ott") {
+    Some(profile) => {
+      assert_eq(profile.name, "ott-zh")
+      assert_true(profile.qc_profile == @qc.streaming_profile())
+      assert_true(profile.text_style == @qc.no_text_style_profile())
+    }
+    None => fail("expected ott alias profile")
+  }
+  match delivery_subtitle_profile_by_name("cinema") {
+    Some(profile) => {
+      assert_eq(profile.name, "cinema-zh")
+      assert_true(profile.qc_profile == @qc.cinema_profile())
+    }
+    None => fail("expected cinema alias profile")
+  }
+  match delivery_subtitle_profile_by_name("broadcast") {
+    Some(profile) => {
+      assert_eq(profile.name, "broadcast")
+      assert_true(profile.qc_profile == @qc.streaming_profile())
+      assert_true(profile.text_style == @qc.no_text_style_profile())
+    }
+    None => fail("expected broadcast profile")
+  }
+}

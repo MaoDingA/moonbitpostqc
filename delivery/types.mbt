@@ -130,3 +130,49 @@ pub fn delivery_profile_by_name(name : String) -> DeliveryProfile? {
     _ => None
   }
 }
+
+///|
+pub(all) struct DeliverySubtitleProfile {
+  name : String
+  qc_profile : @qc.QcProfile
+  text_style : @qc.TextStyleProfile
+} derive(Eq, Debug)
+
+///|
+pub fn ott_zh_subtitle_profile() -> DeliverySubtitleProfile {
+  {
+    name: "ott-zh",
+    qc_profile: @qc.streaming_profile(),
+    text_style: @qc.no_text_style_profile(),
+  }
+}
+
+///|
+pub fn cinema_zh_subtitle_profile() -> DeliverySubtitleProfile {
+  {
+    name: "cinema-zh",
+    qc_profile: @qc.cinema_profile(),
+    text_style: @qc.no_text_style_profile(),
+  }
+}
+
+///|
+pub fn broadcast_subtitle_profile() -> DeliverySubtitleProfile {
+  {
+    name: "broadcast",
+    qc_profile: @qc.streaming_profile(),
+    text_style: @qc.no_text_style_profile(),
+  }
+}
+
+///|
+pub fn delivery_subtitle_profile_by_name(
+  name : String,
+) -> DeliverySubtitleProfile? {
+  match name {
+    "ott-zh" | "ott" => Some(ott_zh_subtitle_profile())
+    "cinema-zh" | "cinema" => Some(cinema_zh_subtitle_profile())
+    "broadcast" => Some(broadcast_subtitle_profile())
+    _ => None
+  }
+}

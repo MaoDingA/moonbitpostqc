@@ -18,9 +18,13 @@
 
 MoonPost 是一个用 MoonBit 编写的字幕、时间码与后期交付质检工具包。
 
-它面向文本型媒体交付工作：检查 SRT/WebVTT 字幕文件、转换字幕格式、
-计算 SMPTE 风格时间码、重定时字幕 cue，并让同一套核心逻辑可以运行在
-native CLI 和浏览器本地 WebAssembly demo 中。
+MoonPost 现在按两条能力线组织：
+
+- Creator：面向自媒体、口播、短视频和 AI 字幕清洗，关注文本规范、标点、错别字提示、阅读速度和平台化字幕习惯。
+- Delivery：面向影视、OTT 和字幕交付 QC，关注时间轴合法性、帧网格、CPL/CPS、最小间隔、JSON 报告和自动化失败退出码。
+
+底层的 SRT/WebVTT parser、QC rule engine、timecode 和 report formatter
+由两条能力线共享。
 
 MoonPost 不做视频解码、转码或 FFmpeg 封装。项目关注的是适合用 MoonBit
 确定性实现的后期基础设施层：parser、数据模型、QC 规则、报告、CLI 工具
@@ -102,6 +106,19 @@ moon run cmd/main --target native --
 下面的示例都会使用这个前缀。如果之后发布独立二进制，可以把该前缀替换为
 `moonpost`。
 
+### Creator / Delivery 示例
+
+```bash
+moon run cmd/main --target native -- creator check examples/bilingual.srt --profile bilingual
+moon run cmd/main --target native -- creator clean examples/good.srt --profile douyin -o fixed.srt
+moon run cmd/main --target native -- delivery subtitle-check examples/bad.srt --profile ott-zh --fps 25
+```
+
+`creator clean` 示例中的 profile 应匹配实际语言和平台习惯；这里的
+`douyin` 命令仅用于展示调用形状。
+
+依赖 `--fail-on-error` 退出码做自动化时，请使用构建后的 native 可执行文件。
+
 ## CLI 概览
 
 ```text
@@ -111,13 +128,15 @@ Usage:
   moonpost <command> [options]
 
 Commands:
-  qc          Check subtitle delivery quality
-  timecode    Convert SMPTE-style timecode and frame counts
+  creator     Check and clean creator-platform subtitle files
+  delivery    Run delivery-profile subtitle checks
   subtitle    Convert subtitle formats
+  timecode    Convert SMPTE-style timecode and frame counts
   retime      Shift, speed-convert, or snap subtitle timing
   merge       Merge two subtitle tracks into bilingual cues
   split-bilingual
               Split bilingual cues into two subtitle tracks
+  qc          Compatibility alias for subtitle delivery QC
 ```
 
 ## 字幕 QC
@@ -367,6 +386,7 @@ MoonPost 由多个小型 MoonBit package 组成。公开 API 可参考生成的
 | `phenom8010/moonpost/timecode` | 帧率、时间码解析、帧数转换、drop-frame 计算。 |
 | `phenom8010/moonpost/subtitle` | SRT/WebVTT 解析、时间戳格式化、字幕写出。 |
 | `phenom8010/moonpost/qc` | QC profiles、issue 模型、cue 检查、报告格式化。 |
+| `phenom8010/moonpost/creator` | 创作者字幕 profile、文本检查和清洗流程。 |
 | `phenom8010/moonpost/retime` | cue 的整体偏移、帧率转换和帧吸附。 |
 | `phenom8010/moonpost/align` | 双语字幕合并和拆分 helpers。 |
 | `phenom8010/moonpost/cli` | CLI 参数解析。 |

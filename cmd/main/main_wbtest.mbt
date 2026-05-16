@@ -212,3 +212,93 @@ test "split bilingual text returns two subtitle tracks" {
     None => fail("expected split subtitles")
   }
 }
+
+///|
+test "creator check reports text style warnings through creator profile" {
+  let input = "1\n00:00:01,000 --> 00:00:03,000\n你好, world！！\n"
+  let result = creator_check_result_for_text("creator.srt", input, @cli.CreatorCheckOptions::{
+    input: "creator.srt",
+    profile: "bilingual",
+    output_json: false,
+    fail_on_error: false,
+  })
+  let report = result.lines.join("\n")
+  assert_true(report.contains("W501"))
+  assert_true(report.contains("W502"))
+  assert_eq(result.exit_code, 0)
+}
+
+///|
+test "creator clean normalizes punctuation through creator profile" {
+  let input = "1\n00:00:01,000 --> 00:00:02,000\n你好,世界!\n"
+  match
+    creator_clean_text(input, @cli.CreatorCleanOptions::{
+      input: "creator.srt",
+      profile: "douyin",
+      output: None,
+    }) {
+    Some(output) => assert_true(output.contains("你好，世界！"))
+    None => fail("expected creator clean output")
+  }
+}
+
+///|
+test "delivery subtitle check uses delivery profile defaults" {
+  let input = "1\n00:00:01,000 --> 00:00:03,000\n1234567890123456789012345678901234567890\n"
+  let result = delivery_subtitle_result_for_text("episode.srt", input, @cli.DeliverySubtitleCheckOptions::{
+    input: "episode.srt",
+    profile: "cinema-zh",
+    frame_rate: None,
+    output_json: false,
+    fail_on_error: true,
+  })
+  let report = result.lines.join("\n")
+  assert_true(report.contains("W203"))
+  assert_eq(result.exit_code, 0)
+}
+
+///|
+test "creator check rejects unknown profile" {
+  let result = creator_check_result_for_text("creator.srt", "", @cli.CreatorCheckOptions::{
+    input: "creator.srt",
+    profile: "typo",
+    output_json: false,
+    fail_on_error: false,
+  })
+  let report = result.lines.join("\n")
+  assert_true(report.contains("unknown creator profile: typo"))
+  assert_eq(result.exit_code, 2)
+}
+
+///|
+test "delivery subtitle check rejects unknown profile" {
+  let result = delivery_subtitle_result_for_text("episode.srt", "", @cli.DeliverySubtitleCheckOptions::{
+    input: "episode.srt",
+    profile: "typo",
+    frame_rate: None,
+    output_json: false,
+    fail_on_error: false,
+  })
+  let report = result.lines.join("\n")
+  assert_true(report.contains("unknown delivery subtitle profile: typo"))
+  assert_eq(result.exit_code, 2)
+}
+
+///|
+test "delivery subtitle options can override profile frame rate" {
+  match
+    delivery_subtitle_profile_from_options(@cli.DeliverySubtitleCheckOptions::{
+      input: "episode.srt",
+      profile: "cinema-zh",
+      frame_rate: Some(@timecode.Fps25),
+      output_json: false,
+      fail_on_error: false,
+    }) {
+    Ok(profile) => {
+      assert_true(profile.qc_profile.frame_rate == Some(@timecode.Fps25))
+      assert_eq(profile.qc_profile.max_cpl, @qc.cinema_profile().max_cpl)
+      assert_eq(profile.qc_profile.max_cps, @qc.cinema_profile().max_cps)
+    }
+    Err(message) => fail(message)
+  }
+}

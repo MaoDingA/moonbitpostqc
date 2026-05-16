@@ -209,3 +209,23 @@ jobs:
           grep -q 'Hello, welcome to MoonBit.' /tmp/merged.srt
           _build/native/debug/build/cmd/main/main.exe split-bilingual examples/bilingual.srt --primary /tmp/primary.srt --secondary /tmp/secondary.srt
           grep -q 'MoonBit makes subtitle tooling compact.' /tmp/secondary.srt
+
+      - name: Run Creator and Delivery smoke tests
+        shell: bash
+        run: |
+          cat > /tmp/mixed.srt <<'EOF'
+          1
+          00:00:01,000 --> 00:00:03,000
+          你好,世界!
+          EOF
+          cat > /tmp/mixed-style.srt <<'EOF'
+          1
+          00:00:01,000 --> 00:00:03,000
+          你好, world！！
+          EOF
+          _build/native/debug/build/cmd/main/main.exe creator check /tmp/mixed-style.srt --profile bilingual > /tmp/creator-check.txt
+          grep -q 'W501' /tmp/creator-check.txt
+          _build/native/debug/build/cmd/main/main.exe creator clean /tmp/mixed.srt --profile douyin > /tmp/creator-clean.srt
+          grep -q '你好，世界！' /tmp/creator-clean.srt
+          _build/native/debug/build/cmd/main/main.exe delivery subtitle-check examples/bad.srt --profile ott-zh --fps 25 > /tmp/delivery-subtitle.txt
+          grep -q 'summary: 3 errors, 7 warnings' /tmp/delivery-subtitle.txt

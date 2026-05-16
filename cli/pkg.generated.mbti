@@ -18,12 +18,44 @@ pub fn parse_frame_rate(String) -> @timecode.FrameRate?
 // Types and methods
 pub(all) enum Command {
   Qc(QcOptions)
+  Creator(CreatorCommand)
+  Delivery(DeliveryCommand)
   Timecode(TimecodeCommand)
   Subtitle(SubtitleCommand)
   Retime(RetimeOptions)
   Merge(MergeOptions)
   SplitBilingual(SplitBilingualOptions)
   Help(HelpTopic)
+} derive(Eq, @debug.Debug)
+
+pub(all) struct CreatorCheckOptions {
+  input : String
+  profile : String
+  output_json : Bool
+  fail_on_error : Bool
+} derive(Eq, @debug.Debug)
+
+pub(all) struct CreatorCleanOptions {
+  input : String
+  profile : String
+  output : String?
+} derive(Eq, @debug.Debug)
+
+pub(all) enum CreatorCommand {
+  CreatorCheck(CreatorCheckOptions)
+  CreatorClean(CreatorCleanOptions)
+} derive(Eq, @debug.Debug)
+
+pub(all) enum DeliveryCommand {
+  DeliverySubtitleCheck(DeliverySubtitleCheckOptions)
+} derive(Eq, @debug.Debug)
+
+pub(all) struct DeliverySubtitleCheckOptions {
+  input : String
+  profile : String
+  frame_rate : @timecode.FrameRate?
+  output_json : Bool
+  fail_on_error : Bool
 } derive(Eq, @debug.Debug)
 
 pub(all) struct FrameCountOptions {
@@ -34,6 +66,8 @@ pub(all) struct FrameCountOptions {
 pub(all) enum HelpTopic {
   RootHelp
   QcHelp
+  CreatorHelp
+  DeliveryHelp
   TimecodeHelp
   SubtitleHelp
   MergeHelp

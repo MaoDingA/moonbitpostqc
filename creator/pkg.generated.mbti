@@ -1,0 +1,38 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "phenom8010/moonpost/creator"
+
+import {
+  "moonbitlang/core/debug",
+  "phenom8010/moonpost/qc",
+  "phenom8010/moonpost/subtitle",
+}
+
+// Values
+pub fn bilibili_profile() -> CreatorProfile
+
+pub fn bilingual_profile() -> CreatorProfile
+
+pub fn check_creator_cues(Array[@subtitle.Cue], CreatorProfile) -> Array[@qc.QcIssue]
+
+pub fn creator_profile_by_name(String) -> CreatorProfile?
+
+pub fn douyin_profile() -> CreatorProfile
+
+pub fn normalize_creator_line(String, CreatorProfile) -> String
+
+pub fn youtube_profile() -> CreatorProfile
+
+// Errors
+
+// Types and methods
+pub(all) struct CreatorProfile {
+  name : String
+  qc_profile : @qc.QcProfile
+  text_style : @qc.TextStyleProfile
+  punctuation_mode : @qc.TextStyleMode
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits
+

@@ -1,8 +1,7 @@
 # MoonPost Wasm Demo
 
-Browser-local subtitle QC demo for MoonPost. It loads the MoonBit
-`wasm-gc` build, parses SRT/WebVTT text in the browser, and returns a QC
-report without uploading the subtitle file.
+Browser-local Delivery subtitle QC demo for MoonPost. It uses the shared QC
+core and runs entirely in the browser.
 
 ## Build
 

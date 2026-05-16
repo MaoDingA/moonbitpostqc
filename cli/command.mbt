@@ -9,6 +9,30 @@ pub(all) struct QcOptions {
 } derive(Eq, Debug)
 
 ///|
+pub(all) struct CreatorCheckOptions {
+  input : String
+  profile : String
+  output_json : Bool
+  fail_on_error : Bool
+} derive(Eq, Debug)
+
+///|
+pub(all) struct CreatorCleanOptions {
+  input : String
+  profile : String
+  output : String?
+} derive(Eq, Debug)
+
+///|
+pub(all) struct DeliverySubtitleCheckOptions {
+  input : String
+  profile : String
+  frame_rate : @timecode.FrameRate?
+  output_json : Bool
+  fail_on_error : Bool
+} derive(Eq, Debug)
+
+///|
 pub(all) struct TimecodeValueOptions {
   value : String
   frame_rate : @timecode.FrameRate
@@ -80,9 +104,22 @@ pub(all) enum SubtitleCommand {
 } derive(Eq, Debug)
 
 ///|
+pub(all) enum CreatorCommand {
+  CreatorCheck(CreatorCheckOptions)
+  CreatorClean(CreatorCleanOptions)
+} derive(Eq, Debug)
+
+///|
+pub(all) enum DeliveryCommand {
+  DeliverySubtitleCheck(DeliverySubtitleCheckOptions)
+} derive(Eq, Debug)
+
+///|
 pub(all) enum HelpTopic {
   RootHelp
   QcHelp
+  CreatorHelp
+  DeliveryHelp
   TimecodeHelp
   SubtitleHelp
   MergeHelp
@@ -92,6 +129,8 @@ pub(all) enum HelpTopic {
 ///|
 pub(all) enum Command {
   Qc(QcOptions)
+  Creator(CreatorCommand)
+  Delivery(DeliveryCommand)
   Timecode(TimecodeCommand)
   Subtitle(SubtitleCommand)
   Retime(RetimeOptions)
@@ -216,6 +255,64 @@ fn parse_qc(args : Array[String]) -> Command {
       output_json: has_flag(args, "--json"),
       fail_on_error: has_flag(args, "--fail-on-error"),
     })
+  }
+}
+
+///|
+fn parse_creator(args : Array[String]) -> Command {
+  if has_help(args) {
+    Help(CreatorHelp)
+  } else {
+    match args.get(2) {
+      Some("check") =>
+        Creator(
+          CreatorCheck({
+            input: match args.get(3) {
+              Some(value) => value
+              None => ""
+            },
+            profile: option_value(args, "--profile", "douyin"),
+            output_json: has_flag(args, "--json"),
+            fail_on_error: has_flag(args, "--fail-on-error"),
+          }),
+        )
+      Some("clean") =>
+        Creator(
+          CreatorClean({
+            input: match args.get(3) {
+              Some(value) => value
+              None => ""
+            },
+            profile: option_value(args, "--profile", "douyin"),
+            output: output_option(args),
+          }),
+        )
+      _ => Help(CreatorHelp)
+    }
+  }
+}
+
+///|
+fn parse_delivery(args : Array[String]) -> Command {
+  if has_help(args) {
+    Help(DeliveryHelp)
+  } else {
+    match args.get(2) {
+      Some("subtitle-check") =>
+        Delivery(
+          DeliverySubtitleCheck({
+            input: match args.get(3) {
+              Some(value) => value
+              None => ""
+            },
+            profile: option_value(args, "--profile", "ott-zh"),
+            frame_rate: parse_frame_rate(option_value(args, "--fps", "")),
+            output_json: has_flag(args, "--json"),
+            fail_on_error: has_flag(args, "--fail-on-error"),
+          }),
+        )
+      _ => Help(DeliveryHelp)
+    }
   }
 }
 
@@ -377,6 +474,8 @@ fn parse_split_bilingual(args : Array[String]) -> Command {
 pub fn parse_command(args : Array[String]) -> Command {
   match args.get(1) {
     Some("qc") => parse_qc(args)
+    Some("creator") => parse_creator(args)
+    Some("delivery") => parse_delivery(args)
     Some("timecode") => parse_timecode(args)
     Some("subtitle") => parse_subtitle(args)
     Some("retime") => parse_retime(args)
@@ -393,14 +492,24 @@ pub fn help_lines(topic : HelpTopic) -> Array[String] {
     RootHelp =>
       [
         "MoonPost - subtitle, timecode and post-production QC toolkit", "", "Usage:",
-        "  moonpost <command> [options]", "", "Commands:", "  qc          Check subtitle delivery quality",
-        "  timecode    Convert SMPTE-style timecode and frame counts", "  subtitle    Convert subtitle formats",
-        "  retime      Shift, speed-convert, or snap subtitle timing", "  merge       Merge two subtitle tracks into bilingual cues",
-        "  split-bilingual", "              Split bilingual cues into two subtitle tracks",
+        "  moonpost <command> [options]", "", "Commands:", "  creator     Check and clean creator-platform subtitle files",
+        "  delivery    Run delivery-profile subtitle checks", "  subtitle    Convert subtitle formats",
+        "  timecode    Convert SMPTE-style timecode and frame counts", "  retime      Shift, speed-convert, or snap subtitle timing",
+        "  merge       Merge two subtitle tracks into bilingual cues", "  split-bilingual",
+        "              Split bilingual cues into two subtitle tracks", "  qc          Compatibility alias for subtitle delivery QC",
       ]
     QcHelp =>
       [
         "Usage:", "  moonpost qc <file> [--fps <rate>] [--profile <name>] [--text-style <bilingual|zh|en>] [--json] [--fail-on-error]",
+      ]
+    CreatorHelp =>
+      [
+        "Usage:", "  moonpost creator check <file> [--profile <name>] [--json] [--fail-on-error]",
+        "  moonpost creator clean <file> [--profile <name>] [-o <file>|--output <file>]",
+      ]
+    DeliveryHelp =>
+      [
+        "Usage:", "  moonpost delivery subtitle-check <file> [--profile <name>] [--fps <rate>] [--json] [--fail-on-error]",
       ]
     TimecodeHelp =>
       [

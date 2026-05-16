@@ -4,6 +4,8 @@ import {
   "moonbitlang/async/fs" @fs,
   "phenom8010/moonpost/align" @align,
   "phenom8010/moonpost/cli" @cli,
+  "phenom8010/moonpost/creator" @creator,
+  "phenom8010/moonpost/delivery" @delivery,
   "phenom8010/moonpost/qc" @qc,
   "phenom8010/moonpost/retime" @retime,
   "phenom8010/moonpost/subtitle" @subtitle,

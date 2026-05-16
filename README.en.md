@@ -19,10 +19,17 @@ English | <a href="README.md">简体中文</a>
 MoonPost is a pure MoonBit toolkit for subtitles, timecode, and post-production
 quality control.
 
-It is designed for text-based media delivery work: checking SRT/WebVTT subtitle
-files, converting subtitle formats, calculating SMPTE-style timecode, retiming
-cues, and running the same core logic from a native CLI or a browser-local
-WebAssembly demo.
+MoonPost is organized into two capability lines:
+
+- Creator: for self-media, spoken content, short-form video, and AI-generated
+  subtitle cleanup, with attention to text conventions, punctuation, typo
+  hints, reading speed, and platform-specific subtitle habits.
+- Delivery: for film, OTT, and subtitle delivery QC, with attention to timeline
+  legality, frame grids, CPL/CPS, minimum gaps, JSON reports, and automated
+  failure exit codes.
+
+Both lines share the same SRT/WebVTT parser, QC rule engine, timecode helpers,
+and report formatter.
 
 MoonPost does not decode video, transcode media, or wrap FFmpeg. Its scope is
 the post-production infrastructure layer that can be implemented
@@ -110,6 +117,19 @@ moon run cmd/main --target native --
 The examples below use that prefix. If the command is packaged as a standalone
 binary later, replace the prefix with `moonpost`.
 
+### Creator / Delivery Examples
+
+```bash
+moon run cmd/main --target native -- creator check examples/bilingual.srt --profile bilingual
+moon run cmd/main --target native -- creator clean examples/good.srt --profile douyin -o fixed.srt
+moon run cmd/main --target native -- delivery subtitle-check examples/bad.srt --profile ott-zh --fps 25
+```
+
+Choose a `creator clean` profile that matches the language and platform
+conventions of the source; the `douyin` command above is illustrative.
+
+Use the built native executable when relying on `--fail-on-error` exit codes.
+
 ## CLI Overview
 
 ```text
@@ -119,13 +139,15 @@ Usage:
   moonpost <command> [options]
 
 Commands:
-  qc          Check subtitle delivery quality
-  timecode    Convert SMPTE-style timecode and frame counts
+  creator     Check and clean creator-platform subtitle files
+  delivery    Run delivery-profile subtitle checks
   subtitle    Convert subtitle formats
+  timecode    Convert SMPTE-style timecode and frame counts
   retime      Shift, speed-convert, or snap subtitle timing
   merge       Merge two subtitle tracks into bilingual cues
   split-bilingual
               Split bilingual cues into two subtitle tracks
+  qc          Compatibility alias for subtitle delivery QC
 ```
 
 ## Subtitle QC
@@ -380,6 +402,7 @@ the generated `pkg.generated.mbti` files.
 | `phenom8010/moonpost/timecode` | Frame rates, timecode parsing, frame conversion, drop-frame math. |
 | `phenom8010/moonpost/subtitle` | SRT/WebVTT parsing, timestamp formatting, subtitle writing. |
 | `phenom8010/moonpost/qc` | QC profiles, issue model, cue checks, report formatting. |
+| `phenom8010/moonpost/creator` | Creator subtitle profiles, text checks, and cleanup workflows. |
 | `phenom8010/moonpost/retime` | Offset, frame-rate conversion, frame snapping for cues. |
 | `phenom8010/moonpost/align` | Bilingual merge and split helpers. |
 | `phenom8010/moonpost/cli` | CLI argument parser. |
