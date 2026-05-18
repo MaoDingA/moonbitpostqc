@@ -1,3 +1,11 @@
 # MoonBit generated interface summaries include a trailing blank line.
 **/pkg.generated.mbti whitespace=-blank-at-eof
 /pkg.generated.mbti whitespace=-blank-at-eof
+
+# Help repository hosts classify MoonBit sources when they support Linguist
+# attributes. The browser demo shell is auxiliary, not the primary language.
+*.mbt linguist-language=MoonBit
+*.mbti linguist-language=MoonBit
+wasm-demo/public/*.js linguist-generated=true
+wasm-demo/public/*.css linguist-generated=true
+wasm-demo/public/*.html linguist-generated=true
