@@ -17,19 +17,23 @@ English | <a href="README.md">简体中文</a>
 </p>
 
 MoonPost is a pure MoonBit toolkit for subtitles, timecode, and post-production
-quality control.
+quality checks across two real production workflows: creator-side subtitle
+cleanup before publishing, and film/OTT subtitle delivery validation.
 
-MoonPost is organized into two capability lines:
+MoonPost is organized into two capability lines instead of mixing creator
+habits and delivery requirements into one oversized checker:
 
 - Creator: for self-media, spoken content, short-form video, and AI-generated
-  subtitle cleanup, with attention to text conventions, punctuation, typo
-  hints, reading speed, and platform-specific subtitle habits.
-- Delivery: for film, OTT, and subtitle delivery QC, with attention to timeline
-  legality, frame grids, CPL/CPS, minimum gaps, JSON reports, and automated
-  failure exit codes.
+  subtitle cleanup. It defaults to gentle hints and focuses on text
+  conventions, punctuation, typo and terminology hints, reading experience,
+  and platform-specific subtitle habits.
+- Delivery: for film, OTT, broadcast, and subtitle delivery QC. It defaults to
+  stricter validation and focuses on timeline legality, frame grids, CPL/CPS,
+  minimum gaps, JSON reports, and automated failure exit codes.
 
 Both lines share the same SRT/WebVTT parser, QC rule engine, timecode helpers,
-and report formatter.
+and report formatter. The shared core stays neutral; platform habits and
+delivery requirements are expressed through Creator and Delivery profiles.
 
 MoonPost does not decode video, transcode media, or wrap FFmpeg. Its scope is
 the post-production infrastructure layer that can be implemented
@@ -42,45 +46,83 @@ project, the source, license, and scope will be documented.
 
 ## Features
 
-- Parse and write SRT subtitle files.
-- Parse and write WebVTT subtitle files.
-- Convert SRT to WebVTT and WebVTT to SRT.
-- Parse and format SMPTE-style timecode.
-- Convert timecode to frame counts and frame counts to timecode.
+Shared foundation:
+
+- Parse and write SRT / WebVTT subtitle files and convert between them.
+- Parse and format SMPTE-style timecode, including timecode/frame conversion.
 - Support common frame rates: `23.976`, `24`, `25`, `29.97`, `29.97df`, `30`,
   `50`, `59.94`, and `59.94df`.
-- Run subtitle QC checks for overlap, invalid duration, empty cue text,
-  duration limits, line length, line count, reading speed, frame alignment, and
-  minimum cue gaps.
-- Opt in to bilingual text style QC for mixed punctuation, repeated
-  punctuation, paired punctuation, long unbroken text blocks, isolated
-  single-character lines, and small terminology dictionaries.
-- Normalize subtitle punctuation between half-width and full-width styles.
 - Retime subtitles by offset, frame-rate conversion, or frame snapping.
 - Merge and split bilingual subtitle tracks in the library API.
-- Build a browser-local Wasm demo that checks subtitles without uploading files.
+- Build a browser-local Wasm demo that runs core QC without uploading files.
+
+Creator capabilities:
+
+- Run publishing preflight checks for Douyin, Bilibili, YouTube, bilingual, and
+  similar creator profiles.
+- Report text issues as gentle Warning / Info diagnostics by default.
+- Opt in to Chinese-English text style checks for mixed punctuation, repeated
+  punctuation, paired punctuation, long unbroken text blocks, isolated
+  single-character lines, and small terminology dictionaries.
+- Normalize subtitle punctuation between half-width and full-width styles for
+  AI-generated and spoken-content subtitles.
+- Use `creator check` and `creator clean` for pre-publish checks and safe
+  format cleanup.
+
+Delivery capabilities:
+
+- Run stricter subtitle delivery QC for film, OTT, cinema, and broadcast
+  profiles.
+- Check overlaps, invalid durations, empty cue text, duration limits, line
+  length, line count, reading speed, frame alignment, and minimum cue gaps.
+- Emit JSON reports and support `--fail-on-error` for automated delivery gates.
+- Use `delivery subtitle-check` today, with room to grow into package,
+  manifest, metadata, and checksum checks.
+
+## Two Production Lines
+
+| Line | Goal | Default posture | Typical entry points |
+| --- | --- | --- | --- |
+| Creator | Subtitle cleanup before self-media, short-form, spoken-content, and AI-caption publishing | Gentle hints, safe cleanup, no default hard failure | `creator check`, `creator clean` |
+| Delivery | Film, OTT, broadcast, and localization subtitle delivery validation | Strict QC, Error diagnostics can fail automation | `delivery subtitle-check`, `qc` |
 
 ## Use Cases
 
-MoonPost fits subtitle delivery, media QA, and creator publishing workflows as
-a lightweight, repeatable subtitle checker and timecode utility.
+Creator workflows:
 
-- Check SRT/WebVTT files for overlaps, duration, line length, and reading speed before delivery.
-- Shift subtitles, convert frame-rate assumptions, or snap cue timing after edits and version changes.
-- Convert SRT/WebVTT files and run basic QC in creator and localization workflows.
-- Run browser-local QC through the Wasm demo without uploading subtitle text.
+- Clean AI-generated, spoken-content, and short-form subtitles before upload.
+- Check Chinese-English mixing, punctuation style, repeated punctuation, paired
+  punctuation, and isolated single-character lines.
+- Normalize half-width/full-width punctuation without changing meaning.
+- Check line length, reading speed, and visual density against platform habits.
+
+Delivery workflows:
+
+- Check SRT/WebVTT subtitles for overlaps, duration, line length, line count,
+  and reading speed before delivery.
+- Validate frame-rate assumptions, frame-grid alignment, and minimum cue gaps.
+- Shift subtitles, convert frame-rate assumptions, or snap cue timing after
+  edits and version changes.
+- Emit JSON reports and use `--fail-on-error` in automated delivery workflows.
+
+Shared workflows:
+
+- Convert SRT/WebVTT files and run basic QC in creator and localization flows.
+- Run browser-local core QC through the Wasm demo without uploading subtitle
+  text.
 
 ## Intended Users
 
-MoonPost is primarily for users who directly handle subtitle files and delivery
-checks.
+MoonPost is primarily for users who directly handle subtitle files,
+pre-publish checks, and delivery validation.
 
 | User | How MoonPost helps |
 | --- | --- |
-| Subtitle editors | Finds overlaps, empty cues, long lines, short durations, and reading-speed issues before handoff. |
-| Localization teams | Runs repeatable SRT/WebVTT checks during translation, review, and handoff. |
+| Creators and publishers | Checks AI captions, spoken-content subtitles, punctuation, line length, reading speed, and platform-specific subtitle habits before upload. |
+| Editors and subtitle editors | Finds overlaps, empty cues, long lines, short durations, and reading-speed issues before publishing or handoff. |
+| Localization teams | Runs repeatable SRT/WebVTT checks and bilingual subtitle workflows during translation, review, and handoff. |
 | Post-production and media QA | Checks timecode, frame grids, cue gaps, and readable QC reports. |
-| Creators and publishers | Converts subtitle formats and catches common subtitle problems before upload. |
+| Delivery engineers and platform operators | Uses JSON reports and failure exit codes to integrate subtitle QC into batch or CI workflows. |
 
 ## Requirements
 
@@ -143,8 +185,8 @@ Usage:
   moonpost <command> [options]
 
 Commands:
-  creator     Check and clean creator-platform subtitle files
-  delivery    Run delivery-profile subtitle checks
+  creator     Check and clean creator-platform subtitle files with gentle hints
+  delivery    Run strict delivery-profile subtitle checks
   subtitle    Convert subtitle formats
   timecode    Convert SMPTE-style timecode and frame counts
   retime      Shift, speed-convert, or snap subtitle timing
