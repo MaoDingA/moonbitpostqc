@@ -156,6 +156,20 @@ moon run cmd/main --target native -- delivery subtitle-check examples/bad.srt --
 
 依赖 `--fail-on-error` 退出码做自动化时，请使用构建后的 native 可执行文件。
 
+### Delivery 第一阶段目标
+
+当前建议先把 `delivery subtitle-check` 作为第一条稳定能力线：
+
+```bash
+moon run cmd/main --target native -- delivery subtitle-check examples/delivery/ott-good.srt --profile ott-zh --json
+moon build cmd/main --target native
+_build/native/debug/build/cmd/main/main.exe delivery subtitle-check examples/delivery/ott-bad.srt --profile ott-zh --fps 25 --fail-on-error
+```
+
+`delivery subtitle-check` 面向影视、OTT、广播和本地化字幕交付，默认使用严格
+profile。`--fail-on-error` 适合接入自动化流程；如果希望 Warning 也阻塞交付，
+可使用 `--fail-on-warning`。依赖退出码时请使用构建后的 native 可执行文件。
+
 ## CLI 概览
 
 ```text

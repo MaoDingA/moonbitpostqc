@@ -134,6 +134,8 @@ pub fn delivery_profile_by_name(name : String) -> DeliveryProfile? {
 ///|
 pub(all) struct DeliverySubtitleProfile {
   name : String
+  version : String
+  description : String
   qc_profile : @qc.QcProfile
   text_style : @qc.TextStyleProfile
 } derive(Eq, Debug)
@@ -142,6 +144,8 @@ pub(all) struct DeliverySubtitleProfile {
 pub fn ott_zh_subtitle_profile() -> DeliverySubtitleProfile {
   {
     name: "ott-zh",
+    version: "v1",
+    description: "OTT Chinese subtitle delivery profile",
     qc_profile: @qc.streaming_profile(),
     text_style: @qc.no_text_style_profile(),
   }
@@ -151,6 +155,8 @@ pub fn ott_zh_subtitle_profile() -> DeliverySubtitleProfile {
 pub fn cinema_zh_subtitle_profile() -> DeliverySubtitleProfile {
   {
     name: "cinema-zh",
+    version: "v1",
+    description: "Cinema Chinese subtitle delivery profile",
     qc_profile: @qc.cinema_profile(),
     text_style: @qc.no_text_style_profile(),
   }
@@ -160,9 +166,20 @@ pub fn cinema_zh_subtitle_profile() -> DeliverySubtitleProfile {
 pub fn broadcast_subtitle_profile() -> DeliverySubtitleProfile {
   {
     name: "broadcast",
+    version: "v1",
+    description: "Broadcast subtitle delivery profile",
     qc_profile: @qc.streaming_profile(),
     text_style: @qc.no_text_style_profile(),
   }
+}
+
+///|
+pub fn delivery_subtitle_profiles() -> Array[DeliverySubtitleProfile] {
+  [
+    ott_zh_subtitle_profile(),
+    cinema_zh_subtitle_profile(),
+    broadcast_subtitle_profile(),
+  ]
 }
 
 ///|

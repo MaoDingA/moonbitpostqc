@@ -107,7 +107,7 @@ test "cli parses creator clean defaults and long output flag" {
 test "cli parses delivery subtitle check command" {
   let command = parse_command([
     "moonpost", "delivery", "subtitle-check", "episode.zh.srt", "--profile", "ott-zh",
-    "--fps", "25", "--json", "--fail-on-error",
+    "--fps", "25", "--json", "--fail-on-error", "--fail-on-warning",
   ])
   match command {
     Delivery(DeliverySubtitleCheck(options)) => {
@@ -116,6 +116,7 @@ test "cli parses delivery subtitle check command" {
       assert_true(options.frame_rate == Some(@timecode.Fps25))
       assert_true(options.output_json)
       assert_true(options.fail_on_error)
+      assert_true(options.fail_on_warning)
     }
     _ => fail("expected delivery subtitle-check command")
   }
@@ -133,6 +134,7 @@ test "cli parses delivery subtitle check default profile" {
       assert_true(options.frame_rate is None)
       assert_false(options.output_json)
       assert_false(options.fail_on_error)
+      assert_false(options.fail_on_warning)
     }
     _ => fail("expected delivery subtitle-check command")
   }
@@ -255,6 +257,16 @@ test "creator help describes creator commands" {
 test "delivery help describes subtitle check command" {
   let text = help_lines(DeliveryHelp).join("\n")
   assert_true(text.contains("delivery subtitle-check"))
+}
+
+///|
+test "delivery help describes strict flags and profiles" {
+  let text = help_lines(DeliveryHelp).join("\n")
+  assert_true(text.contains("--fail-on-error"))
+  assert_true(text.contains("--fail-on-warning"))
+  assert_true(text.contains("ott-zh"))
+  assert_true(text.contains("cinema-zh"))
+  assert_true(text.contains("broadcast"))
 }
 
 ///|

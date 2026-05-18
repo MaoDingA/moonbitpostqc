@@ -399,6 +399,8 @@ fn delivery_subtitle_profile_from_options(
         Some(rate) =>
           Ok({
             name: profile.name,
+            version: profile.version,
+            description: profile.description,
             qc_profile: {
               max_cpl: profile.qc_profile.max_cpl,
               max_cps: profile.qc_profile.max_cps,
@@ -414,6 +416,41 @@ fn delivery_subtitle_profile_from_options(
       }
     None => Err("unknown delivery subtitle profile: \{options.profile}")
   }
+}
+
+///|
+fn delivery_subtitle_json_report(
+  name : String,
+  issues : Array[@qc.QcIssue],
+  profile : @delivery.DeliverySubtitleProfile?,
+  options : @cli.DeliverySubtitleCheckOptions,
+  exit_code : Int,
+) -> String {
+  let context = match profile {
+    Some(profile) =>
+      @qc.QcReportContext::{
+        command: "delivery subtitle-check",
+        schema_version: "moonpost.qc.v1",
+        profile_name: Some(profile.name),
+        profile_version: Some(profile.version),
+        profile_description: Some(profile.description),
+        fail_on_error: options.fail_on_error,
+        fail_on_warning: options.fail_on_warning,
+        exit_code,
+      }
+    None =>
+      @qc.QcReportContext::{
+        command: "delivery subtitle-check",
+        schema_version: "moonpost.qc.v1",
+        profile_name: None,
+        profile_version: None,
+        profile_description: None,
+        fail_on_error: options.fail_on_error,
+        fail_on_warning: options.fail_on_warning,
+        exit_code,
+      }
+  }
+  @qc.format_json_report_with_context(name, issues, context)
 }
 
 ///|
@@ -435,7 +472,7 @@ fn delivery_subtitle_result_for_text(
       ]
       return {
         lines: if options.output_json {
-          [@qc.format_json_report(name, issues)]
+          [delivery_subtitle_json_report(name, issues, None, options, 2)]
         } else {
           @qc.format_report(name, issues)
         },
@@ -450,19 +487,28 @@ fn delivery_subtitle_result_for_text(
         delivery_profile.qc_profile,
         delivery_profile.text_style,
       )
+      let exit_code = if (options.fail_on_error || options.fail_on_warning) &&
+        @qc.has_errors(issues) {
+        1
+      } else if options.fail_on_warning && @qc.has_warnings(issues) {
+        1
+      } else {
+        0
+      }
       let lines = if options.output_json {
-        [@qc.format_json_report(name, issues)]
+        [
+          delivery_subtitle_json_report(
+            name,
+            issues,
+            Some(delivery_profile),
+            options,
+            exit_code,
+          ),
+        ]
       } else {
         @qc.format_report(name, issues)
       }
-      {
-        lines,
-        exit_code: if options.fail_on_error && @qc.has_errors(issues) {
-          1
-        } else {
-          0
-        },
-      }
+      { lines, exit_code }
     }
     Err(error) => {
       let issues = [
@@ -475,7 +521,15 @@ fn delivery_subtitle_result_for_text(
       ]
       {
         lines: if options.output_json {
-          [@qc.format_json_report(name, issues)]
+          [
+            delivery_subtitle_json_report(
+              name,
+              issues,
+              Some(delivery_profile),
+              options,
+              2,
+            ),
+          ]
         } else {
           @qc.format_report(name, issues)
         },

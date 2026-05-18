@@ -30,6 +30,7 @@ pub(all) struct DeliverySubtitleCheckOptions {
   frame_rate : @timecode.FrameRate?
   output_json : Bool
   fail_on_error : Bool
+  fail_on_warning : Bool
 } derive(Eq, Debug)
 
 ///|
@@ -309,6 +310,7 @@ fn parse_delivery(args : Array[String]) -> Command {
             frame_rate: parse_frame_rate(option_value(args, "--fps", "")),
             output_json: has_flag(args, "--json"),
             fail_on_error: has_flag(args, "--fail-on-error"),
+            fail_on_warning: has_flag(args, "--fail-on-warning"),
           }),
         )
       _ => Help(DeliveryHelp)
@@ -509,7 +511,9 @@ pub fn help_lines(topic : HelpTopic) -> Array[String] {
       ]
     DeliveryHelp =>
       [
-        "Usage:", "  moonpost delivery subtitle-check <file> [--profile <name>] [--fps <rate>] [--json] [--fail-on-error]",
+        "Usage:", "  moonpost delivery subtitle-check <file> [--profile <name>] [--fps <rate>] [--json] [--fail-on-error] [--fail-on-warning]",
+        "", "Profiles:", "  ott-zh      OTT Chinese subtitle delivery defaults",
+        "  cinema-zh   Cinema Chinese subtitle delivery defaults", "  broadcast   Broadcast subtitle delivery defaults",
       ]
     TimecodeHelp =>
       [

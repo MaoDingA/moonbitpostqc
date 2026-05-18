@@ -47,6 +47,28 @@ pub fn has_errors(issues : Array[QcIssue]) -> Bool {
 }
 
 ///|
+pub fn has_warnings(issues : Array[QcIssue]) -> Bool {
+  for issue in issues {
+    if issue.severity == Warning {
+      return true
+    }
+  }
+  false
+}
+
+///|
+pub(all) struct QcReportContext {
+  command : String
+  schema_version : String
+  profile_name : String?
+  profile_version : String?
+  profile_description : String?
+  fail_on_error : Bool
+  fail_on_warning : Bool
+  exit_code : Int
+} derive(Eq, Debug)
+
+///|
 fn plural(count : Int, singular : String, plural : String) -> String {
   if count == 1 {
     singular
@@ -89,6 +111,19 @@ fn optional_int_json(value : Int?) -> Json {
 }
 
 ///|
+fn bool_json(value : Bool) -> Json {
+  Json::boolean(value)
+}
+
+///|
+fn optional_string_json(value : String?) -> Json {
+  match value {
+    Some(value) => Json::string(value)
+    None => Json::null()
+  }
+}
+
+///|
 fn issue_json(issue : QcIssue) -> Json {
   Json::object(
     Map([
@@ -114,6 +149,53 @@ pub fn format_json_report(name : String, issues : Array[QcIssue]) -> String {
         "summary",
         Json::object(
           Map([("errors", int_json(errors)), ("warnings", int_json(warnings))]),
+        ),
+      ),
+      ("issues", Json::array(issue_values)),
+    ]),
+  ).stringify()
+}
+
+///|
+pub fn format_json_report_with_context(
+  name : String,
+  issues : Array[QcIssue],
+  context : QcReportContext,
+) -> String {
+  let (errors, warnings) = issue_counts(issues)
+  let issue_values : Array[Json] = []
+  for issue in issues {
+    issue_values.push(issue_json(issue))
+  }
+  Json::object(
+    Map([
+      ("schema_version", Json::string(context.schema_version)),
+      ("command", Json::string(context.command)),
+      ("name", Json::string(name)),
+      (
+        "profile",
+        Json::object(
+          Map([
+            ("name", optional_string_json(context.profile_name)),
+            ("version", optional_string_json(context.profile_version)),
+            ("description", optional_string_json(context.profile_description)),
+          ]),
+        ),
+      ),
+      (
+        "summary",
+        Json::object(
+          Map([("errors", int_json(errors)), ("warnings", int_json(warnings))]),
+        ),
+      ),
+      (
+        "exit",
+        Json::object(
+          Map([
+            ("fail_on_error", bool_json(context.fail_on_error)),
+            ("fail_on_warning", bool_json(context.fail_on_warning)),
+            ("code", int_json(context.exit_code)),
+          ]),
         ),
       ),
       ("issues", Json::array(issue_values)),

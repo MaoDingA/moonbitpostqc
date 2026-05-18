@@ -207,3 +207,62 @@ test "punctuation normalization supports zh en and bilingual modes" {
     "你好，世界！",
   )
 }
+
+///|
+test "qc can detect whether issues contain warnings" {
+  assert_true(
+    has_warnings([
+      QcIssue::{
+        severity: Warning,
+        code: "W203",
+        cue_index: Some(1),
+        message: "line too long",
+      },
+    ]),
+  )
+  assert_false(
+    has_warnings([
+      QcIssue::{
+        severity: Error,
+        code: "E101",
+        cue_index: Some(1),
+        message: "overlap",
+      },
+    ]),
+  )
+}
+
+///|
+test "json report can include command profile schema and exit metadata" {
+  let issues = [
+    QcIssue::{
+      severity: Warning,
+      code: "W203",
+      cue_index: Some(1),
+      message: "line too long",
+    },
+  ]
+  let report = format_json_report_with_context("episode.zh.srt", issues, QcReportContext::{
+    command: "delivery subtitle-check",
+    schema_version: "moonpost.qc.v1",
+    profile_name: Some("ott-zh"),
+    profile_version: Some("v1"),
+    profile_description: Some("OTT Chinese subtitle delivery profile"),
+    fail_on_error: true,
+    fail_on_warning: false,
+    exit_code: 0,
+  })
+  assert_true(report.contains("\"schema_version\":\"moonpost.qc.v1\""))
+  assert_true(report.contains("\"command\":\"delivery subtitle-check\""))
+  assert_true(report.contains("\"profile\""))
+  assert_true(report.contains("\"name\":\"ott-zh\""))
+  assert_true(report.contains("\"version\":\"v1\""))
+  assert_true(
+    report.contains("\"description\":\"OTT Chinese subtitle delivery profile\""),
+  )
+  assert_true(report.contains("\"fail_on_error\":true"))
+  assert_true(report.contains("\"fail_on_warning\":false"))
+  assert_true(report.contains("\"code\":0"))
+  assert_true(report.contains("\"issues\""))
+  assert_true(report.contains("\"severity\":\"warning\""))
+}

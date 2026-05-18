@@ -251,10 +251,108 @@ test "delivery subtitle check uses delivery profile defaults" {
     frame_rate: None,
     output_json: false,
     fail_on_error: true,
+    fail_on_warning: false,
   })
   let report = result.lines.join("\n")
   assert_true(report.contains("W203"))
   assert_eq(result.exit_code, 0)
+}
+
+///|
+test "delivery subtitle check can fail automation on warnings" {
+  let input = "1\n00:00:01,000 --> 00:00:03,000\n1234567890123456789012345678901234567890\n"
+  let result = delivery_subtitle_result_for_text("episode.srt", input, @cli.DeliverySubtitleCheckOptions::{
+    input: "episode.srt",
+    profile: "cinema-zh",
+    frame_rate: None,
+    output_json: false,
+    fail_on_error: false,
+    fail_on_warning: true,
+  })
+  let report = result.lines.join("\n")
+  assert_true(report.contains("W203"))
+  assert_eq(result.exit_code, 1)
+}
+
+///|
+test "delivery subtitle warning failure also blocks error only reports" {
+  let input = "1\n00:00:01,000 --> 00:00:01,000\nHello\n"
+  let result = delivery_subtitle_result_for_text("episode.srt", input, @cli.DeliverySubtitleCheckOptions::{
+    input: "episode.srt",
+    profile: "ott-zh",
+    frame_rate: None,
+    output_json: false,
+    fail_on_error: false,
+    fail_on_warning: true,
+  })
+  let report = result.lines.join("\n")
+  assert_true(report.contains("E102"))
+  assert_false(report.contains("WARN"))
+  assert_eq(result.exit_code, 1)
+}
+
+///|
+test "delivery subtitle json report includes profile metadata" {
+  let input = "1\n00:00:01,000 --> 00:00:03,000\nHello\n"
+  let result = delivery_subtitle_result_for_text("episode.zh.srt", input, @cli.DeliverySubtitleCheckOptions::{
+    input: "episode.zh.srt",
+    profile: "ott-zh",
+    frame_rate: None,
+    output_json: true,
+    fail_on_error: true,
+    fail_on_warning: false,
+  })
+  let report = result.lines.join("\n")
+  assert_true(report.contains("\"schema_version\":\"moonpost.qc.v1\""))
+  assert_true(report.contains("\"command\":\"delivery subtitle-check\""))
+  assert_true(report.contains("\"profile\""))
+  assert_true(report.contains("\"name\":\"ott-zh\""))
+  assert_true(report.contains("\"version\":\"v1\""))
+  assert_true(report.contains("\"fail_on_error\":true"))
+  assert_true(report.contains("\"fail_on_warning\":false"))
+  assert_true(report.contains("\"code\":0"))
+}
+
+///|
+test "delivery subtitle json report keeps schema for unknown profile" {
+  let result = delivery_subtitle_result_for_text("episode.srt", "", @cli.DeliverySubtitleCheckOptions::{
+    input: "episode.srt",
+    profile: "typo",
+    frame_rate: None,
+    output_json: true,
+    fail_on_error: false,
+    fail_on_warning: false,
+  })
+  let report = result.lines.join("\n")
+  assert_true(report.contains("\"schema_version\":\"moonpost.qc.v1\""))
+  assert_true(report.contains("\"command\":\"delivery subtitle-check\""))
+  assert_true(report.contains("\"profile\""))
+  assert_true(report.contains("\"name\":null"))
+  assert_true(report.contains("\"code\":2"))
+  assert_true(report.contains("unknown delivery subtitle profile: typo"))
+  assert_eq(result.exit_code, 2)
+}
+
+///|
+test "delivery subtitle json report keeps schema for parse errors" {
+  let result = delivery_subtitle_result_for_text(
+    "episode.srt",
+    "1\nbad timing\nBroken\n",
+    @cli.DeliverySubtitleCheckOptions::{
+      input: "episode.srt",
+      profile: "ott-zh",
+      frame_rate: None,
+      output_json: true,
+      fail_on_error: false,
+      fail_on_warning: false,
+    },
+  )
+  let report = result.lines.join("\n")
+  assert_true(report.contains("\"schema_version\":\"moonpost.qc.v1\""))
+  assert_true(report.contains("\"name\":\"ott-zh\""))
+  assert_true(report.contains("\"code\":2"))
+  assert_true(report.contains("could not parse subtitle file"))
+  assert_eq(result.exit_code, 2)
 }
 
 ///|
@@ -278,6 +376,7 @@ test "delivery subtitle check rejects unknown profile" {
     frame_rate: None,
     output_json: false,
     fail_on_error: false,
+    fail_on_warning: false,
   })
   let report = result.lines.join("\n")
   assert_true(report.contains("unknown delivery subtitle profile: typo"))
@@ -293,6 +392,7 @@ test "delivery subtitle options can override profile frame rate" {
       frame_rate: Some(@timecode.Fps25),
       output_json: false,
       fail_on_error: false,
+      fail_on_warning: false,
     }) {
     Ok(profile) => {
       assert_true(profile.qc_profile.frame_rate == Some(@timecode.Fps25))

@@ -24,9 +24,13 @@ pub fn en_text_style_profile() -> TextStyleProfile
 
 pub fn format_json_report(String, Array[QcIssue]) -> String
 
+pub fn format_json_report_with_context(String, Array[QcIssue], QcReportContext) -> String
+
 pub fn format_report(String, Array[QcIssue]) -> Array[String]
 
 pub fn has_errors(Array[QcIssue]) -> Bool
+
+pub fn has_warnings(Array[QcIssue]) -> Bool
 
 pub fn no_text_style_profile() -> TextStyleProfile
 
@@ -66,6 +70,17 @@ pub(all) struct QcProfile {
   max_duration_ms : Int
   min_gap_frames : Int
   frame_rate : @timecode.FrameRate?
+} derive(Eq, @debug.Debug)
+
+pub(all) struct QcReportContext {
+  command : String
+  schema_version : String
+  profile_name : String?
+  profile_version : String?
+  profile_description : String?
+  fail_on_error : Bool
+  fail_on_warning : Bool
+  exit_code : Int
 } derive(Eq, @debug.Debug)
 
 pub(all) enum Severity {

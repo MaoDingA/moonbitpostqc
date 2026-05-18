@@ -20,6 +20,8 @@ pub fn delivery_profile_by_name(String) -> DeliveryProfile?
 
 pub fn delivery_subtitle_profile_by_name(String) -> DeliverySubtitleProfile?
 
+pub fn delivery_subtitle_profiles() -> Array[DeliverySubtitleProfile]
+
 pub fn distribution_profile() -> DeliveryProfile
 
 pub fn language_from_subtitle_name(String) -> String?
@@ -64,6 +66,8 @@ pub(all) struct DeliveryProfile {
 
 pub(all) struct DeliverySubtitleProfile {
   name : String
+  version : String
+  description : String
   qc_profile : @qc.QcProfile
   text_style : @qc.TextStyleProfile
 } derive(Eq, @debug.Debug)

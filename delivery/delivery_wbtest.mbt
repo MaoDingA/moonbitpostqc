@@ -131,3 +131,34 @@ test "delivery subtitle profile aliases resolve public defaults" {
     None => fail("expected broadcast profile")
   }
 }
+
+///|
+test "delivery subtitle profiles expose stable metadata" {
+  let ott = ott_zh_subtitle_profile()
+  assert_eq(ott.name, "ott-zh")
+  assert_eq(ott.version, "v1")
+  assert_true(ott.description.contains("OTT"))
+  assert_true(ott.qc_profile == @qc.streaming_profile())
+  assert_true(ott.text_style == @qc.no_text_style_profile())
+  let cinema = cinema_zh_subtitle_profile()
+  assert_eq(cinema.name, "cinema-zh")
+  assert_eq(cinema.version, "v1")
+  assert_true(cinema.description.to_lower().contains("cinema"))
+  assert_true(cinema.qc_profile == @qc.cinema_profile())
+  assert_true(cinema.text_style == @qc.no_text_style_profile())
+  let broadcast = broadcast_subtitle_profile()
+  assert_eq(broadcast.name, "broadcast")
+  assert_eq(broadcast.version, "v1")
+  assert_true(broadcast.description.to_lower().contains("broadcast"))
+  assert_true(broadcast.qc_profile == @qc.streaming_profile())
+  assert_true(broadcast.text_style == @qc.no_text_style_profile())
+}
+
+///|
+test "delivery subtitle profiles can be listed for help output" {
+  let profiles = delivery_subtitle_profiles()
+  assert_eq(profiles.length(), 3)
+  assert_true(profiles.any(profile => profile.name == "ott-zh"))
+  assert_true(profiles.any(profile => profile.name == "cinema-zh"))
+  assert_true(profiles.any(profile => profile.name == "broadcast"))
+}

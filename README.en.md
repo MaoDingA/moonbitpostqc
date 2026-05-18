@@ -176,6 +176,21 @@ conventions of the source; the `douyin` command above is illustrative.
 
 Use the built native executable when relying on `--fail-on-error` exit codes.
 
+### Delivery First-Phase Target
+
+The recommended first stable line is `delivery subtitle-check`:
+
+```bash
+moon run cmd/main --target native -- delivery subtitle-check examples/delivery/ott-good.srt --profile ott-zh --json
+moon build cmd/main --target native
+_build/native/debug/build/cmd/main/main.exe delivery subtitle-check examples/delivery/ott-bad.srt --profile ott-zh --fps 25 --fail-on-error
+```
+
+`delivery subtitle-check` targets film, OTT, broadcast, and localization subtitle
+delivery. `--fail-on-error` is suitable for automation; use `--fail-on-warning`
+when Warning diagnostics should also block delivery. Use the built native
+executable when relying on process exit codes.
+
 ## CLI Overview
 
 ```text
