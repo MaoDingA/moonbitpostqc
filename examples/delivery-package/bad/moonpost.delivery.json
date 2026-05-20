@@ -1,0 +1,9 @@
+{
+  "series": "MoonPost Demo",
+  "season": "S01",
+  "episode": "E01",
+  "title": "Broken Package",
+  "frame_rate": "25",
+  "required_subtitles": ["zh", "en"],
+  "required_assets": ["video", "subtitle", "metadata", "checksum"]
+}

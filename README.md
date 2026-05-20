@@ -63,15 +63,15 @@ Delivery 能力：
 - 检查时间重叠、非法时长、空字幕、时长上下限、单行字符数、行数、阅读速度、
   帧网格对齐和最小 cue 间隔。
 - 支持 JSON report 和 `--fail-on-error`，适合自动化交付检查。
-- 提供 `delivery subtitle-check`，后续可扩展到交付包、manifest、metadata 和
-  checksum 检查。
+- 提供 `delivery check` 目录级交付预检和 `delivery subtitle-check` 单字幕文件
+  QC，可检查交付包资产、manifest、metadata、checksum 和字幕问题。
 
 ## 两条生产线
 
 | 方向 | 目标 | 默认策略 | 典型入口 |
 | --- | --- | --- | --- |
 | Creator | 自媒体、短视频、口播、AI 字幕发布前清洗 | 温和提示，安全清理，不默认失败 | `creator check`、`creator clean` |
-| Delivery | 影视、OTT、广播、本地化字幕交付验收 | 严格 QC，Error 可触发非零退出码 | `delivery subtitle-check`、`qc` |
+| Delivery | 影视、OTT、广播、本地化字幕交付验收 | 严格 QC，Error 可触发非零退出码 | `delivery check`、`delivery subtitle-check` |
 
 ## 使用场景
 
@@ -148,6 +148,7 @@ moon run cmd/main --target native --
 ```bash
 moon run cmd/main --target native -- creator check examples/bilingual.srt --profile bilingual
 moon run cmd/main --target native -- creator clean examples/good.srt --profile douyin -o fixed.srt
+moon run cmd/main --target native -- delivery check examples/delivery-package/good --json
 moon run cmd/main --target native -- delivery subtitle-check examples/bad.srt --profile ott-zh --fps 25
 ```
 
@@ -158,7 +159,18 @@ moon run cmd/main --target native -- delivery subtitle-check examples/bad.srt --
 
 ### Delivery 第一阶段目标
 
-当前建议先把 `delivery subtitle-check` 作为第一条稳定能力线：
+当前第一阶段把 `delivery check <folder>` 作为可展示的目录级交付预检能力：
+
+```bash
+moon run cmd/main --target native -- delivery check examples/delivery-package/good --json
+moon run cmd/main --target native -- delivery check examples/delivery-package/bad --profile distribution --subtitle-profile ott-zh --fps 25
+```
+
+`delivery check` 会扫描交付目录第一层，识别 video、subtitle、poster、
+metadata、checksum 和 `moonpost.delivery.json`，根据 package profile 与
+manifest 检查缺失资产和必需字幕语言，并对目录内 SRT/WebVTT 运行字幕 QC。
+
+单个字幕文件仍可用 `delivery subtitle-check` 独立检查：
 
 ```bash
 moon run cmd/main --target native -- delivery subtitle-check examples/delivery/ott-good.srt --profile ott-zh --json
@@ -166,9 +178,8 @@ moon build cmd/main --target native
 _build/native/debug/build/cmd/main/main.exe delivery subtitle-check examples/delivery/ott-bad.srt --profile ott-zh --fps 25 --fail-on-error
 ```
 
-`delivery subtitle-check` 面向影视、OTT、广播和本地化字幕交付，默认使用严格
-profile。`--fail-on-error` 适合接入自动化流程；如果希望 Warning 也阻塞交付，
-可使用 `--fail-on-warning`。依赖退出码时请使用构建后的 native 可执行文件。
+`--fail-on-error` 适合接入自动化流程；如果希望 Warning 也阻塞交付，可使用
+`--fail-on-warning`。依赖退出码时请使用构建后的 native 可执行文件。
 
 ## CLI 概览
 

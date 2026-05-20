@@ -402,3 +402,111 @@ test "delivery subtitle options can override profile frame rate" {
     Err(message) => fail(message)
   }
 }
+
+///|
+test "delivery package result combines asset and subtitle checks" {
+  let result = delivery_package_result_for_inputs(
+    "deliveries/E01",
+    ["E01.mp4", "E01.zh.srt"],
+    None,
+    [
+      PackageSubtitleInput::{
+        name: "E01.zh.srt",
+        text: "1\n00:00:01,000 --> 00:00:01,100\nToo short\n",
+      },
+    ],
+    @cli.DeliveryCheckOptions::{
+      input: "deliveries/E01",
+      profile: "distribution",
+      subtitle_profile: "ott-zh",
+      frame_rate: Some(@timecode.Fps25),
+      output_json: false,
+      fail_on_error: true,
+      fail_on_warning: false,
+    },
+  )
+  let report = result.lines.join("\n")
+  assert_true(report.contains("D101"))
+  assert_true(report.contains("metadata"))
+  assert_true(report.contains("checksum"))
+  assert_true(report.contains("D102"))
+  assert_true(report.contains("poster"))
+  assert_true(report.contains("D302"))
+  assert_true(report.contains("E01.zh.srt"))
+  assert_eq(result.exit_code, 1)
+}
+
+///|
+test "delivery package result uses manifest language requirements" {
+  let manifest =
+    #|{
+    #|  "required_subtitles": ["zh", "en"],
+    #|  "required_assets": ["video", "subtitle", "metadata", "checksum"]
+    #|}
+  let result = delivery_package_result_for_inputs(
+    "deliveries/E01",
+    [
+      "E01.mp4", "E01.zh.srt", "E01.metadata.json", "checksum.txt", "E01.poster.jpg",
+    ],
+    Some(manifest),
+    [
+      PackageSubtitleInput::{
+        name: "E01.zh.srt",
+        text: "1\n00:00:01,000 --> 00:00:03,000\nReady\n",
+      },
+    ],
+    @cli.DeliveryCheckOptions::{
+      input: "deliveries/E01",
+      profile: "distribution",
+      subtitle_profile: "ott-zh",
+      frame_rate: Some(@timecode.Fps25),
+      output_json: false,
+      fail_on_error: true,
+      fail_on_warning: false,
+    },
+  )
+  let report = result.lines.join("\n")
+  assert_true(report.contains("D202"))
+  assert_true(report.contains("en"))
+  assert_eq(result.exit_code, 1)
+}
+
+///|
+test "delivery package json includes stable package context" {
+  let manifest =
+    #|{
+    #|  "required_subtitles": ["zh"],
+    #|  "required_assets": ["video", "subtitle", "metadata", "checksum"]
+    #|}
+  let result = delivery_package_result_for_inputs(
+    "deliveries/good",
+    [
+      "E01.mp4", "E01.zh.srt", "E01.metadata.json", "checksum.txt", "E01.poster.jpg",
+    ],
+    Some(manifest),
+    [
+      PackageSubtitleInput::{
+        name: "E01.zh.srt",
+        text: "1\n00:00:01,000 --> 00:00:03,000\nReady\n",
+      },
+    ],
+    @cli.DeliveryCheckOptions::{
+      input: "deliveries/good",
+      profile: "distribution",
+      subtitle_profile: "ott-zh",
+      frame_rate: Some(@timecode.Fps25),
+      output_json: true,
+      fail_on_error: true,
+      fail_on_warning: false,
+    },
+  )
+  let report = result.lines.join("\n")
+  assert_true(report.contains("\"schema_version\":\"moonpost.delivery.v1\""))
+  assert_true(report.contains("\"command\":\"delivery check\""))
+  assert_true(report.contains("\"package_profile\":\"distribution\""))
+  assert_true(report.contains("\"subtitle_profile\":\"ott-zh\""))
+  assert_true(report.contains("\"assets\""))
+  assert_true(report.contains("\"manifest_present\":true"))
+  assert_true(report.contains("\"code\":0"))
+  assert_eq(result.exit_code, 0)
+}

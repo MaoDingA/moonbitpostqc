@@ -1,5 +1,6 @@
 import {
   "moonbitlang/async",
+  "moonbitlang/core/json",
   "moonbitlang/core/env" @env,
   "moonbitlang/async/fs" @fs,
   "phenom8010/moonpost/align" @align,

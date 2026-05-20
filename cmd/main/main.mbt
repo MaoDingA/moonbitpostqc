@@ -51,6 +51,12 @@ priv struct QcCliResult {
 }
 
 ///|
+priv struct PackageSubtitleInput {
+  name : String
+  text : String
+}
+
+///|
 fn first_nonblank_line(input : String) -> String? {
   for raw in input.split("\n") {
     let line = raw.trim().to_owned()
@@ -393,9 +399,17 @@ fn creator_clean_text(
 fn delivery_subtitle_profile_from_options(
   options : @cli.DeliverySubtitleCheckOptions,
 ) -> Result[@delivery.DeliverySubtitleProfile, String] {
-  match @delivery.delivery_subtitle_profile_by_name(options.profile) {
+  delivery_subtitle_profile_from_parts(options.profile, options.frame_rate)
+}
+
+///|
+fn delivery_subtitle_profile_from_parts(
+  name : String,
+  frame_rate : @timecode.FrameRate?,
+) -> Result[@delivery.DeliverySubtitleProfile, String] {
+  match @delivery.delivery_subtitle_profile_by_name(name) {
     Some(profile) =>
-      match options.frame_rate {
+      match frame_rate {
         Some(rate) =>
           Ok({
             name: profile.name,
@@ -414,7 +428,55 @@ fn delivery_subtitle_profile_from_options(
           })
         None => Ok(profile)
       }
-    None => Err("unknown delivery subtitle profile: \{options.profile}")
+    None => Err("unknown delivery subtitle profile: \{name}")
+  }
+}
+
+///|
+fn delivery_package_profile_from_name(
+  name : String,
+) -> Result[@delivery.DeliveryProfile, String] {
+  match @delivery.delivery_profile_by_name(name) {
+    Some(profile) => Ok(profile)
+    None => Err("unknown delivery package profile: \{name}")
+  }
+}
+
+///|
+fn push_cli_issue(
+  issues : Array[@qc.QcIssue],
+  severity : @qc.Severity,
+  code : String,
+  message : String,
+) -> Unit {
+  issues.push({ severity, code, cue_index: None, message })
+}
+
+///|
+fn issue_counts(issues : Array[@qc.QcIssue]) -> (Int, Int) {
+  let mut errors = 0
+  let mut warnings = 0
+  for issue in issues {
+    match issue.severity {
+      @qc.Error => errors += 1
+      @qc.Warning => warnings += 1
+    }
+  }
+  (errors, warnings)
+}
+
+///|
+fn exit_code_for_issues(
+  issues : Array[@qc.QcIssue],
+  fail_on_error : Bool,
+  fail_on_warning : Bool,
+) -> Int {
+  if (fail_on_error || fail_on_warning) && @qc.has_errors(issues) {
+    1
+  } else if fail_on_warning && @qc.has_warnings(issues) {
+    1
+  } else {
+    0
   }
 }
 
@@ -540,6 +602,274 @@ fn delivery_subtitle_result_for_text(
 }
 
 ///|
+fn delivery_asset_kind_label(kind : @delivery.AssetKind) -> String {
+  match kind {
+    @delivery.VideoAsset => "video"
+    @delivery.SubtitleAsset => "subtitle"
+    @delivery.PosterAsset => "poster"
+    @delivery.MetadataAsset => "metadata"
+    @delivery.ChecksumAsset => "checksum"
+    @delivery.ManifestAsset => "manifest"
+    @delivery.OtherAsset => "other"
+  }
+}
+
+///|
+fn severity_json_label(severity : @qc.Severity) -> String {
+  match severity {
+    @qc.Error => "error"
+    @qc.Warning => "warning"
+  }
+}
+
+///|
+fn int_json(value : Int) -> Json {
+  Json::number(Double::from_int(value), repr="\{value}")
+}
+
+///|
+fn bool_json(value : Bool) -> Json {
+  Json::boolean(value)
+}
+
+///|
+fn optional_int_json(value : Int?) -> Json {
+  match value {
+    Some(value) => int_json(value)
+    None => Json::null()
+  }
+}
+
+///|
+fn optional_string_json(value : String?) -> Json {
+  match value {
+    Some(value) => Json::string(value)
+    None => Json::null()
+  }
+}
+
+///|
+fn issue_json_value(issue : @qc.QcIssue) -> Json {
+  Json::object(
+    Map([
+      ("severity", Json::string(severity_json_label(issue.severity))),
+      ("code", Json::string(issue.code)),
+      ("cue_index", optional_int_json(issue.cue_index)),
+      ("message", Json::string(issue.message)),
+    ]),
+  )
+}
+
+///|
+fn asset_json_value(asset : @delivery.DeliveryAsset) -> Json {
+  Json::object(
+    Map([
+      ("name", Json::string(asset.name)),
+      ("kind", Json::string(delivery_asset_kind_label(asset.kind))),
+      ("language", optional_string_json(asset.language)),
+    ]),
+  )
+}
+
+///|
+fn format_delivery_package_json(
+  name : String,
+  pkg : @delivery.DeliveryPackage,
+  issues : Array[@qc.QcIssue],
+  options : @cli.DeliveryCheckOptions,
+  exit_code : Int,
+) -> String {
+  let (errors, warnings) = issue_counts(issues)
+  let issue_values : Array[Json] = []
+  for issue in issues {
+    issue_values.push(issue_json_value(issue))
+  }
+  let asset_values : Array[Json] = []
+  for asset in pkg.assets {
+    asset_values.push(asset_json_value(asset))
+  }
+  Json::object(
+    Map([
+      ("schema_version", Json::string("moonpost.delivery.v1")),
+      ("command", Json::string("delivery check")),
+      ("name", Json::string(name)),
+      ("package_profile", Json::string(options.profile)),
+      ("subtitle_profile", Json::string(options.subtitle_profile)),
+      ("assets", Json::array(asset_values)),
+      ("manifest_present", bool_json(pkg.manifest is Some(_))),
+      (
+        "summary",
+        Json::object(
+          Map([("errors", int_json(errors)), ("warnings", int_json(warnings))]),
+        ),
+      ),
+      (
+        "exit",
+        Json::object(
+          Map([
+            ("fail_on_error", bool_json(options.fail_on_error)),
+            ("fail_on_warning", bool_json(options.fail_on_warning)),
+            ("code", int_json(exit_code)),
+          ]),
+        ),
+      ),
+      ("issues", Json::array(issue_values)),
+    ]),
+  ).stringify()
+}
+
+///|
+fn prefixed_subtitle_issue(
+  file_name : String,
+  issue : @qc.QcIssue,
+) -> @qc.QcIssue {
+  {
+    severity: issue.severity,
+    code: issue.code,
+    cue_index: issue.cue_index,
+    message: "\{file_name}: \{issue.message}",
+  }
+}
+
+///|
+fn append_subtitle_check_issues(
+  issues : Array[@qc.QcIssue],
+  subtitle : PackageSubtitleInput,
+  profile : @delivery.DeliverySubtitleProfile,
+) -> Unit {
+  match parse_subtitle_text_detailed(subtitle.text) {
+    Ok(track) => {
+      let subtitle_issues = @qc.check_cues_with_text_style(
+        track.cues,
+        profile.qc_profile,
+        profile.text_style,
+      )
+      if subtitle_issues.length() > 0 {
+        let (errors, warnings) = issue_counts(subtitle_issues)
+        push_cli_issue(
+          issues,
+          if @qc.has_errors(subtitle_issues) {
+            @qc.Error
+          } else {
+            @qc.Warning
+          },
+          "D302",
+          "\{subtitle.name}: subtitle QC reported \{errors} errors, \{warnings} warnings",
+        )
+        for issue in subtitle_issues {
+          issues.push(prefixed_subtitle_issue(subtitle.name, issue))
+        }
+      }
+    }
+    Err(error) =>
+      push_cli_issue(
+        issues,
+        @qc.Error,
+        "D301",
+        "\{subtitle.name}: could not parse subtitle file: \{error.format_message()}",
+      )
+  }
+}
+
+///|
+fn delivery_package_result_for_inputs(
+  name : String,
+  asset_names : Array[String],
+  manifest_raw : String?,
+  subtitles : Array[PackageSubtitleInput],
+  options : @cli.DeliveryCheckOptions,
+) -> QcCliResult {
+  let package_profile = match
+    delivery_package_profile_from_name(options.profile) {
+    Ok(profile) => profile
+    Err(message) => {
+      let issues = [
+        @qc.QcIssue::{
+          severity: @qc.Error,
+          code: "E000",
+          cue_index: None,
+          message,
+        },
+      ]
+      return {
+        lines: if options.output_json {
+          [@qc.format_json_report(name, issues)]
+        } else {
+          @qc.format_report(name, issues)
+        },
+        exit_code: 2,
+      }
+    }
+  }
+  let subtitle_profile = match
+    delivery_subtitle_profile_from_parts(
+      options.subtitle_profile,
+      options.frame_rate,
+    ) {
+    Ok(profile) => profile
+    Err(message) => {
+      let issues = [
+        @qc.QcIssue::{
+          severity: @qc.Error,
+          code: "E000",
+          cue_index: None,
+          message,
+        },
+      ]
+      return {
+        lines: if options.output_json {
+          [@qc.format_json_report(name, issues)]
+        } else {
+          @qc.format_report(name, issues)
+        },
+        exit_code: 2,
+      }
+    }
+  }
+  let issues : Array[@qc.QcIssue] = []
+  let manifest = match manifest_raw {
+    Some(raw) =>
+      match @delivery.parse_manifest(raw) {
+        Ok(value) => Some(value)
+        Err(message) => {
+          push_cli_issue(
+            issues,
+            @qc.Error,
+            "D201",
+            "could not parse delivery manifest: \{message}",
+          )
+          None
+        }
+      }
+    None => None
+  }
+  let pkg = @delivery.DeliveryPackage::{
+    name,
+    assets: @delivery.package_assets_from_names(asset_names),
+    manifest,
+  }
+  for issue in @delivery.check_package(pkg, package_profile) {
+    issues.push(issue)
+  }
+  for subtitle in subtitles {
+    append_subtitle_check_issues(issues, subtitle, subtitle_profile)
+  }
+  let exit_code = exit_code_for_issues(
+    issues,
+    options.fail_on_error,
+    options.fail_on_warning,
+  )
+  {
+    lines: if options.output_json {
+      [format_delivery_package_json(name, pkg, issues, options, exit_code)]
+    } else {
+      @qc.format_report(name, issues)
+    },
+    exit_code,
+  }
+}
+
+///|
 fn merge_bilingual_text(
   primary_text : String,
   secondary_text : String,
@@ -586,8 +916,24 @@ fn print_lines(lines : Array[String]) -> Unit {
 }
 
 ///|
+fn join_path(parent : String, child : String) -> String {
+  if parent.has_suffix("/") {
+    "\{parent}\{child}"
+  } else {
+    "\{parent}/\{child}"
+  }
+}
+
+///|
 async fn read_text_file(path : String) -> String? {
   Some(@fs.read_file(path).text()) catch {
+    _ => None
+  }
+}
+
+///|
+async fn read_directory_entries(path : String) -> Array[String]? {
+  Some(@fs.readdir(path, sort=true)) catch {
     _ => None
   }
 }
@@ -693,6 +1039,41 @@ async fn run_delivery_subtitle_check(
     }
     None => {
       println("could not read file: \{options.input}")
+      2
+    }
+  }
+}
+
+///|
+async fn run_delivery_check(options : @cli.DeliveryCheckOptions) -> Int {
+  match read_directory_entries(options.input) {
+    Some(entries) => {
+      let manifest_raw = if entries.contains("moonpost.delivery.json") {
+        read_text_file(join_path(options.input, "moonpost.delivery.json"))
+      } else {
+        None
+      }
+      let subtitles : Array[PackageSubtitleInput] = []
+      for name in entries {
+        if @delivery.classify_asset(name) == @delivery.SubtitleAsset {
+          match read_text_file(join_path(options.input, name)) {
+            Some(text) => subtitles.push({ name, text })
+            None => subtitles.push({ name, text: "" })
+          }
+        }
+      }
+      let result = delivery_package_result_for_inputs(
+        options.input,
+        entries,
+        manifest_raw,
+        subtitles,
+        options,
+      )
+      print_lines(result.lines)
+      result.exit_code
+    }
+    None => {
+      println("could not read delivery folder: \{options.input}")
       2
     }
   }
@@ -871,6 +1252,7 @@ async fn run_command(command : @cli.Command) -> Int {
     @cli.Creator(@cli.CreatorClean(options)) => run_creator_clean(options)
     @cli.Delivery(@cli.DeliverySubtitleCheck(options)) =>
       run_delivery_subtitle_check(options)
+    @cli.Delivery(@cli.DeliveryCheck(options)) => run_delivery_check(options)
     @cli.Timecode(command) => {
       print_lines(timecode_command_lines(command))
       0

@@ -34,6 +34,17 @@ pub(all) struct DeliverySubtitleCheckOptions {
 } derive(Eq, Debug)
 
 ///|
+pub(all) struct DeliveryCheckOptions {
+  input : String
+  profile : String
+  subtitle_profile : String
+  frame_rate : @timecode.FrameRate?
+  output_json : Bool
+  fail_on_error : Bool
+  fail_on_warning : Bool
+} derive(Eq, Debug)
+
+///|
 pub(all) struct TimecodeValueOptions {
   value : String
   frame_rate : @timecode.FrameRate
@@ -113,6 +124,7 @@ pub(all) enum CreatorCommand {
 ///|
 pub(all) enum DeliveryCommand {
   DeliverySubtitleCheck(DeliverySubtitleCheckOptions)
+  DeliveryCheck(DeliveryCheckOptions)
 } derive(Eq, Debug)
 
 ///|
@@ -299,6 +311,21 @@ fn parse_delivery(args : Array[String]) -> Command {
     Help(DeliveryHelp)
   } else {
     match args.get(2) {
+      Some("check") =>
+        Delivery(
+          DeliveryCheck({
+            input: match args.get(3) {
+              Some(value) => value
+              None => ""
+            },
+            profile: option_value(args, "--profile", "distribution"),
+            subtitle_profile: option_value(args, "--subtitle-profile", "ott-zh"),
+            frame_rate: parse_frame_rate(option_value(args, "--fps", "")),
+            output_json: has_flag(args, "--json"),
+            fail_on_error: has_flag(args, "--fail-on-error"),
+            fail_on_warning: has_flag(args, "--fail-on-warning"),
+          }),
+        )
       Some("subtitle-check") =>
         Delivery(
           DeliverySubtitleCheck({
@@ -511,9 +538,12 @@ pub fn help_lines(topic : HelpTopic) -> Array[String] {
       ]
     DeliveryHelp =>
       [
-        "Usage:", "  moonpost delivery subtitle-check <file> [--profile <name>] [--fps <rate>] [--json] [--fail-on-error] [--fail-on-warning]",
-        "", "Profiles:", "  ott-zh      OTT Chinese subtitle delivery defaults",
-        "  cinema-zh   Cinema Chinese subtitle delivery defaults", "  broadcast   Broadcast subtitle delivery defaults",
+        "Usage:", "  moonpost delivery check <folder> [--profile <name>] [--subtitle-profile <name>] [--fps <rate>] [--json] [--fail-on-error] [--fail-on-warning]",
+        "  moonpost delivery subtitle-check <file> [--profile <name>] [--fps <rate>] [--json] [--fail-on-error] [--fail-on-warning]",
+        "", "Package profiles:", "  distribution   Require video, subtitles, metadata, and checksum",
+        "  creator        Require video and subtitles, poster as warning", "", "Subtitle profiles:",
+        "  ott-zh      OTT Chinese subtitle delivery defaults", "  cinema-zh   Cinema Chinese subtitle delivery defaults",
+        "  broadcast   Broadcast subtitle delivery defaults",
       ]
     TimecodeHelp =>
       [

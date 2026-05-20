@@ -162,3 +162,99 @@ test "delivery subtitle profiles can be listed for help output" {
   assert_true(profiles.any(profile => profile.name == "cinema-zh"))
   assert_true(profiles.any(profile => profile.name == "broadcast"))
 }
+
+///|
+test "delivery package assets retain kind and subtitle language" {
+  let assets = package_assets_from_names([
+    "E01.mxf", "E01.zh-Hans.srt", "E01.en-US.vtt", "E01.poster.jpg", "E01.metadata.json",
+    "checksum.txt",
+  ])
+  assert_eq(assets.length(), 6)
+  assert_true(
+    assets.any(asset => {
+      asset.name == "E01.zh-Hans.srt" &&
+      asset.kind == SubtitleAsset &&
+      asset.language == Some("zh-Hans")
+    }),
+  )
+  assert_true(
+    assets.any(asset => {
+      asset.name == "checksum.txt" && asset.kind == ChecksumAsset
+    }),
+  )
+}
+
+///|
+test "delivery package check reports missing required assets and poster warning" {
+  let pkg = DeliveryPackage::{
+    name: "bad-package",
+    assets: package_assets_from_names(["E01.mp4", "E01.zh.srt"]),
+    manifest: None,
+  }
+  let issues = check_package(pkg, distribution_profile())
+  assert_true(
+    issues.any(issue => {
+      issue.code == "D101" && issue.message.contains("metadata")
+    }),
+  )
+  assert_true(
+    issues.any(issue => {
+      issue.code == "D101" && issue.message.contains("checksum")
+    }),
+  )
+  assert_true(
+    issues.any(issue => issue.code == "D102" && issue.message.contains("poster")),
+  )
+}
+
+///|
+test "delivery package check reports manifest required subtitle languages" {
+  let raw_manifest =
+    #|{
+    #|  "required_subtitles": ["zh", "en"],
+    #|  "required_assets": ["video", "subtitle", "metadata", "checksum"]
+    #|}
+  let manifest = match parse_manifest(raw_manifest) {
+    Ok(value) => value
+    Err(message) => fail(message)
+  }
+  let pkg = DeliveryPackage::{
+    name: "manifest-package",
+    assets: package_assets_from_names([
+      "E01.mp4", "E01.zh.srt", "E01.metadata.json", "checksum.txt", "E01.poster.jpg",
+    ]),
+    manifest: Some(manifest),
+  }
+  let issues = check_package(pkg, distribution_profile())
+  assert_true(
+    issues.any(issue => issue.code == "D202" && issue.message.contains("en")),
+  )
+  assert_false(
+    issues.any(issue => {
+      issue.code == "D101" && issue.message.contains("metadata")
+    }),
+  )
+}
+
+///|
+test "delivery package check accepts complete distribution package" {
+  let raw_manifest =
+    #|{
+    #|  "required_subtitles": ["zh", "en"],
+    #|  "required_assets": ["video", "subtitle", "metadata", "checksum"]
+    #|}
+  let manifest = match parse_manifest(raw_manifest) {
+    Ok(value) => value
+    Err(message) => fail(message)
+  }
+  let pkg = DeliveryPackage::{
+    name: "good-package",
+    assets: package_assets_from_names([
+      "E01.mp4", "E01.zh.srt", "E01.en.vtt", "E01.metadata.json", "checksum.txt",
+      "E01.poster.jpg",
+    ]),
+    manifest: Some(manifest),
+  }
+  let issues = check_package(pkg, distribution_profile())
+  assert_eq(issues.length(), 0)
+}

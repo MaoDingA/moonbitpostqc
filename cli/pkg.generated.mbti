@@ -46,8 +46,19 @@ pub(all) enum CreatorCommand {
   CreatorClean(CreatorCleanOptions)
 } derive(Eq, @debug.Debug)
 
+pub(all) struct DeliveryCheckOptions {
+  input : String
+  profile : String
+  subtitle_profile : String
+  frame_rate : @timecode.FrameRate?
+  output_json : Bool
+  fail_on_error : Bool
+  fail_on_warning : Bool
+} derive(Eq, @debug.Debug)
+
 pub(all) enum DeliveryCommand {
   DeliverySubtitleCheck(DeliverySubtitleCheckOptions)
+  DeliveryCheck(DeliveryCheckOptions)
 } derive(Eq, @debug.Debug)
 
 pub(all) struct DeliverySubtitleCheckOptions {

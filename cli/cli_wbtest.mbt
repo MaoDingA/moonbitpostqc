@@ -141,6 +141,46 @@ test "cli parses delivery subtitle check default profile" {
 }
 
 ///|
+test "cli parses delivery package check command" {
+  let command = parse_command([
+    "moonpost", "delivery", "check", "deliveries/E01", "--profile", "distribution",
+    "--subtitle-profile", "cinema-zh", "--fps", "24", "--json", "--fail-on-error",
+    "--fail-on-warning",
+  ])
+  match command {
+    Delivery(DeliveryCheck(options)) => {
+      assert_eq(options.input, "deliveries/E01")
+      assert_eq(options.profile, "distribution")
+      assert_eq(options.subtitle_profile, "cinema-zh")
+      assert_true(options.frame_rate == Some(@timecode.Fps24))
+      assert_true(options.output_json)
+      assert_true(options.fail_on_error)
+      assert_true(options.fail_on_warning)
+    }
+    _ => fail("expected delivery package check command")
+  }
+}
+
+///|
+test "cli parses delivery package check defaults" {
+  let command = parse_command([
+    "moonpost", "delivery", "check", "deliveries/E01",
+  ])
+  match command {
+    Delivery(DeliveryCheck(options)) => {
+      assert_eq(options.input, "deliveries/E01")
+      assert_eq(options.profile, "distribution")
+      assert_eq(options.subtitle_profile, "ott-zh")
+      assert_true(options.frame_rate is None)
+      assert_false(options.output_json)
+      assert_false(options.fail_on_error)
+      assert_false(options.fail_on_warning)
+    }
+    _ => fail("expected delivery package check command")
+  }
+}
+
+///|
 test "cli parses timecode conversion" {
   let command = parse_command([
     "moonpost", "timecode", "to-frames", "01:00:00:00", "--fps", "25",
@@ -257,6 +297,7 @@ test "creator help describes creator commands" {
 test "delivery help describes subtitle check command" {
   let text = help_lines(DeliveryHelp).join("\n")
   assert_true(text.contains("delivery subtitle-check"))
+  assert_true(text.contains("delivery check"))
 }
 
 ///|

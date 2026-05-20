@@ -76,15 +76,16 @@ Delivery capabilities:
 - Check overlaps, invalid durations, empty cue text, duration limits, line
   length, line count, reading speed, frame alignment, and minimum cue gaps.
 - Emit JSON reports and support `--fail-on-error` for automated delivery gates.
-- Use `delivery subtitle-check` today, with room to grow into package,
-  manifest, metadata, and checksum checks.
+- Use `delivery check` for directory-level package preflight and
+  `delivery subtitle-check` for single subtitle files, covering package assets,
+  manifest, metadata, checksum, and subtitle issues.
 
 ## Two Production Lines
 
 | Line | Goal | Default posture | Typical entry points |
 | --- | --- | --- | --- |
 | Creator | Subtitle cleanup before self-media, short-form, spoken-content, and AI-caption publishing | Gentle hints, safe cleanup, no default hard failure | `creator check`, `creator clean` |
-| Delivery | Film, OTT, broadcast, and localization subtitle delivery validation | Strict QC, Error diagnostics can fail automation | `delivery subtitle-check`, `qc` |
+| Delivery | Film, OTT, broadcast, and localization subtitle delivery validation | Strict QC, Error diagnostics can fail automation | `delivery check`, `delivery subtitle-check` |
 
 ## Use Cases
 
@@ -168,6 +169,7 @@ binary later, replace the prefix with `moonpost`.
 ```bash
 moon run cmd/main --target native -- creator check examples/bilingual.srt --profile bilingual
 moon run cmd/main --target native -- creator clean examples/good.srt --profile douyin -o fixed.srt
+moon run cmd/main --target native -- delivery check examples/delivery-package/good --json
 moon run cmd/main --target native -- delivery subtitle-check examples/bad.srt --profile ott-zh --fps 25
 ```
 
@@ -178,7 +180,20 @@ Use the built native executable when relying on `--fail-on-error` exit codes.
 
 ### Delivery First-Phase Target
 
-The recommended first stable line is `delivery subtitle-check`:
+The first stable Delivery line is now the directory-level
+`delivery check <folder>` preflight:
+
+```bash
+moon run cmd/main --target native -- delivery check examples/delivery-package/good --json
+moon run cmd/main --target native -- delivery check examples/delivery-package/bad --profile distribution --subtitle-profile ott-zh --fps 25
+```
+
+`delivery check` scans the first level of a delivery folder, classifies video,
+subtitle, poster, metadata, checksum, and `moonpost.delivery.json` assets,
+checks package-profile and manifest requirements, validates required subtitle
+languages, and runs subtitle QC for SRT/WebVTT files in the folder.
+
+Single subtitle files can still be checked directly:
 
 ```bash
 moon run cmd/main --target native -- delivery subtitle-check examples/delivery/ott-good.srt --profile ott-zh --json
@@ -186,10 +201,9 @@ moon build cmd/main --target native
 _build/native/debug/build/cmd/main/main.exe delivery subtitle-check examples/delivery/ott-bad.srt --profile ott-zh --fps 25 --fail-on-error
 ```
 
-`delivery subtitle-check` targets film, OTT, broadcast, and localization subtitle
-delivery. `--fail-on-error` is suitable for automation; use `--fail-on-warning`
-when Warning diagnostics should also block delivery. Use the built native
-executable when relying on process exit codes.
+`--fail-on-error` is suitable for automation; use `--fail-on-warning` when
+Warning diagnostics should also block delivery. Use the built native executable
+when relying on process exit codes.
 
 ## CLI Overview
 
