@@ -3,6 +3,7 @@ import {
   "moonbitlang/core/json",
   "moonbitlang/core/env" @env,
   "moonbitlang/async/fs" @fs,
+  "moonbitlang/async/io",
   "phenom8010/moonpost/align" @align,
   "phenom8010/moonpost/cli" @cli,
   "phenom8010/moonpost/creator" @creator,

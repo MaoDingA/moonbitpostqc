@@ -64,7 +64,7 @@ Delivery 能力：
   帧网格对齐和最小 cue 间隔。
 - 支持 JSON report 和 `--fail-on-error`，适合自动化交付检查。
 - 提供 `delivery check` 目录级交付预检和 `delivery subtitle-check` 单字幕文件
-  QC，可检查交付包资产、manifest、metadata、checksum 和字幕问题。
+  QC，可检查交付包资产、manifest、metadata、SHA-256 checksum 和字幕问题。
 
 ## 两条生产线
 
@@ -163,12 +163,16 @@ moon run cmd/main --target native -- delivery subtitle-check examples/bad.srt --
 
 ```bash
 moon run cmd/main --target native -- delivery check examples/delivery-package/good --json
+moon run cmd/main --target native -- delivery check examples/delivery-package/checksum-bad --fail-on-error
 moon run cmd/main --target native -- delivery check examples/delivery-package/bad --profile distribution --subtitle-profile ott-zh --fps 25
 ```
 
 `delivery check` 会扫描交付目录第一层，识别 video、subtitle、poster、
 metadata、checksum 和 `moonpost.delivery.json`，根据 package profile 与
-manifest 检查缺失资产和必需字幕语言，并对目录内 SRT/WebVTT 运行字幕 QC。
+manifest 检查缺失资产和必需字幕语言，解析 `checksum.txt` / `checksums.txt` /
+`SHA256SUMS` 中的 SHA-256 条目校验文件内容，并对目录内 SRT/WebVTT 运行字幕
+QC。checksum 当前支持标准 `sha256sum` 风格的 `<64hex>  filename` 和
+`<64hex> *filename` 行；checksum 指向目录外路径会报错。
 
 单个字幕文件仍可用 `delivery subtitle-check` 独立检查：
 

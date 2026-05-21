@@ -78,7 +78,7 @@ Delivery capabilities:
 - Emit JSON reports and support `--fail-on-error` for automated delivery gates.
 - Use `delivery check` for directory-level package preflight and
   `delivery subtitle-check` for single subtitle files, covering package assets,
-  manifest, metadata, checksum, and subtitle issues.
+  manifest, metadata, SHA-256 checksum, and subtitle issues.
 
 ## Two Production Lines
 
@@ -185,13 +185,17 @@ The first stable Delivery line is now the directory-level
 
 ```bash
 moon run cmd/main --target native -- delivery check examples/delivery-package/good --json
+moon run cmd/main --target native -- delivery check examples/delivery-package/checksum-bad --fail-on-error
 moon run cmd/main --target native -- delivery check examples/delivery-package/bad --profile distribution --subtitle-profile ott-zh --fps 25
 ```
 
 `delivery check` scans the first level of a delivery folder, classifies video,
 subtitle, poster, metadata, checksum, and `moonpost.delivery.json` assets,
 checks package-profile and manifest requirements, validates required subtitle
-languages, and runs subtitle QC for SRT/WebVTT files in the folder.
+languages, verifies SHA-256 entries from `checksum.txt`, `checksums.txt`, or
+`SHA256SUMS`, and runs subtitle QC for SRT/WebVTT files in the folder. Checksum
+files currently support standard `sha256sum`-style `<64hex>  filename` and
+`<64hex> *filename` lines; paths that escape the delivery folder are rejected.
 
 Single subtitle files can still be checked directly:
 

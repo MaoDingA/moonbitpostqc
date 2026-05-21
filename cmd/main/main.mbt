@@ -772,10 +772,12 @@ fn append_subtitle_check_issues(
 }
 
 ///|
-fn delivery_package_result_for_inputs(
+fn delivery_package_result_for_inputs_with_checksums(
   name : String,
   asset_names : Array[String],
   manifest_raw : String?,
+  checksum_raw : String?,
+  actual_sha256_by_name : Map[String, String],
   subtitles : Array[PackageSubtitleInput],
   options : @cli.DeliveryCheckOptions,
 ) -> QcCliResult {
@@ -850,6 +852,23 @@ fn delivery_package_result_for_inputs(
   }
   for issue in @delivery.check_package(pkg, package_profile) {
     issues.push(issue)
+  }
+  match checksum_raw {
+    Some(raw) => {
+      let checksum_manifest = @delivery.parse_checksum_manifest(raw)
+      for issue in checksum_manifest.issues {
+        issues.push(issue)
+      }
+      for
+        issue in @delivery.check_checksum_entries(
+          checksum_manifest.entries,
+          asset_names,
+          actual_sha256_by_name,
+        ) {
+        issues.push(issue)
+      }
+    }
+    None => ()
   }
   for subtitle in subtitles {
     append_subtitle_check_issues(issues, subtitle, subtitle_profile)
@@ -932,10 +951,51 @@ async fn read_text_file(path : String) -> String? {
 }
 
 ///|
+async fn sha256_file_hex(path : String) -> String? {
+  try {
+    let file = @fs.open(path, mode=ReadOnly)
+    defer file.close()
+    let state = @delivery.Sha256State::new()
+    while file.read_some(max_len=65536) is Some(chunk) {
+      state.update(chunk)
+    }
+    Some(state.final_hex())
+  } catch {
+    _ => None
+  }
+}
+
+///|
 async fn read_directory_entries(path : String) -> Array[String]? {
   Some(@fs.readdir(path, sort=true)) catch {
     _ => None
   }
+}
+
+///|
+fn first_checksum_file(entries : Array[String]) -> String? {
+  for name in entries {
+    if @delivery.classify_asset(name) == @delivery.ChecksumAsset {
+      return Some(name)
+    }
+  }
+  None
+}
+
+///|
+async fn checksum_hashes_for_manifest(
+  folder : String,
+  checksum_raw : String,
+) -> Map[String, String] {
+  let hashes : Map[String, String] = Map([])
+  let manifest = @delivery.parse_checksum_manifest(checksum_raw)
+  for entry in manifest.entries {
+    match sha256_file_hex(join_path(folder, entry.target)) {
+      Some(hash) => hashes[entry.target] = hash
+      None => ()
+    }
+  }
+  hashes
 }
 
 ///|
@@ -1053,6 +1113,14 @@ async fn run_delivery_check(options : @cli.DeliveryCheckOptions) -> Int {
       } else {
         None
       }
+      let checksum_raw = match first_checksum_file(entries) {
+        Some(name) => read_text_file(join_path(options.input, name))
+        None => None
+      }
+      let checksum_hashes = match checksum_raw {
+        Some(raw) => checksum_hashes_for_manifest(options.input, raw)
+        None => Map([])
+      }
       let subtitles : Array[PackageSubtitleInput] = []
       for name in entries {
         if @delivery.classify_asset(name) == @delivery.SubtitleAsset {
@@ -1062,10 +1130,12 @@ async fn run_delivery_check(options : @cli.DeliveryCheckOptions) -> Int {
           }
         }
       }
-      let result = delivery_package_result_for_inputs(
+      let result = delivery_package_result_for_inputs_with_checksums(
         options.input,
         entries,
         manifest_raw,
+        checksum_raw,
+        checksum_hashes,
         subtitles,
         options,
       )

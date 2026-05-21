@@ -10,6 +10,8 @@ import {
 // Values
 pub fn broadcast_subtitle_profile() -> DeliverySubtitleProfile
 
+pub fn check_checksum_entries(Array[ChecksumEntry], Array[String], Map[String, String]) -> Array[@qc.QcIssue]
+
 pub fn check_package(DeliveryPackage, DeliveryProfile) -> Array[@qc.QcIssue]
 
 pub fn cinema_zh_subtitle_profile() -> DeliverySubtitleProfile
@@ -32,7 +34,11 @@ pub fn ott_zh_subtitle_profile() -> DeliverySubtitleProfile
 
 pub fn package_assets_from_names(Array[String]) -> Array[DeliveryAsset]
 
+pub fn parse_checksum_manifest(String) -> ChecksumManifest
+
 pub fn parse_manifest(String) -> Result[DeliveryManifest, String]
+
+pub fn sha256_hex(BytesView) -> String
 
 // Errors
 
@@ -45,6 +51,16 @@ pub(all) enum AssetKind {
   ChecksumAsset
   ManifestAsset
   OtherAsset
+} derive(Eq, @debug.Debug)
+
+pub(all) struct ChecksumEntry {
+  expected_sha256 : String
+  target : String
+} derive(Eq, @debug.Debug)
+
+pub(all) struct ChecksumManifest {
+  entries : Array[ChecksumEntry]
+  issues : Array[@qc.QcIssue]
 } derive(Eq, @debug.Debug)
 
 pub(all) struct DeliveryAsset {
@@ -87,6 +103,11 @@ pub(all) struct DeliverySubtitleProfile {
   qc_profile : @qc.QcProfile
   text_style : @qc.TextStyleProfile
 } derive(Eq, @debug.Debug)
+
+type Sha256State
+pub fn Sha256State::final_hex(Self) -> String
+pub fn Sha256State::new() -> Self
+pub fn Sha256State::update(Self, BytesView) -> Unit
 
 // Type aliases
 

@@ -405,10 +405,12 @@ test "delivery subtitle options can override profile frame rate" {
 
 ///|
 test "delivery package result combines asset and subtitle checks" {
-  let result = delivery_package_result_for_inputs(
+  let result = delivery_package_result_for_inputs_with_checksums(
     "deliveries/E01",
     ["E01.mp4", "E01.zh.srt"],
     None,
+    None,
+    Map([]),
     [
       PackageSubtitleInput::{
         name: "E01.zh.srt",
@@ -443,12 +445,14 @@ test "delivery package result uses manifest language requirements" {
     #|  "required_subtitles": ["zh", "en"],
     #|  "required_assets": ["video", "subtitle", "metadata", "checksum"]
     #|}
-  let result = delivery_package_result_for_inputs(
+  let result = delivery_package_result_for_inputs_with_checksums(
     "deliveries/E01",
     [
       "E01.mp4", "E01.zh.srt", "E01.metadata.json", "checksum.txt", "E01.poster.jpg",
     ],
     Some(manifest),
+    None,
+    Map([]),
     [
       PackageSubtitleInput::{
         name: "E01.zh.srt",
@@ -478,12 +482,14 @@ test "delivery package json includes stable package context" {
     #|  "required_subtitles": ["zh"],
     #|  "required_assets": ["video", "subtitle", "metadata", "checksum"]
     #|}
-  let result = delivery_package_result_for_inputs(
+  let result = delivery_package_result_for_inputs_with_checksums(
     "deliveries/good",
     [
       "E01.mp4", "E01.zh.srt", "E01.metadata.json", "checksum.txt", "E01.poster.jpg",
     ],
     Some(manifest),
+    None,
+    Map([]),
     [
       PackageSubtitleInput::{
         name: "E01.zh.srt",
@@ -509,4 +515,49 @@ test "delivery package json includes stable package context" {
   assert_true(report.contains("\"manifest_present\":true"))
   assert_true(report.contains("\"code\":0"))
   assert_eq(result.exit_code, 0)
+}
+
+///|
+test "delivery package result includes checksum verification issues" {
+  let expected_hash = @delivery.sha256_hex(b"expected-video")
+  let actual_hash = @delivery.sha256_hex(b"actual-video")
+  let result = delivery_package_result_for_inputs_with_checksums(
+    "deliveries/checksum-bad",
+    [
+      "E01.mp4", "E01.zh.srt", "E01.metadata.json", "checksum.txt", "E01.poster.jpg",
+    ],
+    None,
+    Some("\{expected_hash}  E01.mp4\nbad  E01.poster.jpg\n"),
+    Map([("E01.mp4", actual_hash)]),
+    [
+      PackageSubtitleInput::{
+        name: "E01.zh.srt",
+        text: "1\n00:00:01,000 --> 00:00:03,000\nReady\n",
+      },
+    ],
+    @cli.DeliveryCheckOptions::{
+      input: "deliveries/checksum-bad",
+      profile: "distribution",
+      subtitle_profile: "ott-zh",
+      frame_rate: Some(@timecode.Fps25),
+      output_json: false,
+      fail_on_error: true,
+      fail_on_warning: false,
+    },
+  )
+  let report = result.lines.join("\n")
+  assert_true(report.contains("D401"))
+  assert_true(report.contains("D403"))
+  assert_true(report.contains("E01.mp4"))
+  assert_eq(result.exit_code, 1)
+}
+
+///|
+async test "delivery file sha256 reads file bytes" {
+  let path = "_build/test-delivery-sha256.bin"
+  @fs.write_file(path, b"actual-video", create_mode=CreateOrTruncate)
+  match sha256_file_hex(path) {
+    Some(hash) => assert_eq(hash, @delivery.sha256_hex(b"actual-video"))
+    None => fail("expected file hash")
+  }
 }
