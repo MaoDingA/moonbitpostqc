@@ -266,3 +266,56 @@ test "json report can include command profile schema and exit metadata" {
   assert_true(report.contains("\"issues\""))
   assert_true(report.contains("\"severity\":\"warning\""))
 }
+
+///|
+test "srt source policy reports format index settings and style risks" {
+  let track = @subtitle.SubtitleTrack::{
+    format: @subtitle.WebVtt,
+    cues: [
+      @subtitle.Cue::{
+        index: None,
+        identifier: None,
+        start_ms: 1000,
+        end_ms: 2500,
+        text: ["<font color=\"red\">Hello</font>"],
+        settings: "line:90% position:50%",
+      },
+      @subtitle.Cue::{
+        index: Some(3),
+        identifier: None,
+        start_ms: 3000,
+        end_ms: 4500,
+        text: ["{\\an8}Top title"],
+        settings: "",
+      },
+    ],
+  }
+  let issues = check_srt_source_track(track, srt_basic_source_policy())
+  assert_true(issues.any(issue => issue.code == "W100"))
+  assert_true(issues.any(issue => issue.code == "W101"))
+  assert_true(issues.any(issue => issue.code == "W102"))
+  assert_true(issues.any(issue => issue.code == "W601"))
+  assert_true(issues.any(issue => issue.code == "W602"))
+  assert_true(issues.any(issue => issue.code == "W603"))
+}
+
+///|
+test "dcp source srt policy warns when first cue is too close to start" {
+  let track = @subtitle.SubtitleTrack::{
+    format: @subtitle.Srt,
+    cues: [
+      @subtitle.Cue::{
+        index: Some(1),
+        identifier: None,
+        start_ms: 1000,
+        end_ms: 2600,
+        text: ["Opening subtitle"],
+        settings: "",
+      },
+    ],
+  }
+  let issues = check_srt_source_track(track, dcp_source_srt_policy())
+  assert_true(
+    issues.any(issue => issue.code == "W701" && issue.cue_index == Some(1)),
+  )
+}

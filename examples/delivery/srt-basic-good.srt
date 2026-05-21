@@ -1,0 +1,7 @@
+1
+00:00:04,000 --> 00:00:08,000
+This source SRT is ready.
+
+2
+00:00:09,000 --> 00:00:13,000
+It keeps plain text and indexes.

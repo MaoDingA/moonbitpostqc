@@ -171,6 +171,7 @@ moon run cmd/main --target native -- creator check examples/bilingual.srt --prof
 moon run cmd/main --target native -- creator clean examples/good.srt --profile douyin -o fixed.srt
 moon run cmd/main --target native -- delivery check examples/delivery-package/good --json
 moon run cmd/main --target native -- delivery subtitle-check examples/bad.srt --profile ott-zh --fps 25
+moon run cmd/main --target native -- delivery subtitle-check examples/delivery/dcp-source-srt-bad.srt --profile dcp-source-srt --fail-on-warning
 ```
 
 Choose a `creator clean` profile that matches the language and platform
@@ -187,6 +188,7 @@ The first stable Delivery line is now the directory-level
 moon run cmd/main --target native -- delivery check examples/delivery-package/good --json
 moon run cmd/main --target native -- delivery check examples/delivery-package/checksum-bad --fail-on-error
 moon run cmd/main --target native -- delivery check examples/delivery-package/bad --profile distribution --subtitle-profile ott-zh --fps 25
+moon run cmd/main --target native -- delivery check examples/delivery-package/srt-source-bad --profile distribution --subtitle-profile dcp-source-srt --fps 24 --fail-on-warning
 ```
 
 `delivery check` scans the first level of a delivery folder, classifies video,
@@ -201,6 +203,8 @@ Single subtitle files can still be checked directly:
 
 ```bash
 moon run cmd/main --target native -- delivery subtitle-check examples/delivery/ott-good.srt --profile ott-zh --json
+moon run cmd/main --target native -- delivery subtitle-check examples/delivery/srt-basic-good.srt --profile srt-basic --fail-on-error
+moon run cmd/main --target native -- delivery subtitle-check examples/delivery/dcp-source-srt-bad.srt --profile dcp-source-srt --fail-on-warning
 moon build cmd/main --target native
 _build/native/debug/build/cmd/main/main.exe delivery subtitle-check examples/delivery/ott-bad.srt --profile ott-zh --fps 25 --fail-on-error
 ```
@@ -208,6 +212,19 @@ _build/native/debug/build/cmd/main/main.exe delivery subtitle-check examples/del
 `--fail-on-error` is suitable for automation; use `--fail-on-warning` when
 Warning diagnostics should also block delivery. Use the built native executable
 when relying on process exit codes.
+
+Delivery subtitle profiles currently include `ott-zh`, `cinema-zh`,
+`broadcast`, `srt-basic`, and `dcp-source-srt`. `srt-basic` checks source SRT
+format, indexes, WebVTT settings leakage, and style-markup conversion risks.
+`dcp-source-srt` adds cinema timing/line limits and warns about source risks
+such as a first subtitle that starts too close to program start before later
+DCP Timed Text conversion.
+
+The boundary is intentional: these profiles validate SRT text source files.
+They are not DCP XML/MXF Timed Text validators, IMF IMSC validators, embedded
+subtitle stream analyzers, or burn-in render checks. Font, size, safe area, and
+actual rendered position must be verified in the target container, DCP/IMF
+package, or video frame output.
 
 ## CLI Overview
 
@@ -299,6 +316,9 @@ run.
 | `E101` | Error | Cue overlaps the next cue. |
 | `E102` | Error | Cue end time is not after start time. |
 | `E201` | Error | Cue text is empty. |
+| `W100` | Warning | An SRT source profile received WebVTT input. |
+| `W101` | Warning | SRT cue is missing its numeric index. |
+| `W102` | Warning | SRT cue indexes are not sequential. |
 | `W201` | Warning | Cue duration is shorter than the active profile allows. |
 | `W202` | Warning | Cue duration is longer than the active profile allows. |
 | `W203` | Warning | A text line exceeds the active CPL limit. |
@@ -312,6 +332,10 @@ run.
 | `W510` | Warning | Opt-in text style check found a long unbroken text block. |
 | `W511` | Warning | Opt-in text style check found an isolated single-character line. |
 | `W520` | Warning | Opt-in text style check found a dictionary typo or terminology issue. |
+| `W601` | Warning | Source SRT contains font or color markup that may not survive conversion. |
+| `W602` | Warning | Source SRT contains ASS/SSA style overrides that may not survive conversion. |
+| `W603` | Warning | SRT timing line contains WebVTT-style settings. |
+| `W701` | Warning | DCP-source SRT first cue starts too close to program start. |
 
 ## Timecode
 
@@ -523,6 +547,9 @@ cinema_profile() -> QcProfile
 social_video_profile() -> QcProfile
 profile_by_name(String) -> QcProfile?
 check_cues(Array[Cue], QcProfile) -> Array[QcIssue]
+check_srt_source_track(SubtitleTrack, SrtSourcePolicy) -> Array[QcIssue]
+srt_basic_source_policy() -> SrtSourcePolicy
+dcp_source_srt_policy() -> SrtSourcePolicy
 format_report(String, Array[QcIssue]) -> Array[String]
 format_json_report(String, Array[QcIssue]) -> String
 has_errors(Array[QcIssue]) -> Bool

@@ -92,6 +92,7 @@ test "delivery subtitle profiles map film and ott qc defaults" {
       assert_eq(profile.name, "ott-zh")
       assert_true(profile.qc_profile == @qc.streaming_profile())
       assert_true(profile.text_style.mode == @qc.TextStyleNone)
+      assert_true(profile.srt_policy is None)
     }
     None => fail("expected ott-zh profile")
   }
@@ -99,8 +100,26 @@ test "delivery subtitle profiles map film and ott qc defaults" {
     Some(profile) => {
       assert_eq(profile.name, "cinema-zh")
       assert_true(profile.qc_profile == @qc.cinema_profile())
+      assert_true(profile.srt_policy is None)
     }
     None => fail("expected cinema-zh profile")
+  }
+  match delivery_subtitle_profile_by_name("srt-basic") {
+    Some(profile) => {
+      assert_eq(profile.name, "srt-basic")
+      assert_true(profile.qc_profile == @qc.default_profile())
+      assert_true(profile.text_style == @qc.no_text_style_profile())
+      assert_true(profile.srt_policy is Some(_))
+    }
+    None => fail("expected srt-basic profile")
+  }
+  match delivery_subtitle_profile_by_name("dcp-source-srt") {
+    Some(profile) => {
+      assert_eq(profile.name, "dcp-source-srt")
+      assert_true(profile.qc_profile == @qc.cinema_profile())
+      assert_true(profile.srt_policy is Some(_))
+    }
+    None => fail("expected dcp-source-srt profile")
   }
   assert_true(delivery_subtitle_profile_by_name("douyin") is None)
 }
@@ -130,6 +149,10 @@ test "delivery subtitle profile aliases resolve public defaults" {
     }
     None => fail("expected broadcast profile")
   }
+  match delivery_subtitle_profile_by_name("dcp-srt") {
+    Some(profile) => assert_eq(profile.name, "dcp-source-srt")
+    None => fail("expected dcp-srt alias profile")
+  }
 }
 
 ///|
@@ -152,15 +175,30 @@ test "delivery subtitle profiles expose stable metadata" {
   assert_true(broadcast.description.to_lower().contains("broadcast"))
   assert_true(broadcast.qc_profile == @qc.streaming_profile())
   assert_true(broadcast.text_style == @qc.no_text_style_profile())
+  assert_true(broadcast.srt_policy is None)
+  let basic = srt_basic_subtitle_profile()
+  assert_eq(basic.name, "srt-basic")
+  assert_eq(basic.version, "v1")
+  assert_true(basic.description.contains("SRT"))
+  assert_true(basic.qc_profile == @qc.default_profile())
+  assert_true(basic.srt_policy is Some(_))
+  let dcp = dcp_source_srt_subtitle_profile()
+  assert_eq(dcp.name, "dcp-source-srt")
+  assert_eq(dcp.version, "v1")
+  assert_true(dcp.description.contains("DCP"))
+  assert_true(dcp.qc_profile == @qc.cinema_profile())
+  assert_true(dcp.srt_policy is Some(_))
 }
 
 ///|
 test "delivery subtitle profiles can be listed for help output" {
   let profiles = delivery_subtitle_profiles()
-  assert_eq(profiles.length(), 3)
+  assert_eq(profiles.length(), 5)
   assert_true(profiles.any(profile => profile.name == "ott-zh"))
   assert_true(profiles.any(profile => profile.name == "cinema-zh"))
   assert_true(profiles.any(profile => profile.name == "broadcast"))
+  assert_true(profiles.any(profile => profile.name == "srt-basic"))
+  assert_true(profiles.any(profile => profile.name == "dcp-source-srt"))
 }
 
 ///|

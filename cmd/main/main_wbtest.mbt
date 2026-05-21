@@ -275,6 +275,23 @@ test "delivery subtitle check can fail automation on warnings" {
 }
 
 ///|
+test "delivery subtitle check applies dcp source srt policy warnings" {
+  let input = "1\n00:00:01,000 --> 00:00:03,000\n<font color=\"red\">Opening</font>\n"
+  let result = delivery_subtitle_result_for_text("episode.srt", input, @cli.DeliverySubtitleCheckOptions::{
+    input: "episode.srt",
+    profile: "dcp-source-srt",
+    frame_rate: None,
+    output_json: false,
+    fail_on_error: false,
+    fail_on_warning: true,
+  })
+  let report = result.lines.join("\n")
+  assert_true(report.contains("W601"))
+  assert_true(report.contains("W701"))
+  assert_eq(result.exit_code, 1)
+}
+
+///|
 test "delivery subtitle warning failure also blocks error only reports" {
   let input = "1\n00:00:01,000 --> 00:00:01,000\nHello\n"
   let result = delivery_subtitle_result_for_text("episode.srt", input, @cli.DeliverySubtitleCheckOptions::{
@@ -404,6 +421,25 @@ test "delivery subtitle options can override profile frame rate" {
 }
 
 ///|
+test "delivery subtitle options preserve srt policy when overriding frame rate" {
+  match
+    delivery_subtitle_profile_from_options(@cli.DeliverySubtitleCheckOptions::{
+      input: "episode.srt",
+      profile: "dcp-source-srt",
+      frame_rate: Some(@timecode.Fps25),
+      output_json: false,
+      fail_on_error: false,
+      fail_on_warning: false,
+    }) {
+    Ok(profile) => {
+      assert_true(profile.qc_profile.frame_rate == Some(@timecode.Fps25))
+      assert_true(profile.srt_policy is Some(_))
+    }
+    Err(message) => fail(message)
+  }
+}
+
+///|
 test "delivery package result combines asset and subtitle checks" {
   let result = delivery_package_result_for_inputs_with_checksums(
     "deliveries/E01",
@@ -435,6 +471,40 @@ test "delivery package result combines asset and subtitle checks" {
   assert_true(report.contains("poster"))
   assert_true(report.contains("D302"))
   assert_true(report.contains("E01.zh.srt"))
+  assert_eq(result.exit_code, 1)
+}
+
+///|
+test "delivery package result prefixes srt source policy subtitle issues" {
+  let result = delivery_package_result_for_inputs_with_checksums(
+    "deliveries/E01",
+    [
+      "E01.mp4", "E01.zh.srt", "E01.metadata.json", "checksum.txt", "E01.poster.jpg",
+    ],
+    None,
+    None,
+    Map([]),
+    [
+      PackageSubtitleInput::{
+        name: "E01.zh.srt",
+        text: "1\n00:00:01,000 --> 00:00:03,000\n<font color=\"red\">Opening</font>\n",
+      },
+    ],
+    @cli.DeliveryCheckOptions::{
+      input: "deliveries/E01",
+      profile: "distribution",
+      subtitle_profile: "dcp-source-srt",
+      frame_rate: Some(@timecode.Fps24),
+      output_json: false,
+      fail_on_error: false,
+      fail_on_warning: true,
+    },
+  )
+  let report = result.lines.join("\n")
+  assert_true(report.contains("D302"))
+  assert_true(report.contains("E01.zh.srt:"))
+  assert_true(report.contains("W601"))
+  assert_true(report.contains("W701"))
   assert_eq(result.exit_code, 1)
 }
 

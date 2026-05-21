@@ -150,6 +150,7 @@ moon run cmd/main --target native -- creator check examples/bilingual.srt --prof
 moon run cmd/main --target native -- creator clean examples/good.srt --profile douyin -o fixed.srt
 moon run cmd/main --target native -- delivery check examples/delivery-package/good --json
 moon run cmd/main --target native -- delivery subtitle-check examples/bad.srt --profile ott-zh --fps 25
+moon run cmd/main --target native -- delivery subtitle-check examples/delivery/dcp-source-srt-bad.srt --profile dcp-source-srt --fail-on-warning
 ```
 
 `creator clean` 示例中的 profile 应匹配实际语言和平台习惯；这里的
@@ -165,6 +166,7 @@ moon run cmd/main --target native -- delivery subtitle-check examples/bad.srt --
 moon run cmd/main --target native -- delivery check examples/delivery-package/good --json
 moon run cmd/main --target native -- delivery check examples/delivery-package/checksum-bad --fail-on-error
 moon run cmd/main --target native -- delivery check examples/delivery-package/bad --profile distribution --subtitle-profile ott-zh --fps 25
+moon run cmd/main --target native -- delivery check examples/delivery-package/srt-source-bad --profile distribution --subtitle-profile dcp-source-srt --fps 24 --fail-on-warning
 ```
 
 `delivery check` 会扫描交付目录第一层，识别 video、subtitle、poster、
@@ -178,12 +180,23 @@ QC。checksum 当前支持标准 `sha256sum` 风格的 `<64hex>  filename` 和
 
 ```bash
 moon run cmd/main --target native -- delivery subtitle-check examples/delivery/ott-good.srt --profile ott-zh --json
+moon run cmd/main --target native -- delivery subtitle-check examples/delivery/srt-basic-good.srt --profile srt-basic --fail-on-error
+moon run cmd/main --target native -- delivery subtitle-check examples/delivery/dcp-source-srt-bad.srt --profile dcp-source-srt --fail-on-warning
 moon build cmd/main --target native
 _build/native/debug/build/cmd/main/main.exe delivery subtitle-check examples/delivery/ott-bad.srt --profile ott-zh --fps 25 --fail-on-error
 ```
 
 `--fail-on-error` 适合接入自动化流程；如果希望 Warning 也阻塞交付，可使用
 `--fail-on-warning`。依赖退出码时请使用构建后的 native 可执行文件。
+
+字幕交付 profile 目前包括 `ott-zh`、`cinema-zh`、`broadcast`、`srt-basic`
+和 `dcp-source-srt`。`srt-basic` 检查 SRT 源文件的格式、序号、WebVTT
+settings 混入和样式标记风险；`dcp-source-srt` 在此基础上使用影院时间/行宽
+profile，并提示首条字幕过早出现等后续转 DCP Timed Text 的源文件风险。
+
+边界也要说清：这些 profile 检查的是 SRT 文本源文件，不是 DCP XML/MXF
+Timed Text validator，也不是 IMF IMSC validator；内嵌字幕流和烧录字幕的字体、
+字号、安全区、实际渲染位置需要在相应容器、DCP/IMF 包或视频画面里验证。
 
 ## CLI 概览
 
@@ -273,6 +286,9 @@ CLI 也支持通过 `--fps <rate>` 覆盖当前 profile 的帧网格。
 | `E101` | Error | 当前 cue 与下一个 cue 时间重叠。 |
 | `E102` | Error | cue 结束时间不晚于开始时间。 |
 | `E201` | Error | cue 文本为空。 |
+| `W100` | Warning | SRT 源文件 profile 收到 WebVTT 输入。 |
+| `W101` | Warning | SRT cue 缺少数字序号。 |
+| `W102` | Warning | SRT cue 数字序号不连续。 |
 | `W201` | Warning | cue 时长短于当前 profile 允许值。 |
 | `W202` | Warning | cue 时长长于当前 profile 允许值。 |
 | `W203` | Warning | 某一行文本超过当前 CPL 限制。 |
@@ -286,6 +302,10 @@ CLI 也支持通过 `--fps <rate>` 覆盖当前 profile 的帧网格。
 | `W510` | Warning | 显式开启文本规范检查后，发现超长连续字符块。 |
 | `W511` | Warning | 显式开启文本规范检查后，发现孤立单字行。 |
 | `W520` | Warning | 显式开启文本规范检查后，发现词库中的疑似错别字或术语问题。 |
+| `W601` | Warning | SRT 源文件包含字体或颜色标记，转制时可能不被保留。 |
+| `W602` | Warning | SRT 源文件包含 ASS/SSA 样式覆盖，转制时可能不被保留。 |
+| `W603` | Warning | SRT 时间行包含 WebVTT-style settings。 |
+| `W701` | Warning | DCP-source SRT profile 下首条字幕离节目开头太近。 |
 
 ## 时间码
 
@@ -494,6 +514,9 @@ cinema_profile() -> QcProfile
 social_video_profile() -> QcProfile
 profile_by_name(String) -> QcProfile?
 check_cues(Array[Cue], QcProfile) -> Array[QcIssue]
+check_srt_source_track(SubtitleTrack, SrtSourcePolicy) -> Array[QcIssue]
+srt_basic_source_policy() -> SrtSourcePolicy
+dcp_source_srt_policy() -> SrtSourcePolicy
 format_report(String, Array[QcIssue]) -> Array[String]
 format_json_report(String, Array[QcIssue]) -> String
 has_errors(Array[QcIssue]) -> Bool

@@ -138,6 +138,7 @@ pub(all) struct DeliverySubtitleProfile {
   description : String
   qc_profile : @qc.QcProfile
   text_style : @qc.TextStyleProfile
+  srt_policy : @qc.SrtSourcePolicy?
 } derive(Eq, Debug)
 
 ///|
@@ -148,6 +149,7 @@ pub fn ott_zh_subtitle_profile() -> DeliverySubtitleProfile {
     description: "OTT Chinese subtitle delivery profile",
     qc_profile: @qc.streaming_profile(),
     text_style: @qc.no_text_style_profile(),
+    srt_policy: None,
   }
 }
 
@@ -159,6 +161,7 @@ pub fn cinema_zh_subtitle_profile() -> DeliverySubtitleProfile {
     description: "Cinema Chinese subtitle delivery profile",
     qc_profile: @qc.cinema_profile(),
     text_style: @qc.no_text_style_profile(),
+    srt_policy: None,
   }
 }
 
@@ -170,6 +173,31 @@ pub fn broadcast_subtitle_profile() -> DeliverySubtitleProfile {
     description: "Broadcast subtitle delivery profile",
     qc_profile: @qc.streaming_profile(),
     text_style: @qc.no_text_style_profile(),
+    srt_policy: None,
+  }
+}
+
+///|
+pub fn srt_basic_subtitle_profile() -> DeliverySubtitleProfile {
+  {
+    name: "srt-basic",
+    version: "v1",
+    description: "SRT source subtitle delivery profile",
+    qc_profile: @qc.default_profile(),
+    text_style: @qc.no_text_style_profile(),
+    srt_policy: Some(@qc.srt_basic_source_policy()),
+  }
+}
+
+///|
+pub fn dcp_source_srt_subtitle_profile() -> DeliverySubtitleProfile {
+  {
+    name: "dcp-source-srt",
+    version: "v1",
+    description: "DCP source SRT delivery preparation profile",
+    qc_profile: @qc.cinema_profile(),
+    text_style: @qc.no_text_style_profile(),
+    srt_policy: Some(@qc.dcp_source_srt_policy()),
   }
 }
 
@@ -179,6 +207,8 @@ pub fn delivery_subtitle_profiles() -> Array[DeliverySubtitleProfile] {
     ott_zh_subtitle_profile(),
     cinema_zh_subtitle_profile(),
     broadcast_subtitle_profile(),
+    srt_basic_subtitle_profile(),
+    dcp_source_srt_subtitle_profile(),
   ]
 }
 
@@ -190,6 +220,8 @@ pub fn delivery_subtitle_profile_by_name(
     "ott-zh" | "ott" => Some(ott_zh_subtitle_profile())
     "cinema-zh" | "cinema" => Some(cinema_zh_subtitle_profile())
     "broadcast" => Some(broadcast_subtitle_profile())
+    "srt-basic" => Some(srt_basic_subtitle_profile())
+    "dcp-source-srt" | "dcp-srt" => Some(dcp_source_srt_subtitle_profile())
     _ => None
   }
 }

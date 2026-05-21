@@ -14,9 +14,13 @@ pub fn check_cues(Array[@subtitle.Cue], QcProfile) -> Array[QcIssue]
 
 pub fn check_cues_with_text_style(Array[@subtitle.Cue], QcProfile, TextStyleProfile) -> Array[QcIssue]
 
+pub fn check_srt_source_track(@subtitle.SubtitleTrack, SrtSourcePolicy) -> Array[QcIssue]
+
 pub fn check_text_style_cues(Array[@subtitle.Cue], TextStyleProfile) -> Array[QcIssue]
 
 pub fn cinema_profile() -> QcProfile
+
+pub fn dcp_source_srt_policy() -> SrtSourcePolicy
 
 pub fn default_profile() -> QcProfile
 
@@ -32,6 +36,8 @@ pub fn has_errors(Array[QcIssue]) -> Bool
 
 pub fn has_warnings(Array[QcIssue]) -> Bool
 
+pub fn no_srt_source_policy() -> SrtSourcePolicy
+
 pub fn no_text_style_profile() -> TextStyleProfile
 
 pub fn normalize_punctuation(String, mode~ : TextStyleMode) -> String
@@ -39,6 +45,8 @@ pub fn normalize_punctuation(String, mode~ : TextStyleMode) -> String
 pub fn profile_by_name(String) -> QcProfile?
 
 pub fn social_video_profile() -> QcProfile
+
+pub fn srt_basic_source_policy() -> SrtSourcePolicy
 
 pub fn streaming_profile() -> QcProfile
 
@@ -86,6 +94,14 @@ pub(all) struct QcReportContext {
 pub(all) enum Severity {
   Error
   Warning
+} derive(Eq, @debug.Debug)
+
+pub(all) struct SrtSourcePolicy {
+  expect_srt : Bool
+  require_sequential_indices : Bool
+  warn_timing_settings : Bool
+  warn_style_markup : Bool
+  min_first_cue_start_ms : Int?
 } derive(Eq, @debug.Debug)
 
 pub(all) enum TextStyleMode {

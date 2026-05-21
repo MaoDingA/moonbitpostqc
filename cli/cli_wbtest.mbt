@@ -308,6 +308,8 @@ test "delivery help describes strict flags and profiles" {
   assert_true(text.contains("ott-zh"))
   assert_true(text.contains("cinema-zh"))
   assert_true(text.contains("broadcast"))
+  assert_true(text.contains("srt-basic"))
+  assert_true(text.contains("dcp-source-srt"))
 }
 
 ///|

@@ -1,0 +1,10 @@
+{
+  "series": "MoonPost Demo",
+  "season": "S01",
+  "episode": "E01",
+  "title": "SRT Source Bad Example",
+  "frame_rate": "24",
+  "duration": "00:00:10:00",
+  "required_subtitles": ["zh"],
+  "required_assets": ["video", "subtitle", "metadata", "checksum"]
+}

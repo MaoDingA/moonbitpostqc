@@ -542,8 +542,9 @@ pub fn help_lines(topic : HelpTopic) -> Array[String] {
         "  moonpost delivery subtitle-check <file> [--profile <name>] [--fps <rate>] [--json] [--fail-on-error] [--fail-on-warning]",
         "", "Package profiles:", "  distribution   Require video, subtitles, metadata, and checksum",
         "  creator        Require video and subtitles, poster as warning", "", "Subtitle profiles:",
-        "  ott-zh      OTT Chinese subtitle delivery defaults", "  cinema-zh   Cinema Chinese subtitle delivery defaults",
-        "  broadcast   Broadcast subtitle delivery defaults",
+        "  ott-zh           OTT Chinese subtitle delivery defaults", "  cinema-zh        Cinema Chinese subtitle delivery defaults",
+        "  broadcast        Broadcast subtitle delivery defaults", "  srt-basic        Plain SRT source delivery preflight",
+        "  dcp-source-srt   SRT source preflight before DCP timed-text conversion",
       ]
     TimecodeHelp =>
       [

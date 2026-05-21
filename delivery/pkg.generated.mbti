@@ -20,6 +20,8 @@ pub fn classify_asset(String) -> AssetKind
 
 pub fn creator_profile() -> DeliveryProfile
 
+pub fn dcp_source_srt_subtitle_profile() -> DeliverySubtitleProfile
+
 pub fn delivery_profile_by_name(String) -> DeliveryProfile?
 
 pub fn delivery_subtitle_profile_by_name(String) -> DeliverySubtitleProfile?
@@ -39,6 +41,8 @@ pub fn parse_checksum_manifest(String) -> ChecksumManifest
 pub fn parse_manifest(String) -> Result[DeliveryManifest, String]
 
 pub fn sha256_hex(BytesView) -> String
+
+pub fn srt_basic_subtitle_profile() -> DeliverySubtitleProfile
 
 // Errors
 
@@ -102,6 +106,7 @@ pub(all) struct DeliverySubtitleProfile {
   description : String
   qc_profile : @qc.QcProfile
   text_style : @qc.TextStyleProfile
+  srt_policy : @qc.SrtSourcePolicy?
 } derive(Eq, @debug.Debug)
 
 type Sha256State

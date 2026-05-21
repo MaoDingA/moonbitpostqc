@@ -425,11 +425,32 @@ fn delivery_subtitle_profile_from_parts(
               frame_rate: Some(rate),
             },
             text_style: profile.text_style,
+            srt_policy: profile.srt_policy,
           })
         None => Ok(profile)
       }
     None => Err("unknown delivery subtitle profile: \{name}")
   }
+}
+
+///|
+fn check_delivery_subtitle_track(
+  track : @subtitle.SubtitleTrack,
+  profile : @delivery.DeliverySubtitleProfile,
+) -> Array[@qc.QcIssue] {
+  let issues = @qc.check_cues_with_text_style(
+    track.cues,
+    profile.qc_profile,
+    profile.text_style,
+  )
+  match profile.srt_policy {
+    Some(policy) =>
+      for issue in @qc.check_srt_source_track(track, policy) {
+        issues.push(issue)
+      }
+    None => ()
+  }
+  issues
 }
 
 ///|
@@ -544,11 +565,7 @@ fn delivery_subtitle_result_for_text(
   }
   match parse_subtitle_text_detailed(input) {
     Ok(track) => {
-      let issues = @qc.check_cues_with_text_style(
-        track.cues,
-        delivery_profile.qc_profile,
-        delivery_profile.text_style,
-      )
+      let issues = check_delivery_subtitle_track(track, delivery_profile)
       let exit_code = if (options.fail_on_error || options.fail_on_warning) &&
         @qc.has_errors(issues) {
         1
@@ -739,11 +756,7 @@ fn append_subtitle_check_issues(
 ) -> Unit {
   match parse_subtitle_text_detailed(subtitle.text) {
     Ok(track) => {
-      let subtitle_issues = @qc.check_cues_with_text_style(
-        track.cues,
-        profile.qc_profile,
-        profile.text_style,
-      )
+      let subtitle_issues = check_delivery_subtitle_track(track, profile)
       if subtitle_issues.length() > 0 {
         let (errors, warnings) = issue_counts(subtitle_issues)
         push_cli_issue(
