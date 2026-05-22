@@ -107,7 +107,11 @@ test "delivery subtitle profiles map film and ott qc defaults" {
   match delivery_subtitle_profile_by_name("srt-basic") {
     Some(profile) => {
       assert_eq(profile.name, "srt-basic")
-      assert_true(profile.qc_profile == @qc.default_profile())
+      assert_eq(profile.qc_profile.min_duration_ms, 500)
+      assert_eq(profile.qc_profile.max_duration_ms, 7000)
+      assert_eq(profile.qc_profile.max_cpl, 42)
+      assert_eq(profile.qc_profile.max_cps, 20)
+      assert_true(profile.qc_profile.frame_rate is None)
       assert_true(profile.text_style == @qc.no_text_style_profile())
       assert_true(profile.srt_policy is Some(_))
     }
@@ -116,10 +120,21 @@ test "delivery subtitle profiles map film and ott qc defaults" {
   match delivery_subtitle_profile_by_name("dcp-source-srt") {
     Some(profile) => {
       assert_eq(profile.name, "dcp-source-srt")
-      assert_true(profile.qc_profile == @qc.cinema_profile())
+      assert_eq(profile.qc_profile.max_cpl, 32)
+      assert_eq(profile.qc_profile.max_cps, 17)
+      assert_eq(profile.qc_profile.min_duration_ms, 500)
+      assert_true(profile.qc_profile.frame_rate is None)
       assert_true(profile.srt_policy is Some(_))
     }
     None => fail("expected dcp-source-srt profile")
+  }
+  match delivery_subtitle_profile_by_name("dcp-frame-strict") {
+    Some(profile) => {
+      assert_eq(profile.name, "dcp-frame-strict")
+      assert_true(profile.qc_profile == @qc.cinema_profile())
+      assert_true(profile.srt_policy is Some(_))
+    }
+    None => fail("expected dcp-frame-strict profile")
   }
   assert_true(delivery_subtitle_profile_by_name("douyin") is None)
 }
@@ -153,6 +168,10 @@ test "delivery subtitle profile aliases resolve public defaults" {
     Some(profile) => assert_eq(profile.name, "dcp-source-srt")
     None => fail("expected dcp-srt alias profile")
   }
+  match delivery_subtitle_profile_by_name("dcp-frame-strict") {
+    Some(profile) => assert_eq(profile.name, "dcp-frame-strict")
+    None => fail("expected dcp-frame-strict profile")
+  }
 }
 
 ///|
@@ -180,25 +199,34 @@ test "delivery subtitle profiles expose stable metadata" {
   assert_eq(basic.name, "srt-basic")
   assert_eq(basic.version, "v1")
   assert_true(basic.description.contains("SRT"))
-  assert_true(basic.qc_profile == @qc.default_profile())
+  assert_eq(basic.qc_profile.min_duration_ms, 500)
+  assert_true(basic.qc_profile.frame_rate is None)
   assert_true(basic.srt_policy is Some(_))
   let dcp = dcp_source_srt_subtitle_profile()
   assert_eq(dcp.name, "dcp-source-srt")
   assert_eq(dcp.version, "v1")
   assert_true(dcp.description.contains("DCP"))
-  assert_true(dcp.qc_profile == @qc.cinema_profile())
+  assert_eq(dcp.qc_profile.max_cpl, 32)
+  assert_true(dcp.qc_profile.frame_rate is None)
   assert_true(dcp.srt_policy is Some(_))
+  let strict = dcp_frame_strict_subtitle_profile()
+  assert_eq(strict.name, "dcp-frame-strict")
+  assert_eq(strict.version, "v1")
+  assert_true(strict.description.to_lower().contains("strict"))
+  assert_true(strict.qc_profile == @qc.cinema_profile())
+  assert_true(strict.srt_policy is Some(_))
 }
 
 ///|
 test "delivery subtitle profiles can be listed for help output" {
   let profiles = delivery_subtitle_profiles()
-  assert_eq(profiles.length(), 5)
+  assert_eq(profiles.length(), 6)
   assert_true(profiles.any(profile => profile.name == "ott-zh"))
   assert_true(profiles.any(profile => profile.name == "cinema-zh"))
   assert_true(profiles.any(profile => profile.name == "broadcast"))
   assert_true(profiles.any(profile => profile.name == "srt-basic"))
   assert_true(profiles.any(profile => profile.name == "dcp-source-srt"))
+  assert_true(profiles.any(profile => profile.name == "dcp-frame-strict"))
 }
 
 ///|

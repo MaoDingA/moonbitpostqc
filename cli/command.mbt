@@ -545,6 +545,7 @@ pub fn help_lines(topic : HelpTopic) -> Array[String] {
         "  ott-zh           OTT Chinese subtitle delivery defaults", "  cinema-zh        Cinema Chinese subtitle delivery defaults",
         "  broadcast        Broadcast subtitle delivery defaults", "  srt-basic        Plain SRT source delivery preflight",
         "  dcp-source-srt   SRT source preflight before DCP timed-text conversion",
+        "  dcp-frame-strict Strict DCP frame-grid and gap preflight",
       ]
     TimecodeHelp =>
       [

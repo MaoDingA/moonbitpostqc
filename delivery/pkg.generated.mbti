@@ -20,6 +20,8 @@ pub fn classify_asset(String) -> AssetKind
 
 pub fn creator_profile() -> DeliveryProfile
 
+pub fn dcp_frame_strict_subtitle_profile() -> DeliverySubtitleProfile
+
 pub fn dcp_source_srt_subtitle_profile() -> DeliverySubtitleProfile
 
 pub fn delivery_profile_by_name(String) -> DeliveryProfile?

@@ -178,12 +178,38 @@ pub fn broadcast_subtitle_profile() -> DeliverySubtitleProfile {
 }
 
 ///|
+fn srt_source_qc_profile() -> @qc.QcProfile {
+  {
+    max_cpl: 42,
+    max_cps: 20,
+    max_lines: 2,
+    min_duration_ms: 500,
+    max_duration_ms: 7000,
+    min_gap_frames: 2,
+    frame_rate: None,
+  }
+}
+
+///|
+fn dcp_source_srt_qc_profile() -> @qc.QcProfile {
+  {
+    max_cpl: 32,
+    max_cps: 17,
+    max_lines: 2,
+    min_duration_ms: 500,
+    max_duration_ms: 6000,
+    min_gap_frames: 2,
+    frame_rate: None,
+  }
+}
+
+///|
 pub fn srt_basic_subtitle_profile() -> DeliverySubtitleProfile {
   {
     name: "srt-basic",
     version: "v1",
     description: "SRT source subtitle delivery profile",
-    qc_profile: @qc.default_profile(),
+    qc_profile: srt_source_qc_profile(),
     text_style: @qc.no_text_style_profile(),
     srt_policy: Some(@qc.srt_basic_source_policy()),
   }
@@ -195,6 +221,18 @@ pub fn dcp_source_srt_subtitle_profile() -> DeliverySubtitleProfile {
     name: "dcp-source-srt",
     version: "v1",
     description: "DCP source SRT delivery preparation profile",
+    qc_profile: dcp_source_srt_qc_profile(),
+    text_style: @qc.no_text_style_profile(),
+    srt_policy: Some(@qc.dcp_source_srt_policy()),
+  }
+}
+
+///|
+pub fn dcp_frame_strict_subtitle_profile() -> DeliverySubtitleProfile {
+  {
+    name: "dcp-frame-strict",
+    version: "v1",
+    description: "Strict DCP frame-grid SRT delivery preparation profile",
     qc_profile: @qc.cinema_profile(),
     text_style: @qc.no_text_style_profile(),
     srt_policy: Some(@qc.dcp_source_srt_policy()),
@@ -209,6 +247,7 @@ pub fn delivery_subtitle_profiles() -> Array[DeliverySubtitleProfile] {
     broadcast_subtitle_profile(),
     srt_basic_subtitle_profile(),
     dcp_source_srt_subtitle_profile(),
+    dcp_frame_strict_subtitle_profile(),
   ]
 }
 
@@ -222,6 +261,7 @@ pub fn delivery_subtitle_profile_by_name(
     "broadcast" => Some(broadcast_subtitle_profile())
     "srt-basic" => Some(srt_basic_subtitle_profile())
     "dcp-source-srt" | "dcp-srt" => Some(dcp_source_srt_subtitle_profile())
+    "dcp-frame-strict" => Some(dcp_frame_strict_subtitle_profile())
     _ => None
   }
 }

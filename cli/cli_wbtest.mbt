@@ -310,6 +310,7 @@ test "delivery help describes strict flags and profiles" {
   assert_true(text.contains("broadcast"))
   assert_true(text.contains("srt-basic"))
   assert_true(text.contains("dcp-source-srt"))
+  assert_true(text.contains("dcp-frame-strict"))
 }
 
 ///|

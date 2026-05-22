@@ -292,6 +292,60 @@ test "delivery subtitle check applies dcp source srt policy warnings" {
 }
 
 ///|
+test "delivery srt basic treats 500ms cues as source safe" {
+  let input = "1\n00:00:01,000 --> 00:00:01,500\nA\n\n2\n00:00:02,000 --> 00:00:02,499\nB\n"
+  let result = delivery_subtitle_result_for_text("episode.srt", input, @cli.DeliverySubtitleCheckOptions::{
+    input: "episode.srt",
+    profile: "srt-basic",
+    frame_rate: None,
+    output_json: false,
+    fail_on_error: false,
+    fail_on_warning: true,
+  })
+  let report = result.lines.join("\n")
+  assert_true(report.contains("summary: 0 errors, 1 warning"))
+  assert_false(report.contains("W201 cue#1"))
+  assert_true(report.contains("W201 cue#2"))
+  assert_eq(result.exit_code, 1)
+}
+
+///|
+test "delivery dcp source srt skips frame grid warnings by default" {
+  let input = "1\n00:00:01,123 --> 00:00:03,123\nOpening\n\n2\n00:00:03,163 --> 00:00:05,000\nNext\n"
+  let result = delivery_subtitle_result_for_text("episode.srt", input, @cli.DeliverySubtitleCheckOptions::{
+    input: "episode.srt",
+    profile: "dcp-source-srt",
+    frame_rate: None,
+    output_json: false,
+    fail_on_error: false,
+    fail_on_warning: true,
+  })
+  let report = result.lines.join("\n")
+  assert_true(report.contains("W701"))
+  assert_false(report.contains("W401"))
+  assert_false(report.contains("W402"))
+  assert_eq(result.exit_code, 1)
+}
+
+///|
+test "delivery dcp frame strict keeps frame grid and gap warnings" {
+  let input = "1\n00:00:01,123 --> 00:00:03,123\nOpening\n\n2\n00:00:03,163 --> 00:00:05,000\nNext\n"
+  let result = delivery_subtitle_result_for_text("episode.srt", input, @cli.DeliverySubtitleCheckOptions::{
+    input: "episode.srt",
+    profile: "dcp-frame-strict",
+    frame_rate: None,
+    output_json: false,
+    fail_on_error: false,
+    fail_on_warning: true,
+  })
+  let report = result.lines.join("\n")
+  assert_true(report.contains("W401"))
+  assert_true(report.contains("W402"))
+  assert_true(report.contains("W701"))
+  assert_eq(result.exit_code, 1)
+}
+
+///|
 test "delivery subtitle warning failure also blocks error only reports" {
   let input = "1\n00:00:01,000 --> 00:00:01,000\nHello\n"
   let result = delivery_subtitle_result_for_text("episode.srt", input, @cli.DeliverySubtitleCheckOptions::{
@@ -440,6 +494,35 @@ test "delivery subtitle options preserve srt policy when overriding frame rate" 
 }
 
 ///|
+test "delivery subtitle options keep source and strict frame defaults distinct" {
+  match
+    delivery_subtitle_profile_from_options(@cli.DeliverySubtitleCheckOptions::{
+      input: "episode.srt",
+      profile: "dcp-source-srt",
+      frame_rate: None,
+      output_json: false,
+      fail_on_error: false,
+      fail_on_warning: false,
+    }) {
+    Ok(profile) => assert_true(profile.qc_profile.frame_rate is None)
+    Err(message) => fail(message)
+  }
+  match
+    delivery_subtitle_profile_from_options(@cli.DeliverySubtitleCheckOptions::{
+      input: "episode.srt",
+      profile: "dcp-frame-strict",
+      frame_rate: None,
+      output_json: false,
+      fail_on_error: false,
+      fail_on_warning: false,
+    }) {
+    Ok(profile) =>
+      assert_true(profile.qc_profile.frame_rate == Some(@timecode.Fps24))
+    Err(message) => fail(message)
+  }
+}
+
+///|
 test "delivery package result combines asset and subtitle checks" {
   let result = delivery_package_result_for_inputs_with_checksums(
     "deliveries/E01",
@@ -505,6 +588,40 @@ test "delivery package result prefixes srt source policy subtitle issues" {
   assert_true(report.contains("E01.zh.srt:"))
   assert_true(report.contains("W601"))
   assert_true(report.contains("W701"))
+  assert_eq(result.exit_code, 1)
+}
+
+///|
+test "delivery package result prefixes dcp frame strict warnings" {
+  let result = delivery_package_result_for_inputs_with_checksums(
+    "deliveries/E01",
+    [
+      "E01.mp4", "E01.zh.srt", "E01.metadata.json", "checksum.txt", "E01.poster.jpg",
+    ],
+    None,
+    None,
+    Map([]),
+    [
+      PackageSubtitleInput::{
+        name: "E01.zh.srt",
+        text: "1\n00:00:01,123 --> 00:00:03,123\nOpening\n\n2\n00:00:03,163 --> 00:00:05,000\nNext\n",
+      },
+    ],
+    @cli.DeliveryCheckOptions::{
+      input: "deliveries/E01",
+      profile: "distribution",
+      subtitle_profile: "dcp-frame-strict",
+      frame_rate: None,
+      output_json: false,
+      fail_on_error: false,
+      fail_on_warning: true,
+    },
+  )
+  let report = result.lines.join("\n")
+  assert_true(report.contains("D302"))
+  assert_true(report.contains("E01.zh.srt:"))
+  assert_true(report.contains("W401"))
+  assert_true(report.contains("W402"))
   assert_eq(result.exit_code, 1)
 }
 

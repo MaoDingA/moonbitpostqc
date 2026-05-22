@@ -172,6 +172,7 @@ moon run cmd/main --target native -- creator clean examples/good.srt --profile d
 moon run cmd/main --target native -- delivery check examples/delivery-package/good --json
 moon run cmd/main --target native -- delivery subtitle-check examples/bad.srt --profile ott-zh --fps 25
 moon run cmd/main --target native -- delivery subtitle-check examples/delivery/dcp-source-srt-bad.srt --profile dcp-source-srt --fail-on-warning
+moon run cmd/main --target native -- delivery subtitle-check examples/delivery/dcp-source-srt-bad.srt --profile dcp-frame-strict --fail-on-warning
 ```
 
 Choose a `creator clean` profile that matches the language and platform
@@ -188,7 +189,8 @@ The first stable Delivery line is now the directory-level
 moon run cmd/main --target native -- delivery check examples/delivery-package/good --json
 moon run cmd/main --target native -- delivery check examples/delivery-package/checksum-bad --fail-on-error
 moon run cmd/main --target native -- delivery check examples/delivery-package/bad --profile distribution --subtitle-profile ott-zh --fps 25
-moon run cmd/main --target native -- delivery check examples/delivery-package/srt-source-bad --profile distribution --subtitle-profile dcp-source-srt --fps 24 --fail-on-warning
+moon run cmd/main --target native -- delivery check examples/delivery-package/srt-source-bad --profile distribution --subtitle-profile dcp-source-srt --fail-on-warning
+moon run cmd/main --target native -- delivery check examples/delivery-package/srt-source-bad --profile distribution --subtitle-profile dcp-frame-strict --fail-on-warning
 ```
 
 `delivery check` scans the first level of a delivery folder, classifies video,
@@ -205,6 +207,7 @@ Single subtitle files can still be checked directly:
 moon run cmd/main --target native -- delivery subtitle-check examples/delivery/ott-good.srt --profile ott-zh --json
 moon run cmd/main --target native -- delivery subtitle-check examples/delivery/srt-basic-good.srt --profile srt-basic --fail-on-error
 moon run cmd/main --target native -- delivery subtitle-check examples/delivery/dcp-source-srt-bad.srt --profile dcp-source-srt --fail-on-warning
+moon run cmd/main --target native -- delivery subtitle-check examples/delivery/dcp-source-srt-bad.srt --profile dcp-frame-strict --fail-on-warning
 moon build cmd/main --target native
 _build/native/debug/build/cmd/main/main.exe delivery subtitle-check examples/delivery/ott-bad.srt --profile ott-zh --fps 25 --fail-on-error
 ```
@@ -214,11 +217,13 @@ Warning diagnostics should also block delivery. Use the built native executable
 when relying on process exit codes.
 
 Delivery subtitle profiles currently include `ott-zh`, `cinema-zh`,
-`broadcast`, `srt-basic`, and `dcp-source-srt`. `srt-basic` checks source SRT
-format, indexes, WebVTT settings leakage, and style-markup conversion risks.
-`dcp-source-srt` adds cinema timing/line limits and warns about source risks
-such as a first subtitle that starts too close to program start before later
-DCP Timed Text conversion.
+`broadcast`, `srt-basic`, `dcp-source-srt`, and `dcp-frame-strict`.
+
+| Profile | Use case | Duration/readability | Frame grid |
+| --- | --- | --- | --- |
+| `srt-basic` | Plain SRT source preflight for format, indexes, WebVTT settings leakage, and style-markup conversion risks. | 500ms to 7000ms, 42 CPL / 20 CPS. | Off by default. |
+| `dcp-source-srt` | SRT source-risk preflight before DCP creation, including early first-subtitle risk. | 500ms to 6000ms, 32 CPL / 17 CPS. | Off by default, so W401/W402 are not reported. |
+| `dcp-frame-strict` | Explicit final-prep check for DCP frame grid and minimum gap compliance. | 1000ms to 6000ms, 32 CPL / 17 CPS. | 24fps, minimum 2-frame gap. |
 
 The boundary is intentional: these profiles validate SRT text source files.
 They are not DCP XML/MXF Timed Text validators, IMF IMSC validators, embedded
