@@ -128,3 +128,67 @@ test "webvtt parser ignores note style and region blocks" {
     None => fail("expected VTT with metadata blocks")
   }
 }
+
+///|
+test "srt recovery returns partial cues and collects all errors" {
+  let raw = "1\n00:00:01,000 --> 00:00:02,000\nGood cue 1\n\n2\nBAD TIMING\nBad cue\n\n3\n00:00:03,000 --> 00:00:04,000\nGood cue 2\n"
+  let result = parse_srt_with_recovery(raw)
+  assert_eq(result.cues().length(), 2)
+  assert_true(result.has_errors())
+  assert_eq(result.error_count(), 1)
+  assert_true(result.errors[0].message.contains("timing"))
+  assert_eq(result.cues()[0].text[0], "Good cue 1")
+  assert_eq(result.cues()[1].text[0], "Good cue 2")
+}
+
+///|
+test "srt recovery collects multiple bad blocks" {
+  let raw = "1\nBAD\nBlock 1\n\n2\n00:00:01,000 --> 00:00:02,000\nGood\n\n3\nALSO BAD\nBlock 3\n"
+  let result = parse_srt_with_recovery(raw)
+  assert_eq(result.cues().length(), 1)
+  assert_eq(result.error_count(), 2)
+}
+
+///|
+test "srt recovery returns empty track for all bad input" {
+  let result = parse_srt_with_recovery("garbage\ngarbage\n")
+  assert_eq(result.cues().length(), 0)
+  assert_eq(result.error_count(), 1)
+  assert_true(result.track.format == Srt)
+}
+
+///|
+test "srt recovery returns zero errors for clean input" {
+  let raw = "1\n00:00:01,000 --> 00:00:02,000\nHello\n\n2\n00:00:03,000 --> 00:00:04,000\nWorld\n"
+  let result = parse_srt_with_recovery(raw)
+  assert_eq(result.cues().length(), 2)
+  assert_false(result.has_errors())
+  assert_eq(result.error_count(), 0)
+}
+
+///|
+test "webvtt recovery returns partial cues alongside errors" {
+  let raw = "WEBVTT\n\n00:00:01.000 --> 00:00:02.000\nGood cue\n\nBAD BLOCK\n\n00:00:03.000 --> 00:00:04,000\nAnother good\n"
+  let result = parse_webvtt_with_recovery(raw)
+  assert_eq(result.cues().length(), 2)
+  assert_eq(result.error_count(), 1)
+  assert_true(result.errors[0].message.contains("timing"))
+}
+
+///|
+test "webvtt recovery reports missing header error" {
+  let raw = "00:00:01.000 --> 00:00:02.000\nHello\n"
+  let result = parse_webvtt_with_recovery(raw)
+  assert_eq(result.cues().length(), 0)
+  assert_true(result.has_errors())
+  assert_true(result.errors[0].message.contains("WEBVTT"))
+}
+
+///|
+test "recovery errors preserve block and line numbers" {
+  let raw = "1\n00:00:01,000 --> 00:00:02,000\nFirst\n\n2\nbad timing\nSecond\n\n3\n00:00:03,000 --> 00:00:04,000\nThird\n"
+  let result = parse_srt_with_recovery(raw)
+  assert_eq(result.error_count(), 1)
+  assert_eq(result.errors[0].block, 2)
+  assert_eq(result.errors[0].line, 6)
+}

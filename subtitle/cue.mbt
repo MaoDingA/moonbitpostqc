@@ -32,3 +32,24 @@ pub(all) struct ParseError {
 pub fn ParseError::format_message(self : ParseError) -> String {
   "line \{self.line}, block \{self.block}: \{self.message}"
 }
+
+///|
+pub(all) struct ParseResult {
+  track : SubtitleTrack
+  errors : Array[ParseError]
+} derive(Eq, Debug)
+
+///|
+pub fn ParseResult::cues(self : ParseResult) -> Array[Cue] {
+  self.track.cues
+}
+
+///|
+pub fn ParseResult::has_errors(self : ParseResult) -> Bool {
+  self.errors.length() > 0
+}
+
+///|
+pub fn ParseResult::error_count(self : ParseResult) -> Int {
+  self.errors.length()
+}

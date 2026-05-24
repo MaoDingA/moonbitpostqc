@@ -18,7 +18,15 @@ pub fn creator_profile_by_name(String) -> CreatorProfile?
 
 pub fn douyin_profile() -> CreatorProfile
 
+pub fn kuaishou_profile() -> CreatorProfile
+
 pub fn normalize_creator_line(String, CreatorProfile) -> String
+
+pub fn tiktok_profile() -> CreatorProfile
+
+pub fn wechat_profile() -> CreatorProfile
+
+pub fn xiaohongshu_profile() -> CreatorProfile
 
 pub fn youtube_profile() -> CreatorProfile
 

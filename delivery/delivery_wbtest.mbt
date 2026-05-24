@@ -109,7 +109,7 @@ test "delivery subtitle profiles map film and ott qc defaults" {
       assert_eq(profile.name, "srt-basic")
       assert_eq(profile.qc_profile.min_duration_ms, 500)
       assert_eq(profile.qc_profile.max_duration_ms, 7000)
-      assert_eq(profile.qc_profile.max_cpl, 42)
+      assert_eq(profile.qc_profile.max_cpl, Some(42))
       assert_eq(profile.qc_profile.max_cps, 20)
       assert_true(profile.qc_profile.frame_rate is None)
       assert_true(profile.text_style == @qc.no_text_style_profile())
@@ -120,7 +120,7 @@ test "delivery subtitle profiles map film and ott qc defaults" {
   match delivery_subtitle_profile_by_name("dcp-source-srt") {
     Some(profile) => {
       assert_eq(profile.name, "dcp-source-srt")
-      assert_eq(profile.qc_profile.max_cpl, 32)
+      assert_eq(profile.qc_profile.max_cpl, Some(32))
       assert_eq(profile.qc_profile.max_cps, 17)
       assert_eq(profile.qc_profile.min_duration_ms, 500)
       assert_true(profile.qc_profile.frame_rate is None)
@@ -206,7 +206,7 @@ test "delivery subtitle profiles expose stable metadata" {
   assert_eq(dcp.name, "dcp-source-srt")
   assert_eq(dcp.version, "v1")
   assert_true(dcp.description.contains("DCP"))
-  assert_eq(dcp.qc_profile.max_cpl, 32)
+  assert_eq(dcp.qc_profile.max_cpl, Some(32))
   assert_true(dcp.qc_profile.frame_rate is None)
   assert_true(dcp.srt_policy is Some(_))
   let strict = dcp_frame_strict_subtitle_profile()

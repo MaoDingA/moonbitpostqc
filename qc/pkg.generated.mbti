@@ -71,7 +71,7 @@ pub(all) struct QcIssue {
 } derive(Eq, @debug.Debug)
 
 pub(all) struct QcProfile {
-  max_cpl : Int
+  max_cpl : Int?
   max_cps : Int
   max_lines : Int
   min_duration_ms : Int

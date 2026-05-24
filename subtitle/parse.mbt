@@ -187,6 +187,20 @@ pub fn parse_srt(input : String) -> SubtitleTrack? {
 }
 
 ///|
+pub fn parse_srt_with_recovery(input : String) -> ParseResult {
+  let cues : Array[Cue] = []
+  let errors : Array[ParseError] = []
+  let blocks = split_blocks_with_lines(input)
+  for index in 0..<blocks.length() {
+    match parse_srt_block_detailed(blocks[index], index + 1) {
+      Ok(cue) => cues.push(cue)
+      Err(error) => errors.push(error)
+    }
+  }
+  { track: { format: Srt, cues }, errors }
+}
+
+///|
 fn parse_webvtt_block_detailed(
   block : SubtitleBlock,
   block_index : Int,
@@ -303,4 +317,47 @@ pub fn parse_webvtt(input : String) -> SubtitleTrack? {
     Ok(track) => Some(track)
     Err(_) => None
   }
+}
+
+///|
+pub fn parse_webvtt_with_recovery(input : String) -> ParseResult {
+  let blocks = split_blocks_with_lines(input)
+  let cues : Array[Cue] = []
+  let errors : Array[ParseError] = []
+  let mut saw_header = false
+  for block in blocks {
+    match block.lines.get(0) {
+      Some(first) =>
+        if first == "WEBVTT" || first.has_prefix("WEBVTT ") {
+          saw_header = true
+        }
+      None => ()
+    }
+  }
+  if !saw_header {
+    errors.push(parse_error(WebVtt, 1, 1, "missing WEBVTT header"))
+    return {
+      track: { format: WebVtt, cues: [] },
+      errors,
+    }
+  }
+  let mut cue_block = 0
+  for block in blocks {
+    match block.lines.get(0) {
+      Some(first) =>
+        if first == "WEBVTT" || first.has_prefix("WEBVTT ") {
+          ()
+        } else if is_webvtt_metadata_block(first) {
+          ()
+        } else {
+          cue_block += 1
+          match parse_webvtt_block_detailed(block, cue_block) {
+            Ok(cue) => cues.push(cue)
+            Err(error) => errors.push(error)
+          }
+        }
+      None => ()
+    }
+  }
+  { track: { format: WebVtt, cues }, errors }
 }

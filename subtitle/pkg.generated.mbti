@@ -14,11 +14,15 @@ pub fn parse_srt(String) -> SubtitleTrack?
 
 pub fn parse_srt_detailed(String) -> Result[SubtitleTrack, ParseError]
 
+pub fn parse_srt_with_recovery(String) -> ParseResult
+
 pub fn parse_timestamp_ms(String) -> Int?
 
 pub fn parse_webvtt(String) -> SubtitleTrack?
 
 pub fn parse_webvtt_detailed(String) -> Result[SubtitleTrack, ParseError]
+
+pub fn parse_webvtt_with_recovery(String) -> ParseResult
 
 pub fn write_srt(SubtitleTrack) -> String
 
@@ -43,6 +47,14 @@ pub(all) struct ParseError {
   message : String
 } derive(Eq, @debug.Debug)
 pub fn ParseError::format_message(Self) -> String
+
+pub(all) struct ParseResult {
+  track : SubtitleTrack
+  errors : Array[ParseError]
+} derive(Eq, @debug.Debug)
+pub fn ParseResult::cues(Self) -> Array[Cue]
+pub fn ParseResult::error_count(Self) -> Int
+pub fn ParseResult::has_errors(Self) -> Bool
 
 pub(all) enum SubtitleFormat {
   Srt

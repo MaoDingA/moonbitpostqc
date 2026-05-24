@@ -180,7 +180,7 @@ pub fn broadcast_subtitle_profile() -> DeliverySubtitleProfile {
 ///|
 fn srt_source_qc_profile() -> @qc.QcProfile {
   {
-    max_cpl: 42,
+    max_cpl: Some(42),
     max_cps: 20,
     max_lines: 2,
     min_duration_ms: 500,
@@ -193,7 +193,7 @@ fn srt_source_qc_profile() -> @qc.QcProfile {
 ///|
 fn dcp_source_srt_qc_profile() -> @qc.QcProfile {
   {
-    max_cpl: 32,
+    max_cpl: Some(32),
     max_cps: 17,
     max_lines: 2,
     min_duration_ms: 500,

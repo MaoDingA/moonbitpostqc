@@ -6,7 +6,7 @@ pub(all) enum Severity {
 
 ///|
 pub(all) struct QcProfile {
-  max_cpl : Int
+  max_cpl : Int?
   max_cps : Int
   max_lines : Int
   min_duration_ms : Int
@@ -26,7 +26,7 @@ pub(all) struct QcIssue {
 ///|
 pub fn default_profile() -> QcProfile {
   {
-    max_cpl: 42,
+    max_cpl: Some(42),
     max_cps: 20,
     max_lines: 2,
     min_duration_ms: 800,
@@ -39,7 +39,7 @@ pub fn default_profile() -> QcProfile {
 ///|
 pub fn streaming_profile() -> QcProfile {
   {
-    max_cpl: 42,
+    max_cpl: Some(42),
     max_cps: 20,
     max_lines: 2,
     min_duration_ms: 800,
@@ -52,7 +52,7 @@ pub fn streaming_profile() -> QcProfile {
 ///|
 pub fn cinema_profile() -> QcProfile {
   {
-    max_cpl: 32,
+    max_cpl: Some(32),
     max_cps: 17,
     max_lines: 2,
     min_duration_ms: 1000,
@@ -65,7 +65,7 @@ pub fn cinema_profile() -> QcProfile {
 ///|
 pub fn social_video_profile() -> QcProfile {
   {
-    max_cpl: 30,
+    max_cpl: Some(30),
     max_cps: 24,
     max_lines: 2,
     min_duration_ms: 500,

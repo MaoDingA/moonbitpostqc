@@ -101,18 +101,22 @@ fn check_single_cue(
       "\{cue.text.length()} lines exceeds max \{profile.max_lines}",
     )
   }
-  for line_index in 0..<cue.text.length() {
-    let line = cue.text[line_index]
-    let cpl = line.iter().count()
-    if cpl > profile.max_cpl {
-      push_issue(
-        issues,
-        Warning,
-        "W203",
-        label,
-        "line \{line_index + 1}: \{cpl} chars, max \{profile.max_cpl}",
-      )
-    }
+  match profile.max_cpl {
+    Some(max_cpl) =>
+      for line_index in 0..<cue.text.length() {
+        let line = cue.text[line_index]
+        let cpl = line.iter().count()
+        if cpl > max_cpl {
+          push_issue(
+            issues,
+            Warning,
+            "W203",
+            label,
+            "line \{line_index + 1}: \{cpl} chars, max \{max_cpl}",
+          )
+        }
+      }
+    None => ()
   }
   match profile.frame_rate {
     Some(rate) => {

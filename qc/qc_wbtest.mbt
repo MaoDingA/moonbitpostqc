@@ -29,7 +29,7 @@ test "qc reports overlaps duration line and speed issues" {
 test "qc catches frame alignment at 25fps" {
   let cues = [cue(1, 1123, 2000, ["Hello"])]
   let profile = QcProfile::{
-    max_cpl: 42,
+    max_cpl: Some(42),
     max_cps: 20,
     max_lines: 2,
     min_duration_ms: 800,
@@ -104,7 +104,7 @@ test "qc can detect whether issues contain errors" {
 test "qc exposes named delivery profiles" {
   match profile_by_name("cinema") {
     Some(profile) => {
-      assert_eq(profile.max_cpl, 32)
+      assert_eq(profile.max_cpl, Some(32))
       assert_eq(profile.max_cps, 17)
       assert_true(profile.frame_rate == Some(@timecode.Fps24))
     }
@@ -112,7 +112,7 @@ test "qc exposes named delivery profiles" {
   }
   match profile_by_name("social-video") {
     Some(profile) => {
-      assert_eq(profile.max_cpl, 30)
+      assert_eq(profile.max_cpl, Some(30))
       assert_eq(profile.min_duration_ms, 500)
       assert_true(profile.frame_rate == Some(@timecode.Fps30))
     }
@@ -124,7 +124,7 @@ test "qc exposes named delivery profiles" {
 ///|
 test "qc reports line count and small gap issues" {
   let profile = QcProfile::{
-    max_cpl: 42,
+    max_cpl: Some(42),
     max_cps: 20,
     max_lines: 2,
     min_duration_ms: 800,
