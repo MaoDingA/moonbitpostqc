@@ -220,20 +220,7 @@ fn parse_offset_ms(raw : String) -> Int {
 
 ///|
 pub fn parse_frame_rate(raw : String) -> @timecode.FrameRate? {
-  match raw {
-    "23.976" | "23976" => Some(@timecode.Fps23976)
-    "24" => Some(@timecode.Fps24)
-    "25" => Some(@timecode.Fps25)
-    "29.97df" | "29.97DF" | "29.97-drop" | "2997df" =>
-      Some(@timecode.Fps2997Drop)
-    "29.97" | "2997" => Some(@timecode.Fps2997NonDrop)
-    "30" => Some(@timecode.Fps30)
-    "50" => Some(@timecode.Fps50)
-    "59.94df" | "59.94DF" | "59.94-drop" | "5994df" =>
-      Some(@timecode.Fps5994Drop)
-    "59.94" | "5994" => Some(@timecode.Fps5994NonDrop)
-    _ => None
-  }
+  @timecode.FrameRate::parse(raw)
 }
 
 ///|

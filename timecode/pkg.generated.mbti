@@ -10,6 +10,8 @@ pub fn convert_timecode(Timecode, FrameRate) -> Timecode
 
 pub fn parse_timecode(String, FrameRate) -> Timecode?
 
+pub fn parse_timecode_result(String, FrameRate) -> Result[Timecode, TimecodeParseError]
+
 pub fn rescale_ms_between_rates(Int, FrameRate, FrameRate) -> Int
 
 // Errors
@@ -45,8 +47,10 @@ pub fn FrameRate::frame_duration_ms(Self) -> Int
 pub fn FrameRate::frames_to_ms(Self, Int) -> Int
 pub fn FrameRate::frames_to_timecode(Self, Int) -> Timecode
 pub fn FrameRate::is_drop_frame(Self) -> Bool
+pub fn FrameRate::label(Self) -> String
 pub fn FrameRate::ms_to_frames(Self, Int) -> Int
 pub fn FrameRate::nominal_fps(Self) -> Int
+pub fn FrameRate::parse(String) -> Self?
 
 pub(all) struct Timecode {
   hour : Int
@@ -64,6 +68,24 @@ pub fn Timecode::is_before(Self, Self) -> Bool?
 pub fn Timecode::sub_duration(Self, Duration) -> Self?
 pub fn Timecode::sub_frames(Self, Int) -> Self
 pub fn Timecode::to_frames(Self) -> Int
+
+pub(all) enum TimecodeParseError {
+  InvalidFormat
+  InvalidNumber
+  InvalidSeparator
+  OutOfRange(String)
+  InvalidDropFrameLabel
+} derive(Eq, @debug.Debug)
+
+pub(all) struct TimecodeRange {
+  start : Timecode
+  end : Timecode
+} derive(Eq, @debug.Debug)
+pub fn TimecodeRange::contains(Self, Timecode) -> Bool?
+pub fn TimecodeRange::duration(Self) -> Duration?
+pub fn TimecodeRange::new(Timecode, Timecode) -> Self?
+pub fn TimecodeRange::overlaps(Self, Self) -> Bool?
+pub fn TimecodeRange::shift(Self, Duration) -> Self?
 
 // Type aliases
 

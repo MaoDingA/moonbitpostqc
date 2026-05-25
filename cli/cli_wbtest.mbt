@@ -315,8 +315,11 @@ test "delivery help describes strict flags and profiles" {
 
 ///|
 test "cli parses frame rate aliases" {
+  assert_true(parse_frame_rate("23.98") == Some(@timecode.Fps23976))
   assert_true(parse_frame_rate("29.97df") == Some(@timecode.Fps2997Drop))
+  assert_true(parse_frame_rate("29.97 drop") == Some(@timecode.Fps2997Drop))
   assert_true(parse_frame_rate("59.94") == Some(@timecode.Fps5994NonDrop))
+  assert_true(parse_frame_rate("59.94ndf") == Some(@timecode.Fps5994NonDrop))
   assert_true(parse_frame_rate("bad") is None)
 }
 

@@ -97,6 +97,13 @@ test "frame duration helpers round common rates" {
 }
 
 ///|
+test "millisecond to frame conversion uses nearest rounding" {
+  assert_eq(Fps25.ms_to_frames(19), 0)
+  assert_eq(Fps25.ms_to_frames(20), 1)
+  assert_eq(Fps25.ms_to_frames(-20), -1)
+}
+
+///|
 test "frame rates expose exact fps ratios" {
   assert_eq(Fps23976.nominal_fps(), 24)
   assert_eq(Fps23976.fps_numerator(), 24000)
@@ -143,4 +150,15 @@ test "all supported frame rates round trip representative frame counts" {
     assert_eq(Fps5994Drop.frames_to_timecode(frames).to_frames(), frames)
     assert_eq(Fps5994NonDrop.frames_to_timecode(frames).to_frames(), frames)
   }
+}
+
+///|
+test "large production frame counts round trip without overflow" {
+  let samples = [2589408, 21578400]
+  for frames in samples {
+    assert_eq(Fps2997Drop.frames_to_timecode(frames).to_frames(), frames)
+    assert_eq(Fps5994Drop.frames_to_timecode(frames).to_frames(), frames)
+  }
+  let long_source = Fps23976.frames_to_timecode(8640000)
+  assert_eq(convert_timecode(long_source, Fps25).to_frames(), 9009000)
 }

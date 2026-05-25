@@ -346,9 +346,11 @@ run.
 ## Timecode
 
 `phenom8010/moonpost/timecode` is MoonPost's reusable SMPTE timecode foundation.
-It models timecode labels, frame counts, and durations separately, with
-drop-frame boundary handling, same-rate arithmetic, explicit comparison, and
-exact numerator/denominator based conversion for 23.976 / 29.97 / 59.94 rates.
+It models timecode labels, frame counts, durations, and half-open timecode
+ranges separately, with drop-frame boundary handling, same-rate arithmetic,
+explicit comparison, and exact numerator/denominator based conversion for
+23.976 / 29.97 / 59.94 rates. Package-level checked examples live in
+`timecode/README.mbt.md`.
 
 Convert a SMPTE-style timecode value to frames:
 
@@ -390,20 +392,20 @@ Supported CLI frame-rate values:
 
 | Value | Meaning |
 | --- | --- |
-| `23.976`, `23976` | 23.976fps |
+| `23.976`, `23.98`, `23976`, `2398` | 23.976fps |
 | `24` | 24fps |
 | `25` | 25fps |
-| `29.97`, `2997` | 29.97 non-drop |
-| `29.97df`, `29.97DF`, `29.97-drop`, `2997df` | 29.97 drop-frame |
+| `29.97`, `29.97ndf`, `2997`, `2997ndf` | 29.97 non-drop |
+| `29.97df`, `29.97DF`, `29.97-drop`, `29.97 drop`, `2997df`, `2997drop` | 29.97 drop-frame |
 | `30` | 30fps |
 | `50` | 50fps |
-| `59.94`, `5994` | 59.94 non-drop |
-| `59.94df`, `59.94DF`, `59.94-drop`, `5994df` | 59.94 drop-frame |
+| `59.94`, `59.94ndf`, `5994`, `5994ndf` | 59.94 non-drop |
+| `59.94df`, `59.94DF`, `59.94-drop`, `59.94 drop`, `5994df`, `5994drop` | 59.94 drop-frame |
 
 The library API also exposes `Duration`, `Timecode::add_frames`,
-`Timecode::frame_distance`, `Timecode::add_duration`, and related explicit
-same-rate operations. Cross-rate comparison and duration arithmetic return
-`None` instead of silently converting.
+`Timecode::frame_distance`, `Timecode::add_duration`, `TimecodeRange`, and
+`parse_timecode_result`. Cross-rate comparison, range, and duration arithmetic
+return `None` instead of silently converting.
 
 ## Subtitle Conversion
 
@@ -518,7 +520,7 @@ the generated `pkg.generated.mbti` files.
 
 | Package | Purpose |
 | --- | --- |
-| `phenom8010/moonpost/timecode` | Frame rates, timecode parsing, frame/duration conversion, same-rate arithmetic, drop-frame math. |
+| `phenom8010/moonpost/timecode` | Frame rates, timecode parsing, frame/duration/range conversion, same-rate arithmetic, drop-frame math. |
 | `phenom8010/moonpost/subtitle` | SRT/WebVTT parsing, timestamp formatting, subtitle writing. |
 | `phenom8010/moonpost/qc` | QC profiles, issue model, cue checks, report formatting. |
 | `phenom8010/moonpost/creator` | Creator subtitle profiles, text checks, and cleanup workflows. |
@@ -533,6 +535,7 @@ Timecode:
 
 ```text
 parse_timecode(String, FrameRate) -> Timecode?
+parse_timecode_result(String, FrameRate) -> Result[Timecode, TimecodeParseError]
 Timecode::to_frames() -> Int
 Timecode::format() -> String
 Timecode::add_frames(Int) -> Timecode
@@ -543,6 +546,8 @@ Timecode::frame_distance(Timecode) -> Int?
 Timecode::is_before(Timecode) -> Bool?
 Timecode::is_after(Timecode) -> Bool?
 FrameRate::frames_to_timecode(Int) -> Timecode
+FrameRate::parse(String) -> FrameRate?
+FrameRate::label() -> String
 FrameRate::nominal_fps() -> Int
 FrameRate::fps_numerator() -> Int
 FrameRate::fps_denominator() -> Int
@@ -556,6 +561,11 @@ Duration::format() -> String
 Duration::add(Duration) -> Duration?
 Duration::sub(Duration) -> Duration?
 Duration::scale(Int) -> Duration
+TimecodeRange::new(Timecode, Timecode) -> TimecodeRange?
+TimecodeRange::duration() -> Duration?
+TimecodeRange::contains(Timecode) -> Bool?
+TimecodeRange::overlaps(TimecodeRange) -> Bool?
+TimecodeRange::shift(Duration) -> TimecodeRange?
 ```
 
 Subtitle:

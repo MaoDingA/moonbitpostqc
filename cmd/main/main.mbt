@@ -1,16 +1,6 @@
 ///|
 fn frame_rate_label(rate : @timecode.FrameRate) -> String {
-  match rate {
-    @timecode.Fps23976 => "23.976fps"
-    @timecode.Fps24 => "24fps"
-    @timecode.Fps25 => "25fps"
-    @timecode.Fps2997Drop => "29.97df"
-    @timecode.Fps2997NonDrop => "29.97fps"
-    @timecode.Fps30 => "30fps"
-    @timecode.Fps50 => "50fps"
-    @timecode.Fps5994Drop => "59.94df"
-    @timecode.Fps5994NonDrop => "59.94fps"
-  }
+  rate.label()
 }
 
 ///|

@@ -317,8 +317,9 @@ CLI 也支持通过 `--fps <rate>` 覆盖当前 profile 的帧网格。
 ## 时间码
 
 `phenom8010/moonpost/timecode` 是 MoonPost 的通用 SMPTE 时间码基础包。它把
-时间码标签、帧数和时长分开建模，支持 drop-frame 边界计算、同帧率时间码算术、
-显式比较，以及基于精确帧率分子/分母的 23.976 / 29.97 / 59.94 换算。
+时间码标签、帧数、时长和半开时间码区间分开建模，支持 drop-frame 边界计算、
+同帧率时间码算术、显式比较，以及基于精确帧率分子/分母的 23.976 / 29.97 /
+59.94 换算。包级可测试示例见 `timecode/README.mbt.md`。
 
 把 SMPTE 风格时间码转换为帧数：
 
@@ -360,19 +361,20 @@ moon run cmd/main --target native -- timecode convert 01:00:00:00 --from 23.976 
 
 | Value | 含义 |
 | --- | --- |
-| `23.976`, `23976` | 23.976fps |
+| `23.976`, `23.98`, `23976`, `2398` | 23.976fps |
 | `24` | 24fps |
 | `25` | 25fps |
-| `29.97`, `2997` | 29.97 non-drop |
-| `29.97df`, `29.97DF`, `29.97-drop`, `2997df` | 29.97 drop-frame |
+| `29.97`, `29.97ndf`, `2997`, `2997ndf` | 29.97 non-drop |
+| `29.97df`, `29.97DF`, `29.97-drop`, `29.97 drop`, `2997df`, `2997drop` | 29.97 drop-frame |
 | `30` | 30fps |
 | `50` | 50fps |
-| `59.94`, `5994` | 59.94 non-drop |
-| `59.94df`, `59.94DF`, `59.94-drop`, `5994df` | 59.94 drop-frame |
+| `59.94`, `59.94ndf`, `5994`, `5994ndf` | 59.94 non-drop |
+| `59.94df`, `59.94DF`, `59.94-drop`, `59.94 drop`, `5994df`, `5994drop` | 59.94 drop-frame |
 
 库 API 还提供 `Duration` 类型、`Timecode::add_frames`、
-`Timecode::frame_distance`、`Timecode::add_duration` 等显式同帧率操作。跨帧率
-比较和时长运算不会隐式换算，会返回 `None`，调用方可以先选择目标帧率再转换。
+`Timecode::frame_distance`、`Timecode::add_duration`、`TimecodeRange` 和
+`parse_timecode_result` 等显式同帧率操作。跨帧率比较、区间和时长运算不会隐式
+换算，会返回 `None`，调用方可以先选择目标帧率再转换。
 
 ## 字幕转换
 
@@ -484,7 +486,7 @@ MoonPost 由多个小型 MoonBit package 组成。公开 API 可参考生成的
 
 | Package | 用途 |
 | --- | --- |
-| `phenom8010/moonpost/timecode` | 帧率、时间码解析、帧数/时长转换、同帧率算术和 drop-frame 计算。 |
+| `phenom8010/moonpost/timecode` | 帧率、时间码解析、帧数/时长/区间转换、同帧率算术和 drop-frame 计算。 |
 | `phenom8010/moonpost/subtitle` | SRT/WebVTT 解析、时间戳格式化、字幕写出。 |
 | `phenom8010/moonpost/qc` | QC profiles、issue 模型、cue 检查、报告格式化。 |
 | `phenom8010/moonpost/creator` | 创作者字幕 profile、文本检查和清洗流程。 |
@@ -499,6 +501,7 @@ Timecode:
 
 ```text
 parse_timecode(String, FrameRate) -> Timecode?
+parse_timecode_result(String, FrameRate) -> Result[Timecode, TimecodeParseError]
 Timecode::to_frames() -> Int
 Timecode::format() -> String
 Timecode::add_frames(Int) -> Timecode
@@ -509,6 +512,8 @@ Timecode::frame_distance(Timecode) -> Int?
 Timecode::is_before(Timecode) -> Bool?
 Timecode::is_after(Timecode) -> Bool?
 FrameRate::frames_to_timecode(Int) -> Timecode
+FrameRate::parse(String) -> FrameRate?
+FrameRate::label() -> String
 FrameRate::nominal_fps() -> Int
 FrameRate::fps_numerator() -> Int
 FrameRate::fps_denominator() -> Int
@@ -522,6 +527,11 @@ Duration::format() -> String
 Duration::add(Duration) -> Duration?
 Duration::sub(Duration) -> Duration?
 Duration::scale(Int) -> Duration
+TimecodeRange::new(Timecode, Timecode) -> TimecodeRange?
+TimecodeRange::duration() -> Duration?
+TimecodeRange::contains(Timecode) -> Bool?
+TimecodeRange::overlaps(TimecodeRange) -> Bool?
+TimecodeRange::shift(Duration) -> TimecodeRange?
 ```
 
 Subtitle:
