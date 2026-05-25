@@ -9,8 +9,9 @@ MoonBit media tooling. It keeps three concepts separate:
   timeline
 
 The package supports common production frame rates, drop-frame labels for
-29.97/59.94, exact numerator/denominator conversion, and explicit same-rate
-arithmetic.
+29.97/59.94, exact numerator/denominator conversion, explicit same-rate
+arithmetic, 24-hour wrapping policy, and small metadata adapters for FCPXML,
+IMF, and Apple delivery-package timecode fields.
 
 ## Import
 
@@ -179,6 +180,108 @@ test "measure and shift a half-open timecode range" {
 }
 ```
 
+## Metadata Policies
+
+Some file formats store the drop-frame flag outside the visible label. Use
+`parse_timecode_with_policy` for those metadata-driven cases.
+
+```mbt check
+///|
+test "parse metadata-driven drop-frame text" {
+  let policy = @timecode.TimecodeParsePolicy::{
+    separator_mode: IgnoreForInterop,
+  }
+  match
+    @timecode.parse_timecode_with_policy("01:00:00:00", Fps2997Drop, policy) {
+    Ok(tc) => assert_eq(tc.format(), "01:00:00;00")
+    Err(_) => fail("expected metadata-driven drop-frame parse")
+  }
+}
+```
+
+Frame-to-label conversion can preserve hours beyond 24 or wrap into a 24-hour
+day.
+
+```mbt check
+///|
+test "wrap labels at 24 hours" {
+  assert_eq(
+    @timecode.Fps25
+    .frames_to_timecode_with_wrap(25 * 3600 * 24, Wrap24Hour)
+    .format(),
+    "00:00:00:00",
+  )
+}
+```
+
+## Rational Seconds
+
+Interop metadata often stores media time as rational seconds, for example
+FCPXML `frameDuration="1001/30000s"`.
+
+```mbt check
+///|
+test "convert rational seconds to frames" {
+  match @timecode.RationalSeconds::parse("1001/30000s") {
+    Some(frame_duration) => assert_eq(frame_duration.to_frames(Fps2997Drop), 1)
+    None => fail("expected rational frame duration")
+  }
+}
+```
+
+## FCPXML
+
+FCPXML stores `frameDuration`, `tcStart`, and `tcFormat` separately.
+
+```mbt check
+///|
+test "convert FCPXML timecode attributes" {
+  let attrs = @timecode.FcpXmlTimecodeAttrs::{
+    frame_duration: { numerator: 1001L, denominator: 30000L },
+    tc_start: { numerator: 3600L, denominator: 1L },
+    tc_format: DF,
+  }
+  match attrs.to_timecode() {
+    Ok(tc) => assert_eq(tc.format(), "01:00:00;00")
+    Err(_) => fail("expected FCPXML timecode")
+  }
+}
+```
+
+## IMF
+
+IMF-style fields keep the nominal rate, drop-frame flag, and visible start
+address separate.
+
+```mbt check
+///|
+test "convert IMF timecode fields" {
+  let imf = @timecode.ImfTimecode::{
+    rate: 30,
+    drop_frame: true,
+    start_address: "01:00:00:00",
+  }
+  match imf.to_timecode() {
+    Ok(tc) => assert_eq(tc.format(), "01:00:00;00")
+    Err(_) => fail("expected IMF timecode")
+  }
+}
+```
+
+## Apple Delivery
+
+Apple delivery packages use compact frame-rate mode strings.
+
+```mbt check
+///|
+test "parse Apple delivery timecode format" {
+  assert_true(
+    @timecode.AppleDeliveryTimecodeFormat::parse("30/1000 1001/dropNTSC") ==
+    Some(Fps2997Drop),
+  )
+}
+```
+
 ## Boundaries
 
 This first public version intentionally keeps cross-rate behavior explicit:
@@ -187,6 +290,9 @@ This first public version intentionally keeps cross-rate behavior explicit:
   `None` when frame rates differ.
 - `Duration::add` and `Duration::sub` return `None` when frame rates differ.
 - Negative `Timecode` positions saturate to zero.
-- `FrameRate::frames_to_timecode` does not wrap at 24 hours.
-- LTC/VITC binary packing, EDL, and FCPXML interop are future extension points,
-  not part of this minimal infrastructure core.
+- `FrameRate::frames_to_timecode` does not wrap at 24 hours unless
+  `frames_to_timecode_with_wrap(..., Wrap24Hour)` is used.
+- FCPXML, IMF, and Apple delivery helpers cover timecode metadata fields, not
+  full file parsing.
+- LTC/VITC/ATC transport, ST 12 user bits, binary packing, EDL, and full
+  FCPXML/IMF document parsing are future extension points.

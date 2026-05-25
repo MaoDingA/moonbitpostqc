@@ -91,3 +91,51 @@ test "public API models durations and ranges at one explicit frame rate" {
     is None,
   )
 }
+
+///|
+test "public API exposes metadata-oriented parsing and rational seconds" {
+  let policy = @timecode.TimecodeParsePolicy::{
+    separator_mode: IgnoreForInterop,
+  }
+  match
+    @timecode.parse_timecode_with_policy("01:00:00:00", Fps2997Drop, policy) {
+    Ok(tc) => assert_eq(tc.format(), "01:00:00;00")
+    Err(_) => fail("expected metadata-driven parse")
+  }
+  match @timecode.RationalSeconds::parse("1001/30000s") {
+    Some(frame_duration) => assert_eq(frame_duration.to_frames(Fps2997Drop), 1)
+    None => fail("expected rational frame duration")
+  }
+  assert_eq(
+    @timecode.Fps25
+    .frames_to_timecode_with_wrap(25 * 3600 * 24, Wrap24Hour)
+    .format(),
+    "00:00:00:00",
+  )
+}
+
+///|
+test "public API exposes FCPXML IMF and Apple delivery interop helpers" {
+  let fcpxml = @timecode.FcpXmlTimecodeAttrs::{
+    frame_duration: { numerator: 1001L, denominator: 30000L },
+    tc_start: { numerator: 3600L, denominator: 1L },
+    tc_format: DF,
+  }
+  match fcpxml.to_timecode() {
+    Ok(tc) => assert_eq(tc.format(), "01:00:00;00")
+    Err(_) => fail("expected FCPXML conversion")
+  }
+  let imf = @timecode.ImfTimecode::{
+    rate: 30,
+    drop_frame: true,
+    start_address: "01:00:00:00",
+  }
+  match imf.to_timecode() {
+    Ok(tc) => assert_eq(tc.format(), "01:00:00;00")
+    Err(_) => fail("expected IMF conversion")
+  }
+  assert_true(
+    @timecode.AppleDeliveryTimecodeFormat::parse("30/1000 1001/dropNTSC") ==
+    Some(Fps2997Drop),
+  )
+}

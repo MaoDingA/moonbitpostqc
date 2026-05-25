@@ -319,7 +319,9 @@ CLI 也支持通过 `--fps <rate>` 覆盖当前 profile 的帧网格。
 `phenom8010/moonpost/timecode` 是 MoonPost 的通用 SMPTE 时间码基础包。它把
 时间码标签、帧数、时长和半开时间码区间分开建模，支持 drop-frame 边界计算、
 同帧率时间码算术、显式比较，以及基于精确帧率分子/分母的 23.976 / 29.97 /
-59.94 换算。包级可测试示例见 `timecode/README.mbt.md`。
+59.94 换算。它还提供 24 小时 wrap policy、rational seconds，以及 FCPXML、
+IMF、Apple delivery-package timecode 字段的轻量 interop helpers。包级可测试
+示例见 `timecode/README.mbt.md`。
 
 把 SMPTE 风格时间码转换为帧数：
 
@@ -364,17 +366,26 @@ moon run cmd/main --target native -- timecode convert 01:00:00:00 --from 23.976 
 | `23.976`, `23.98`, `23976`, `2398` | 23.976fps |
 | `24` | 24fps |
 | `25` | 25fps |
+| `47.952`, `47.95`, `47952`, `4795` | 47.952fps |
+| `48` | 48fps |
 | `29.97`, `29.97ndf`, `2997`, `2997ndf` | 29.97 non-drop |
 | `29.97df`, `29.97DF`, `29.97-drop`, `29.97 drop`, `2997df`, `2997drop` | 29.97 drop-frame |
 | `30` | 30fps |
 | `50` | 50fps |
 | `59.94`, `59.94ndf`, `5994`, `5994ndf` | 59.94 non-drop |
 | `59.94df`, `59.94DF`, `59.94-drop`, `59.94 drop`, `5994df`, `5994drop` | 59.94 drop-frame |
+| `60` | 60fps |
+| `72` | 72fps |
+| `96` | 96fps |
+| `100` | 100fps |
+| `119.88`, `11988` | 119.88fps |
+| `120` | 120fps |
 
 库 API 还提供 `Duration` 类型、`Timecode::add_frames`、
 `Timecode::frame_distance`、`Timecode::add_duration`、`TimecodeRange` 和
 `parse_timecode_result` 等显式同帧率操作。跨帧率比较、区间和时长运算不会隐式
-换算，会返回 `None`，调用方可以先选择目标帧率再转换。
+换算，会返回 `None`，调用方可以先选择目标帧率再转换。FCPXML、IMF 和 Apple
+delivery helpers 只处理时间码相关 metadata 字段，不解析完整文件。
 
 ## 字幕转换
 
@@ -502,6 +513,7 @@ Timecode:
 ```text
 parse_timecode(String, FrameRate) -> Timecode?
 parse_timecode_result(String, FrameRate) -> Result[Timecode, TimecodeParseError]
+parse_timecode_with_policy(String, FrameRate, TimecodeParsePolicy) -> Result[Timecode, TimecodeParseError]
 Timecode::to_frames() -> Int
 Timecode::format() -> String
 Timecode::add_frames(Int) -> Timecode
@@ -512,6 +524,7 @@ Timecode::frame_distance(Timecode) -> Int?
 Timecode::is_before(Timecode) -> Bool?
 Timecode::is_after(Timecode) -> Bool?
 FrameRate::frames_to_timecode(Int) -> Timecode
+FrameRate::frames_to_timecode_with_wrap(Int, TimecodeWrapMode) -> Timecode
 FrameRate::parse(String) -> FrameRate?
 FrameRate::label() -> String
 FrameRate::nominal_fps() -> Int
@@ -532,6 +545,16 @@ TimecodeRange::duration() -> Duration?
 TimecodeRange::contains(Timecode) -> Bool?
 TimecodeRange::overlaps(TimecodeRange) -> Bool?
 TimecodeRange::shift(Duration) -> TimecodeRange?
+RationalSeconds::parse(String) -> RationalSeconds?
+RationalSeconds::format() -> String
+RationalSeconds::to_frames(FrameRate) -> Int
+RationalSeconds::from_frames(Int, FrameRate) -> RationalSeconds
+FcpXmlTimecodeAttrs::to_timecode() -> Result[Timecode, TimecodeInteropError]
+FcpXmlTimecodeAttrs::from_timecode(Timecode) -> FcpXmlTimecodeAttrs
+ImfTimecode::to_timecode() -> Result[Timecode, TimecodeInteropError]
+ImfTimecode::from_timecode(Timecode) -> ImfTimecode
+AppleDeliveryTimecodeFormat::parse(String) -> FrameRate?
+AppleDeliveryTimecodeFormat::format(FrameRate) -> String?
 ```
 
 Subtitle:

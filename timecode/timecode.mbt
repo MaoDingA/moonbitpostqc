@@ -4,12 +4,20 @@ pub(all) enum FrameRate {
   Fps23976
   Fps24
   Fps25
+  Fps47952
+  Fps48
   Fps2997Drop
   Fps2997NonDrop
   Fps30
   Fps50
   Fps5994Drop
   Fps5994NonDrop
+  Fps60
+  Fps72
+  Fps96
+  Fps100
+  Fps11988
+  Fps120
 } derive(Eq, Debug)
 
 ///|
@@ -33,9 +41,14 @@ pub fn FrameRate::nominal_fps(self : FrameRate) -> Int {
   match self {
     Fps23976 | Fps24 => 24
     Fps25 => 25
+    Fps47952 | Fps48 => 48
     Fps2997Drop | Fps2997NonDrop | Fps30 => 30
     Fps50 => 50
-    Fps5994Drop | Fps5994NonDrop => 60
+    Fps5994Drop | Fps5994NonDrop | Fps60 => 60
+    Fps72 => 72
+    Fps96 => 96
+    Fps100 => 100
+    Fps11988 | Fps120 => 120
   }
 }
 
@@ -46,12 +59,20 @@ pub fn FrameRate::label(self : FrameRate) -> String {
     Fps23976 => "23.976fps"
     Fps24 => "24fps"
     Fps25 => "25fps"
+    Fps47952 => "47.952fps"
+    Fps48 => "48fps"
     Fps2997Drop => "29.97df"
     Fps2997NonDrop => "29.97fps"
     Fps30 => "30fps"
     Fps50 => "50fps"
     Fps5994Drop => "59.94df"
     Fps5994NonDrop => "59.94fps"
+    Fps60 => "60fps"
+    Fps72 => "72fps"
+    Fps96 => "96fps"
+    Fps100 => "100fps"
+    Fps11988 => "119.88fps"
+    Fps120 => "120fps"
   }
 }
 
@@ -77,12 +98,20 @@ pub fn FrameRate::parse(raw : String) -> FrameRate? {
     "23.976" | "23.98" | "23976" | "2398" => Some(Fps23976)
     "24" => Some(Fps24)
     "25" => Some(Fps25)
+    "47.952" | "47.95" | "47952" | "4795" => Some(Fps47952)
+    "48" => Some(Fps48)
     "29.97df" | "29.97drop" | "2997df" | "2997drop" => Some(Fps2997Drop)
     "29.97" | "29.97ndf" | "2997" | "2997ndf" => Some(Fps2997NonDrop)
     "30" => Some(Fps30)
     "50" => Some(Fps50)
     "59.94df" | "59.94drop" | "5994df" | "5994drop" => Some(Fps5994Drop)
     "59.94" | "59.94ndf" | "5994" | "5994ndf" => Some(Fps5994NonDrop)
+    "60" => Some(Fps60)
+    "72" => Some(Fps72)
+    "96" => Some(Fps96)
+    "100" => Some(Fps100)
+    "119.88" | "11988" => Some(Fps11988)
+    "120" => Some(Fps120)
     _ => None
   }
 }
@@ -91,20 +120,33 @@ pub fn FrameRate::parse(raw : String) -> FrameRate? {
 fn FrameRate::numerator(self : FrameRate) -> Int {
   match self {
     Fps23976 => 24000
+    Fps47952 => 48000
     Fps2997Drop | Fps2997NonDrop => 30000
     Fps5994Drop | Fps5994NonDrop => 60000
+    Fps11988 => 120000
     Fps24 => 24
     Fps25 => 25
+    Fps48 => 48
     Fps30 => 30
     Fps50 => 50
+    Fps72 => 72
+    Fps60 => 60
+    Fps96 => 96
+    Fps100 => 100
+    Fps120 => 120
   }
 }
 
 ///|
 fn FrameRate::denominator(self : FrameRate) -> Int {
   match self {
-    Fps23976 | Fps2997Drop | Fps2997NonDrop | Fps5994Drop | Fps5994NonDrop =>
-      1001
+    Fps23976
+    | Fps47952
+    | Fps2997Drop
+    | Fps2997NonDrop
+    | Fps5994Drop
+    | Fps5994NonDrop
+    | Fps11988 => 1001
     _ => 1
   }
 }
@@ -213,6 +255,7 @@ fn parsed_timecode_or_error(
   frame : String,
   rate : FrameRate,
   uses_semicolon : Bool,
+  policy : TimecodeParsePolicy,
 ) -> Result[Timecode, TimecodeParseError] {
   match
     (parse_int(hour), parse_int(minute), parse_int(second), parse_int(frame)) {
@@ -221,6 +264,17 @@ fn parsed_timecode_or_error(
         timecode_validation_error(
           hour, minute, second, frame, rate, uses_semicolon,
         ) {
+        Some(InvalidSeparator) =>
+          match policy.separator_mode {
+            IgnoreForInterop => Ok({ hour, minute, second, frame, rate })
+            InferFromSeparator =>
+              if rate.is_drop_frame() && !uses_semicolon {
+                Ok({ hour, minute, second, frame, rate })
+              } else {
+                Err(InvalidSeparator)
+              }
+            StrictByRate => Err(InvalidSeparator)
+          }
         Some(error) => Err(error)
         None => Ok({ hour, minute, second, frame, rate })
       }
@@ -239,6 +293,19 @@ pub fn parse_timecode_result(
   raw : String,
   rate : FrameRate,
 ) -> Result[Timecode, TimecodeParseError] {
+  parse_timecode_with_policy(raw, rate, { separator_mode: StrictByRate })
+}
+
+///|
+/// Parses a SMPTE-style timecode string with an explicit separator policy.
+///
+/// This is useful for container formats such as IMF where the drop-frame flag
+/// is stored outside the visible label text.
+pub fn parse_timecode_with_policy(
+  raw : String,
+  rate : FrameRate,
+  policy : TimecodeParsePolicy,
+) -> Result[Timecode, TimecodeParseError] {
   let semicolon_parts = split_to_strings(raw, ";")
   if semicolon_parts.length() == 2 {
     let left = split_to_strings(semicolon_parts[0], ":")
@@ -251,6 +318,7 @@ pub fn parse_timecode_result(
           semicolon_parts[1],
           rate,
           true,
+          policy,
         )
       _ => Err(InvalidFormat)
     }
@@ -258,7 +326,9 @@ pub fn parse_timecode_result(
     let parts = split_to_strings(raw, ":")
     match parts {
       [hour, minute, second, frame] =>
-        parsed_timecode_or_error(hour, minute, second, frame, rate, false)
+        parsed_timecode_or_error(
+          hour, minute, second, frame, rate, false, policy,
+        )
       _ => Err(InvalidFormat)
     }
   } else {
@@ -331,6 +401,43 @@ pub fn FrameRate::frames_to_timecode(
   let second = after_minute / nominal
   let frame = after_minute % nominal
   { hour, minute, second, frame, rate: self }
+}
+
+///|
+fn FrameRate::frames_per_24_hours(self : FrameRate) -> Int {
+  if self.is_drop_frame() {
+    let nominal = self.nominal_fps()
+    let drop = self.drop_frames_per_minute()
+    (nominal * 60 * 10 - drop * 9) * 144
+  } else {
+    self.nominal_fps() * 3600 * 24
+  }
+}
+
+///|
+/// Converts frames to a timecode label, optionally wrapping the label at 24h.
+pub fn FrameRate::frames_to_timecode_with_wrap(
+  self : FrameRate,
+  frames : Int,
+  wrap_mode : TimecodeWrapMode,
+) -> Timecode {
+  match wrap_mode {
+    NoWrap => self.frames_to_timecode(frames)
+    Wrap24Hour => {
+      let frames_per_day = self.frames_per_24_hours()
+      let wrapped = if frames_per_day == 0 {
+        frames
+      } else {
+        let remainder = frames % frames_per_day
+        if remainder < 0 {
+          remainder + frames_per_day
+        } else {
+          remainder
+        }
+      }
+      self.frames_to_timecode(wrapped)
+    }
+  }
 }
 
 ///|

@@ -12,3 +12,16 @@ pub(all) enum TimecodeParseError {
   /// A drop-frame label uses one of the skipped frame numbers.
   InvalidDropFrameLabel
 } derive(Eq, Debug)
+
+///|
+/// Describes why metadata-level timecode interop could not be converted.
+pub(all) enum TimecodeInteropError {
+  /// The metadata describes a frame duration this package cannot map to a
+  /// supported `FrameRate`.
+  UnsupportedFrameDuration
+  /// Drop-frame mode was requested for a rate that cannot use drop-frame
+  /// labels.
+  InvalidDropFrameRate
+  /// A metadata field contains an invalid or unsupported timecode label.
+  InvalidTimecode(TimecodeParseError)
+} derive(Eq, Debug)

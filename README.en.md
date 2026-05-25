@@ -349,7 +349,9 @@ run.
 It models timecode labels, frame counts, durations, and half-open timecode
 ranges separately, with drop-frame boundary handling, same-rate arithmetic,
 explicit comparison, and exact numerator/denominator based conversion for
-23.976 / 29.97 / 59.94 rates. Package-level checked examples live in
+23.976 / 29.97 / 59.94 rates. It also provides 24-hour wrap policy, rational
+seconds, and lightweight helpers for FCPXML, IMF, and Apple delivery-package
+timecode metadata fields. Package-level checked examples live in
 `timecode/README.mbt.md`.
 
 Convert a SMPTE-style timecode value to frames:
@@ -395,17 +397,26 @@ Supported CLI frame-rate values:
 | `23.976`, `23.98`, `23976`, `2398` | 23.976fps |
 | `24` | 24fps |
 | `25` | 25fps |
+| `47.952`, `47.95`, `47952`, `4795` | 47.952fps |
+| `48` | 48fps |
 | `29.97`, `29.97ndf`, `2997`, `2997ndf` | 29.97 non-drop |
 | `29.97df`, `29.97DF`, `29.97-drop`, `29.97 drop`, `2997df`, `2997drop` | 29.97 drop-frame |
 | `30` | 30fps |
 | `50` | 50fps |
 | `59.94`, `59.94ndf`, `5994`, `5994ndf` | 59.94 non-drop |
 | `59.94df`, `59.94DF`, `59.94-drop`, `59.94 drop`, `5994df`, `5994drop` | 59.94 drop-frame |
+| `60` | 60fps |
+| `72` | 72fps |
+| `96` | 96fps |
+| `100` | 100fps |
+| `119.88`, `11988` | 119.88fps |
+| `120` | 120fps |
 
 The library API also exposes `Duration`, `Timecode::add_frames`,
 `Timecode::frame_distance`, `Timecode::add_duration`, `TimecodeRange`, and
 `parse_timecode_result`. Cross-rate comparison, range, and duration arithmetic
-return `None` instead of silently converting.
+return `None` instead of silently converting. FCPXML, IMF, and Apple delivery
+helpers cover timecode metadata fields, not complete file parsing.
 
 ## Subtitle Conversion
 
@@ -536,6 +547,7 @@ Timecode:
 ```text
 parse_timecode(String, FrameRate) -> Timecode?
 parse_timecode_result(String, FrameRate) -> Result[Timecode, TimecodeParseError]
+parse_timecode_with_policy(String, FrameRate, TimecodeParsePolicy) -> Result[Timecode, TimecodeParseError]
 Timecode::to_frames() -> Int
 Timecode::format() -> String
 Timecode::add_frames(Int) -> Timecode
@@ -546,6 +558,7 @@ Timecode::frame_distance(Timecode) -> Int?
 Timecode::is_before(Timecode) -> Bool?
 Timecode::is_after(Timecode) -> Bool?
 FrameRate::frames_to_timecode(Int) -> Timecode
+FrameRate::frames_to_timecode_with_wrap(Int, TimecodeWrapMode) -> Timecode
 FrameRate::parse(String) -> FrameRate?
 FrameRate::label() -> String
 FrameRate::nominal_fps() -> Int
@@ -566,6 +579,16 @@ TimecodeRange::duration() -> Duration?
 TimecodeRange::contains(Timecode) -> Bool?
 TimecodeRange::overlaps(TimecodeRange) -> Bool?
 TimecodeRange::shift(Duration) -> TimecodeRange?
+RationalSeconds::parse(String) -> RationalSeconds?
+RationalSeconds::format() -> String
+RationalSeconds::to_frames(FrameRate) -> Int
+RationalSeconds::from_frames(Int, FrameRate) -> RationalSeconds
+FcpXmlTimecodeAttrs::to_timecode() -> Result[Timecode, TimecodeInteropError]
+FcpXmlTimecodeAttrs::from_timecode(Timecode) -> FcpXmlTimecodeAttrs
+ImfTimecode::to_timecode() -> Result[Timecode, TimecodeInteropError]
+ImfTimecode::from_timecode(Timecode) -> ImfTimecode
+AppleDeliveryTimecodeFormat::parse(String) -> FrameRate?
+AppleDeliveryTimecodeFormat::format(FrameRate) -> String?
 ```
 
 Subtitle:
