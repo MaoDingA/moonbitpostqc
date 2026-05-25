@@ -49,7 +49,8 @@ project, the source, license, and scope will be documented.
 Shared foundation:
 
 - Parse and write SRT / WebVTT subtitle files and convert between them.
-- Parse and format SMPTE-style timecode, including timecode/frame conversion.
+- Parse and format SMPTE-style timecode, including precise conversion between
+  timecode labels, frame counts, durations, and common frame rates.
 - Support common frame rates: `23.976`, `24`, `25`, `29.97`, `29.97df`, `30`,
   `50`, `59.94`, and `59.94df`.
 - Retime subtitles by offset, frame-rate conversion, or frame snapping.
@@ -344,6 +345,11 @@ run.
 
 ## Timecode
 
+`phenom8010/moonpost/timecode` is MoonPost's reusable SMPTE timecode foundation.
+It models timecode labels, frame counts, and durations separately, with
+drop-frame boundary handling, same-rate arithmetic, explicit comparison, and
+exact numerator/denominator based conversion for 23.976 / 29.97 / 59.94 rates.
+
 Convert a SMPTE-style timecode value to frames:
 
 ```bash
@@ -377,7 +383,7 @@ moon run cmd/main --target native -- timecode convert 01:00:00:00 --from 23.976 
 Output:
 
 ```text
-01:00:00:00 @23.976fps = 00:00:24:12 @25fps
+01:00:00:00 @23.976fps = 01:00:03:15 @25fps
 ```
 
 Supported CLI frame-rate values:
@@ -393,6 +399,11 @@ Supported CLI frame-rate values:
 | `50` | 50fps |
 | `59.94`, `5994` | 59.94 non-drop |
 | `59.94df`, `59.94DF`, `59.94-drop`, `5994df` | 59.94 drop-frame |
+
+The library API also exposes `Duration`, `Timecode::add_frames`,
+`Timecode::frame_distance`, `Timecode::add_duration`, and related explicit
+same-rate operations. Cross-rate comparison and duration arithmetic return
+`None` instead of silently converting.
 
 ## Subtitle Conversion
 
@@ -507,7 +518,7 @@ the generated `pkg.generated.mbti` files.
 
 | Package | Purpose |
 | --- | --- |
-| `phenom8010/moonpost/timecode` | Frame rates, timecode parsing, frame conversion, drop-frame math. |
+| `phenom8010/moonpost/timecode` | Frame rates, timecode parsing, frame/duration conversion, same-rate arithmetic, drop-frame math. |
 | `phenom8010/moonpost/subtitle` | SRT/WebVTT parsing, timestamp formatting, subtitle writing. |
 | `phenom8010/moonpost/qc` | QC profiles, issue model, cue checks, report formatting. |
 | `phenom8010/moonpost/creator` | Creator subtitle profiles, text checks, and cleanup workflows. |
@@ -524,9 +535,27 @@ Timecode:
 parse_timecode(String, FrameRate) -> Timecode?
 Timecode::to_frames() -> Int
 Timecode::format() -> String
+Timecode::add_frames(Int) -> Timecode
+Timecode::sub_frames(Int) -> Timecode
+Timecode::add_duration(Duration) -> Timecode?
+Timecode::sub_duration(Duration) -> Timecode?
+Timecode::frame_distance(Timecode) -> Int?
+Timecode::is_before(Timecode) -> Bool?
+Timecode::is_after(Timecode) -> Bool?
 FrameRate::frames_to_timecode(Int) -> Timecode
+FrameRate::nominal_fps() -> Int
+FrameRate::fps_numerator() -> Int
+FrameRate::fps_denominator() -> Int
 convert_timecode(Timecode, FrameRate) -> Timecode
 rescale_ms_between_rates(Int, FrameRate, FrameRate) -> Int
+Duration::from_frames(Int, FrameRate) -> Duration
+Duration::from_ms(Int, FrameRate) -> Duration
+Duration::to_frames() -> Int
+Duration::to_ms() -> Int
+Duration::format() -> String
+Duration::add(Duration) -> Duration?
+Duration::sub(Duration) -> Duration?
+Duration::scale(Int) -> Duration
 ```
 
 Subtitle:

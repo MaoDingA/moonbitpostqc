@@ -41,7 +41,7 @@ MoonPost 是原创 MoonBit 项目，不是对特定第三方库的移植；如�
 共享基础能力：
 
 - 解析和写出 SRT / WebVTT 字幕文件，并支持两种格式相互转换。
-- 解析和格式化 SMPTE 风格时间码，支持时间码与帧数互转。
+- 解析和格式化 SMPTE 风格时间码，支持时间码、帧数、时长和常用帧率之间的精确换算。
 - 支持常用帧率：`23.976`、`24`、`25`、`29.97`、`29.97df`、`30`、
   `50`、`59.94`、`59.94df`。
 - 支持按整体偏移、帧率转换或帧吸附重定时字幕。
@@ -316,6 +316,10 @@ CLI 也支持通过 `--fps <rate>` 覆盖当前 profile 的帧网格。
 
 ## 时间码
 
+`phenom8010/moonpost/timecode` 是 MoonPost 的通用 SMPTE 时间码基础包。它把
+时间码标签、帧数和时长分开建模，支持 drop-frame 边界计算、同帧率时间码算术、
+显式比较，以及基于精确帧率分子/分母的 23.976 / 29.97 / 59.94 换算。
+
 把 SMPTE 风格时间码转换为帧数：
 
 ```bash
@@ -349,7 +353,7 @@ moon run cmd/main --target native -- timecode convert 01:00:00:00 --from 23.976 
 输出：
 
 ```text
-01:00:00:00 @23.976fps = 00:00:24:12 @25fps
+01:00:00:00 @23.976fps = 01:00:03:15 @25fps
 ```
 
 支持的 CLI 帧率值：
@@ -365,6 +369,10 @@ moon run cmd/main --target native -- timecode convert 01:00:00:00 --from 23.976 
 | `50` | 50fps |
 | `59.94`, `5994` | 59.94 non-drop |
 | `59.94df`, `59.94DF`, `59.94-drop`, `5994df` | 59.94 drop-frame |
+
+库 API 还提供 `Duration` 类型、`Timecode::add_frames`、
+`Timecode::frame_distance`、`Timecode::add_duration` 等显式同帧率操作。跨帧率
+比较和时长运算不会隐式换算，会返回 `None`，调用方可以先选择目标帧率再转换。
 
 ## 字幕转换
 
@@ -476,7 +484,7 @@ MoonPost 由多个小型 MoonBit package 组成。公开 API 可参考生成的
 
 | Package | 用途 |
 | --- | --- |
-| `phenom8010/moonpost/timecode` | 帧率、时间码解析、帧数转换、drop-frame 计算。 |
+| `phenom8010/moonpost/timecode` | 帧率、时间码解析、帧数/时长转换、同帧率算术和 drop-frame 计算。 |
 | `phenom8010/moonpost/subtitle` | SRT/WebVTT 解析、时间戳格式化、字幕写出。 |
 | `phenom8010/moonpost/qc` | QC profiles、issue 模型、cue 检查、报告格式化。 |
 | `phenom8010/moonpost/creator` | 创作者字幕 profile、文本检查和清洗流程。 |
@@ -493,9 +501,27 @@ Timecode:
 parse_timecode(String, FrameRate) -> Timecode?
 Timecode::to_frames() -> Int
 Timecode::format() -> String
+Timecode::add_frames(Int) -> Timecode
+Timecode::sub_frames(Int) -> Timecode
+Timecode::add_duration(Duration) -> Timecode?
+Timecode::sub_duration(Duration) -> Timecode?
+Timecode::frame_distance(Timecode) -> Int?
+Timecode::is_before(Timecode) -> Bool?
+Timecode::is_after(Timecode) -> Bool?
 FrameRate::frames_to_timecode(Int) -> Timecode
+FrameRate::nominal_fps() -> Int
+FrameRate::fps_numerator() -> Int
+FrameRate::fps_denominator() -> Int
 convert_timecode(Timecode, FrameRate) -> Timecode
 rescale_ms_between_rates(Int, FrameRate, FrameRate) -> Int
+Duration::from_frames(Int, FrameRate) -> Duration
+Duration::from_ms(Int, FrameRate) -> Duration
+Duration::to_frames() -> Int
+Duration::to_ms() -> Int
+Duration::format() -> String
+Duration::add(Duration) -> Duration?
+Duration::sub(Duration) -> Duration?
+Duration::scale(Int) -> Duration
 ```
 
 Subtitle:

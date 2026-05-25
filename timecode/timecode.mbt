@@ -21,7 +21,7 @@ pub(all) struct Timecode {
 } derive(Eq, Debug)
 
 ///|
-fn FrameRate::nominal_fps(self : FrameRate) -> Int {
+pub fn FrameRate::nominal_fps(self : FrameRate) -> Int {
   match self {
     Fps23976 | Fps24 => 24
     Fps25 => 25
@@ -54,6 +54,16 @@ fn FrameRate::denominator(self : FrameRate) -> Int {
 }
 
 ///|
+pub fn FrameRate::fps_numerator(self : FrameRate) -> Int {
+  self.numerator()
+}
+
+///|
+pub fn FrameRate::fps_denominator(self : FrameRate) -> Int {
+  self.denominator()
+}
+
+///|
 pub fn FrameRate::is_drop_frame(self : FrameRate) -> Bool {
   match self {
     Fps2997Drop | Fps5994Drop => true
@@ -73,17 +83,6 @@ fn FrameRate::drop_frames_per_minute(self : FrameRate) -> Int {
 ///|
 pub fn FrameRate::frame_duration_ms(self : FrameRate) -> Int {
   (self.denominator() * 1000 + self.numerator() / 2) / self.numerator()
-}
-
-///|
-fn scale_rounded(value : Int, numerator : Int, denominator : Int) -> Int {
-  if value < 0 {
-    -scale_rounded(-value, numerator, denominator)
-  } else {
-    let scaled = Int64::from_int(value) * Int64::from_int(numerator)
-    let divisor = Int64::from_int(denominator)
-    ((scaled + divisor / Int64::from_int(2)) / divisor).to_int()
-  }
 }
 
 ///|
@@ -252,9 +251,73 @@ pub fn Timecode::format(self : Timecode) -> String {
 }
 
 ///|
+pub fn Timecode::add_frames(self : Timecode, frames : Int) -> Timecode {
+  self.rate.frames_to_timecode(self.to_frames() + frames)
+}
+
+///|
+pub fn Timecode::sub_frames(self : Timecode, frames : Int) -> Timecode {
+  self.add_frames(-frames)
+}
+
+///|
+pub fn Timecode::add_duration(
+  self : Timecode,
+  duration : Duration,
+) -> Timecode? {
+  if self.rate == duration.rate {
+    Some(self.add_frames(duration.frames))
+  } else {
+    None
+  }
+}
+
+///|
+pub fn Timecode::sub_duration(
+  self : Timecode,
+  duration : Duration,
+) -> Timecode? {
+  if self.rate == duration.rate {
+    Some(self.sub_frames(duration.frames))
+  } else {
+    None
+  }
+}
+
+///|
+pub fn Timecode::frame_distance(self : Timecode, other : Timecode) -> Int? {
+  if self.rate == other.rate {
+    Some(other.to_frames() - self.to_frames())
+  } else {
+    None
+  }
+}
+
+///|
+pub fn Timecode::is_before(self : Timecode, other : Timecode) -> Bool? {
+  match self.frame_distance(other) {
+    Some(distance) => Some(distance > 0)
+    None => None
+  }
+}
+
+///|
+pub fn Timecode::is_after(self : Timecode, other : Timecode) -> Bool? {
+  match self.frame_distance(other) {
+    Some(distance) => Some(distance < 0)
+    None => None
+  }
+}
+
+///|
 pub fn convert_timecode(source : Timecode, target_rate : FrameRate) -> Timecode {
-  let ms = source.rate.frames_to_ms(source.to_frames())
-  target_rate.frames_to_timecode(target_rate.ms_to_frames(ms))
+  target_rate.frames_to_timecode(
+    scale_rounded(
+      source.to_frames(),
+      source.rate.denominator() * target_rate.numerator(),
+      source.rate.numerator() * target_rate.denominator(),
+    ),
+  )
 }
 
 ///|

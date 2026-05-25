@@ -15,6 +15,19 @@ pub fn rescale_ms_between_rates(Int, FrameRate, FrameRate) -> Int
 // Errors
 
 // Types and methods
+pub(all) struct Duration {
+  frames : Int
+  rate : FrameRate
+} derive(Eq, @debug.Debug)
+pub fn Duration::add(Self, Self) -> Self?
+pub fn Duration::format(Self) -> String
+pub fn Duration::from_frames(Int, FrameRate) -> Self
+pub fn Duration::from_ms(Int, FrameRate) -> Self
+pub fn Duration::scale(Self, Int) -> Self
+pub fn Duration::sub(Self, Self) -> Self?
+pub fn Duration::to_frames(Self) -> Int
+pub fn Duration::to_ms(Self) -> Int
+
 pub(all) enum FrameRate {
   Fps23976
   Fps24
@@ -26,11 +39,14 @@ pub(all) enum FrameRate {
   Fps5994Drop
   Fps5994NonDrop
 } derive(Eq, @debug.Debug)
+pub fn FrameRate::fps_denominator(Self) -> Int
+pub fn FrameRate::fps_numerator(Self) -> Int
 pub fn FrameRate::frame_duration_ms(Self) -> Int
 pub fn FrameRate::frames_to_ms(Self, Int) -> Int
 pub fn FrameRate::frames_to_timecode(Self, Int) -> Timecode
 pub fn FrameRate::is_drop_frame(Self) -> Bool
 pub fn FrameRate::ms_to_frames(Self, Int) -> Int
+pub fn FrameRate::nominal_fps(Self) -> Int
 
 pub(all) struct Timecode {
   hour : Int
@@ -39,7 +55,14 @@ pub(all) struct Timecode {
   frame : Int
   rate : FrameRate
 } derive(Eq, @debug.Debug)
+pub fn Timecode::add_duration(Self, Duration) -> Self?
+pub fn Timecode::add_frames(Self, Int) -> Self
 pub fn Timecode::format(Self) -> String
+pub fn Timecode::frame_distance(Self, Self) -> Int?
+pub fn Timecode::is_after(Self, Self) -> Bool?
+pub fn Timecode::is_before(Self, Self) -> Bool?
+pub fn Timecode::sub_duration(Self, Duration) -> Self?
+pub fn Timecode::sub_frames(Self, Int) -> Self
 pub fn Timecode::to_frames(Self) -> Int
 
 // Type aliases

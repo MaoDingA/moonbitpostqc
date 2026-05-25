@@ -95,3 +95,52 @@ test "frame duration helpers round common rates" {
   assert_eq(Fps25.frames_to_ms(25), 1000)
   assert_eq(Fps30.ms_to_frames(1000), 30)
 }
+
+///|
+test "frame rates expose exact fps ratios" {
+  assert_eq(Fps23976.nominal_fps(), 24)
+  assert_eq(Fps23976.fps_numerator(), 24000)
+  assert_eq(Fps23976.fps_denominator(), 1001)
+  assert_eq(Fps2997Drop.nominal_fps(), 30)
+  assert_eq(Fps2997Drop.fps_numerator(), 30000)
+  assert_eq(Fps2997Drop.fps_denominator(), 1001)
+  assert_eq(Fps5994Drop.fps_numerator(), 60000)
+  assert_eq(Fps5994Drop.fps_denominator(), 1001)
+  assert_eq(Fps25.fps_numerator(), 25)
+  assert_eq(Fps25.fps_denominator(), 1)
+}
+
+///|
+test "convert timecode uses direct frame-rate ratio" {
+  let source = Fps23976.frames_to_timecode(24000)
+  let converted = convert_timecode(source, Fps25)
+  assert_eq(converted.to_frames(), 25025)
+  assert_eq(converted.format(), "00:16:41:00")
+  assert_eq(convert_timecode(converted, Fps23976).to_frames(), 24000)
+}
+
+///|
+test "drop-frame round trips sampled frame counts through one day" {
+  let samples = [
+    0, 1, 1797, 1798, 1799, 1800, 17982, 17983, 107892, 215784, 2589408,
+  ]
+  for frames in samples {
+    let tc = Fps2997Drop.frames_to_timecode(frames)
+    assert_eq(tc.to_frames(), frames)
+  }
+}
+
+///|
+test "all supported frame rates round trip representative frame counts" {
+  for frames in [0, 1, 24, 1001, 17982, 107892] {
+    assert_eq(Fps23976.frames_to_timecode(frames).to_frames(), frames)
+    assert_eq(Fps24.frames_to_timecode(frames).to_frames(), frames)
+    assert_eq(Fps25.frames_to_timecode(frames).to_frames(), frames)
+    assert_eq(Fps2997Drop.frames_to_timecode(frames).to_frames(), frames)
+    assert_eq(Fps2997NonDrop.frames_to_timecode(frames).to_frames(), frames)
+    assert_eq(Fps30.frames_to_timecode(frames).to_frames(), frames)
+    assert_eq(Fps50.frames_to_timecode(frames).to_frames(), frames)
+    assert_eq(Fps5994Drop.frames_to_timecode(frames).to_frames(), frames)
+    assert_eq(Fps5994NonDrop.frames_to_timecode(frames).to_frames(), frames)
+  }
+}
