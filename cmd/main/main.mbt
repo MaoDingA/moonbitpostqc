@@ -26,6 +26,21 @@ fn timecode_command_lines(command : @cli.TimecodeCommand) -> Array[String] {
           ]
         None => ["invalid timecode: \{options.value}"]
       }
+    @cli.ImfFrom(options) =>
+      match @timecode.parse_timecode(options.value, options.frame_rate) {
+        Some(tc) => {
+          let imf = @timecode.ImfCompositionTimecode::from_timecode(tc)
+          [
+            "\{options.value} @\{frame_rate_label(options.frame_rate)} = editRate \{imf.edit_rate.numerator}/\{imf.edit_rate.denominator} timecodeRate \{imf.timecode_rate} dropFrame \{imf.drop_frame} startAddress \{imf.start_address}",
+          ]
+        }
+        None => ["invalid timecode: \{options.value}"]
+      }
+    @cli.EdlEvent(options) =>
+      match @timecode.EdlEvent::parse(options.line, options.frame_rate) {
+        Ok(event) => [event.format()]
+        Err(_) => ["invalid EDL event: \{options.line}"]
+      }
   }
 }
 

@@ -319,9 +319,10 @@ CLI 也支持通过 `--fps <rate>` 覆盖当前 profile 的帧网格。
 `phenom8010/moonpost/timecode` 是 MoonPost 的通用 SMPTE 时间码基础包。它把
 时间码标签、帧数、时长和半开时间码区间分开建模，支持 drop-frame 边界计算、
 同帧率时间码算术、显式比较，以及基于精确帧率分子/分母的 23.976 / 29.97 /
-59.94 换算。它还提供 24 小时 wrap policy、rational seconds，以及 FCPXML、
-IMF、Apple delivery-package timecode 字段的轻量 interop helpers。包级可测试
-示例见 `timecode/README.mbt.md`。
+59.94 换算。它还提供 24 小时 wrap policy、rational seconds、ST 12 logical
+word/user bits/packed LTC bytes（限 24h 内、nominal <= 30fps 的 LTC codeword）、
+以及 FCPXML、IMF、Apple delivery-package 和 EDL timecode 字段的轻量 interop helpers。包级可测试示例见
+`timecode/README.mbt.md`。
 
 把 SMPTE 风格时间码转换为帧数：
 
@@ -359,6 +360,30 @@ moon run cmd/main --target native -- timecode convert 01:00:00:00 --from 23.976 
 01:00:00:00 @23.976fps = 01:00:03:15 @25fps
 ```
 
+生成 IMF composition 风格的精确 edit-rate timecode 字段：
+
+```bash
+moon run cmd/main --target native -- timecode imf-from '01:00:00;00' --fps 29.97df
+```
+
+输出：
+
+```text
+01:00:00;00 @29.97df = editRate 30000/1001 timecodeRate 30 dropFrame true startAddress 01:00:00:00
+```
+
+规范化一个 CMX 风格 EDL event 行：
+
+```bash
+moon run cmd/main --target native -- timecode edl-event '001 AX V C 01:00:00:00 01:00:10:00 00:00:00:00 00:00:10:00' --fps 25
+```
+
+输出：
+
+```text
+001 AX V C 01:00:00:00 01:00:10:00 00:00:00:00 00:00:10:00
+```
+
 支持的 CLI 帧率值：
 
 | Value | 含义 |
@@ -384,8 +409,8 @@ moon run cmd/main --target native -- timecode convert 01:00:00:00 --from 23.976 
 库 API 还提供 `Duration` 类型、`Timecode::add_frames`、
 `Timecode::frame_distance`、`Timecode::add_duration`、`TimecodeRange` 和
 `parse_timecode_result` 等显式同帧率操作。跨帧率比较、区间和时长运算不会隐式
-换算，会返回 `None`，调用方可以先选择目标帧率再转换。FCPXML、IMF 和 Apple
-delivery helpers 只处理时间码相关 metadata 字段，不解析完整文件。
+换算，会返回 `None`，调用方可以先选择目标帧率再转换。FCPXML、IMF、Apple
+delivery 和 EDL helpers 只处理时间码相关 metadata 字段，不解析完整文件。
 
 ## 字幕转换
 
@@ -553,8 +578,22 @@ FcpXmlTimecodeAttrs::to_timecode() -> Result[Timecode, TimecodeInteropError]
 FcpXmlTimecodeAttrs::from_timecode(Timecode) -> FcpXmlTimecodeAttrs
 ImfTimecode::to_timecode() -> Result[Timecode, TimecodeInteropError]
 ImfTimecode::from_timecode(Timecode) -> ImfTimecode
+ImfEditRate::from_frame_rate(FrameRate) -> ImfEditRate
+ImfEditRate::to_frame_rate(Bool) -> Result[FrameRate, TimecodeInteropError]
+ImfCompositionTimecode::to_timecode() -> Result[Timecode, TimecodeInteropError]
+ImfCompositionTimecode::from_timecode(Timecode) -> ImfCompositionTimecode
+SmpteUserBits::from_hex(String) -> Result[SmpteUserBits, TimecodeInteropError]
+SmpteUserBits::format_hex() -> String
+SmpteTimecodeWord::from_timecode(Timecode) -> SmpteTimecodeWord
+SmpteTimecodeWord::to_timecode() -> Result[Timecode, TimecodeInteropError]
+SmpteTimecodeWord::pack_ltc_bytes() -> Result[Bytes, TimecodeInteropError]
+SmpteTimecodeWord::unpack_ltc_bytes(Bytes, FrameRate) -> Result[SmpteTimecodeWord, TimecodeInteropError]
+EdlEvent::parse(String, FrameRate) -> Result[EdlEvent, TimecodeInteropError]
+EdlEvent::format() -> String
 AppleDeliveryTimecodeFormat::parse(String) -> FrameRate?
 AppleDeliveryTimecodeFormat::format(FrameRate) -> String?
+AppleDeliveryTimecodeFormat::supported_rates() -> Array[FrameRate]
+AppleDeliveryTimecodeFormat::is_supported(FrameRate) -> Bool
 ```
 
 Subtitle:

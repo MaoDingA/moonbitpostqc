@@ -36,3 +36,11 @@ test "Apple delivery timecode format serializes supported frame rates" {
   )
   assert_true(AppleDeliveryTimecodeFormat::format(Fps47952) is None)
 }
+
+///|
+test "Apple delivery timecode format exposes supported rate capability" {
+  assert_true(AppleDeliveryTimecodeFormat::is_supported(Fps2997Drop))
+  assert_true(AppleDeliveryTimecodeFormat::is_supported(Fps5994NonDrop))
+  assert_false(AppleDeliveryTimecodeFormat::is_supported(Fps47952))
+  assert_eq(AppleDeliveryTimecodeFormat::supported_rates().length(), 9)
+}

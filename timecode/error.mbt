@@ -24,4 +24,10 @@ pub(all) enum TimecodeInteropError {
   InvalidDropFrameRate
   /// A metadata field contains an invalid or unsupported timecode label.
   InvalidTimecode(TimecodeParseError)
+  /// ST 12 user bits are not exactly eight hexadecimal digits.
+  InvalidUserBits
+  /// Packed timecode bytes are malformed or fail structural validation.
+  InvalidPackedTimecode
+  /// An EDL event line is malformed or describes an invalid range.
+  InvalidEdlEvent
 } derive(Eq, Debug)

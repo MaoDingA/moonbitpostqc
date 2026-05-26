@@ -7,6 +7,28 @@ test "timecode command formats frame conversion output" {
 }
 
 ///|
+test "timecode command formats IMF composition and EDL event output" {
+  let imf_lines = timecode_command_lines(
+    @cli.ImfFrom({ value: "01:00:00;00", frame_rate: @timecode.Fps2997Drop }),
+  )
+  assert_eq(
+    imf_lines[0],
+    "01:00:00;00 @29.97df = editRate 30000/1001 timecodeRate 30 dropFrame true startAddress 01:00:00:00",
+  )
+
+  let edl_lines = timecode_command_lines(
+    @cli.EdlEvent({
+      line: "001 AX V C 01:00:00:00 01:00:10:00 00:00:00:00 00:00:10:00",
+      frame_rate: @timecode.Fps25,
+    }),
+  )
+  assert_eq(
+    edl_lines[0],
+    "001 AX V C 01:00:00:00 01:00:10:00 00:00:00:00 00:00:10:00",
+  )
+}
+
+///|
 test "subtitle convert text writes webvtt from srt" {
   let input = "1\n00:00:01,000 --> 00:00:02,000\nHello\n"
   match subtitle_convert_text(input, "webvtt") {

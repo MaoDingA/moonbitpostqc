@@ -350,9 +350,10 @@ It models timecode labels, frame counts, durations, and half-open timecode
 ranges separately, with drop-frame boundary handling, same-rate arithmetic,
 explicit comparison, and exact numerator/denominator based conversion for
 23.976 / 29.97 / 59.94 rates. It also provides 24-hour wrap policy, rational
-seconds, and lightweight helpers for FCPXML, IMF, and Apple delivery-package
-timecode metadata fields. Package-level checked examples live in
-`timecode/README.mbt.md`.
+seconds, ST 12 logical word/user bits/packed LTC bytes for 24h labels at
+nominal rates up to 30fps, and lightweight helpers for FCPXML, IMF, Apple
+delivery-package, and EDL timecode metadata fields.
+Package-level checked examples live in `timecode/README.mbt.md`.
 
 Convert a SMPTE-style timecode value to frames:
 
@@ -390,6 +391,30 @@ Output:
 01:00:00:00 @23.976fps = 01:00:03:15 @25fps
 ```
 
+Emit exact IMF composition-style edit-rate timecode fields:
+
+```bash
+moon run cmd/main --target native -- timecode imf-from '01:00:00;00' --fps 29.97df
+```
+
+Output:
+
+```text
+01:00:00;00 @29.97df = editRate 30000/1001 timecodeRate 30 dropFrame true startAddress 01:00:00:00
+```
+
+Normalize a compact CMX-style EDL event line:
+
+```bash
+moon run cmd/main --target native -- timecode edl-event '001 AX V C 01:00:00:00 01:00:10:00 00:00:00:00 00:00:10:00' --fps 25
+```
+
+Output:
+
+```text
+001 AX V C 01:00:00:00 01:00:10:00 00:00:00:00 00:00:10:00
+```
+
 Supported CLI frame-rate values:
 
 | Value | Meaning |
@@ -416,7 +441,7 @@ The library API also exposes `Duration`, `Timecode::add_frames`,
 `Timecode::frame_distance`, `Timecode::add_duration`, `TimecodeRange`, and
 `parse_timecode_result`. Cross-rate comparison, range, and duration arithmetic
 return `None` instead of silently converting. FCPXML, IMF, and Apple delivery
-helpers cover timecode metadata fields, not complete file parsing.
+and EDL helpers cover timecode metadata fields, not complete file parsing.
 
 ## Subtitle Conversion
 
@@ -587,8 +612,22 @@ FcpXmlTimecodeAttrs::to_timecode() -> Result[Timecode, TimecodeInteropError]
 FcpXmlTimecodeAttrs::from_timecode(Timecode) -> FcpXmlTimecodeAttrs
 ImfTimecode::to_timecode() -> Result[Timecode, TimecodeInteropError]
 ImfTimecode::from_timecode(Timecode) -> ImfTimecode
+ImfEditRate::from_frame_rate(FrameRate) -> ImfEditRate
+ImfEditRate::to_frame_rate(Bool) -> Result[FrameRate, TimecodeInteropError]
+ImfCompositionTimecode::to_timecode() -> Result[Timecode, TimecodeInteropError]
+ImfCompositionTimecode::from_timecode(Timecode) -> ImfCompositionTimecode
+SmpteUserBits::from_hex(String) -> Result[SmpteUserBits, TimecodeInteropError]
+SmpteUserBits::format_hex() -> String
+SmpteTimecodeWord::from_timecode(Timecode) -> SmpteTimecodeWord
+SmpteTimecodeWord::to_timecode() -> Result[Timecode, TimecodeInteropError]
+SmpteTimecodeWord::pack_ltc_bytes() -> Result[Bytes, TimecodeInteropError]
+SmpteTimecodeWord::unpack_ltc_bytes(Bytes, FrameRate) -> Result[SmpteTimecodeWord, TimecodeInteropError]
+EdlEvent::parse(String, FrameRate) -> Result[EdlEvent, TimecodeInteropError]
+EdlEvent::format() -> String
 AppleDeliveryTimecodeFormat::parse(String) -> FrameRate?
 AppleDeliveryTimecodeFormat::format(FrameRate) -> String?
+AppleDeliveryTimecodeFormat::supported_rates() -> Array[FrameRate]
+AppleDeliveryTimecodeFormat::is_supported(FrameRate) -> Bool
 ```
 
 Subtitle:

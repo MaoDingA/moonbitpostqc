@@ -138,12 +138,24 @@ pub(all) enum TimecodeCommand {
   ToFrames(TimecodeValueOptions)
   FromFrames(FrameCountOptions)
   ConvertTimecode(TimecodeConvertOptions)
+  ImfFrom(TimecodeImfFromOptions)
+  EdlEvent(TimecodeEdlEventOptions)
 } derive(Eq, @debug.Debug)
 
 pub(all) struct TimecodeConvertOptions {
   value : String
   source_rate : @timecode.FrameRate
   target_rate : @timecode.FrameRate
+} derive(Eq, @debug.Debug)
+
+pub(all) struct TimecodeEdlEventOptions {
+  line : String
+  frame_rate : @timecode.FrameRate
+} derive(Eq, @debug.Debug)
+
+pub(all) struct TimecodeImfFromOptions {
+  value : String
+  frame_rate : @timecode.FrameRate
 } derive(Eq, @debug.Debug)
 
 pub(all) struct TimecodeValueOptions {

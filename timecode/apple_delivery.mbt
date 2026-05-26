@@ -3,6 +3,28 @@
 pub(all) struct AppleDeliveryTimecodeFormat {} derive(Eq, Debug)
 
 ///|
+/// Returns frame rates represented by Apple delivery-package format strings.
+pub fn AppleDeliveryTimecodeFormat::supported_rates() -> Array[FrameRate] {
+  [
+    Fps24,
+    Fps25,
+    Fps2997Drop,
+    Fps2997NonDrop,
+    Fps30,
+    Fps50,
+    Fps5994Drop,
+    Fps5994NonDrop,
+    Fps60,
+  ]
+}
+
+///|
+/// Returns true when this rate has an Apple delivery-package format string.
+pub fn AppleDeliveryTimecodeFormat::is_supported(rate : FrameRate) -> Bool {
+  AppleDeliveryTimecodeFormat::supported_rates().contains(rate)
+}
+
+///|
 fn normalize_apple_delivery_format(raw : String) -> String {
   raw.trim().to_owned().to_lower()
 }

@@ -22,7 +22,9 @@ pub fn rescale_ms_between_rates(Int, FrameRate, FrameRate) -> Int
 pub(all) struct AppleDeliveryTimecodeFormat {
 } derive(Eq, @debug.Debug)
 pub fn AppleDeliveryTimecodeFormat::format(FrameRate) -> String?
+pub fn AppleDeliveryTimecodeFormat::is_supported(FrameRate) -> Bool
 pub fn AppleDeliveryTimecodeFormat::parse(String) -> FrameRate?
+pub fn AppleDeliveryTimecodeFormat::supported_rates() -> Array[FrameRate]
 
 pub(all) struct Duration {
   frames : Int
@@ -36,6 +38,17 @@ pub fn Duration::scale(Self, Int) -> Self
 pub fn Duration::sub(Self, Self) -> Self?
 pub fn Duration::to_frames(Self) -> Int
 pub fn Duration::to_ms(Self) -> Int
+
+pub(all) struct EdlEvent {
+  event_number : Int
+  reel : String
+  track : String
+  transition : String
+  source : TimecodeRange
+  record : TimecodeRange
+} derive(Eq, @debug.Debug)
+pub fn EdlEvent::format(Self) -> String
+pub fn EdlEvent::parse(String, FrameRate) -> Result[Self, TimecodeInteropError]
 
 pub(all) enum FcpXmlTcFormat {
   DF
@@ -81,6 +94,22 @@ pub fn FrameRate::ms_to_frames(Self, Int) -> Int
 pub fn FrameRate::nominal_fps(Self) -> Int
 pub fn FrameRate::parse(String) -> Self?
 
+pub(all) struct ImfCompositionTimecode {
+  edit_rate : ImfEditRate
+  timecode_rate : Int
+  drop_frame : Bool
+  start_address : String
+} derive(Eq, @debug.Debug)
+pub fn ImfCompositionTimecode::from_timecode(Timecode) -> Self
+pub fn ImfCompositionTimecode::to_timecode(Self) -> Result[Timecode, TimecodeInteropError]
+
+pub(all) struct ImfEditRate {
+  numerator : Int
+  denominator : Int
+} derive(Eq, @debug.Debug)
+pub fn ImfEditRate::from_frame_rate(FrameRate) -> Self
+pub fn ImfEditRate::to_frame_rate(Self, Bool) -> Result[FrameRate, TimecodeInteropError]
+
 pub(all) struct ImfTimecode {
   rate : Int
   drop_frame : Bool
@@ -98,6 +127,24 @@ pub fn RationalSeconds::from_frames(Int, FrameRate) -> Self
 pub fn RationalSeconds::new(Int64, Int64) -> Self?
 pub fn RationalSeconds::parse(String) -> Self?
 pub fn RationalSeconds::to_frames(Self, FrameRate) -> Int
+
+pub(all) struct SmpteTimecodeWord {
+  timecode : Timecode
+  user_bits : SmpteUserBits
+  color_frame : Bool
+  field_mark : Bool
+  binary_group_flags : Int
+} derive(Eq, @debug.Debug)
+pub fn SmpteTimecodeWord::from_timecode(Timecode) -> Self
+pub fn SmpteTimecodeWord::pack_ltc_bytes(Self) -> Result[Bytes, TimecodeInteropError]
+pub fn SmpteTimecodeWord::to_timecode(Self) -> Result[Timecode, TimecodeInteropError]
+pub fn SmpteTimecodeWord::unpack_ltc_bytes(Bytes, FrameRate) -> Result[Self, TimecodeInteropError]
+
+pub(all) struct SmpteUserBits {
+  value : Int64
+} derive(Eq, @debug.Debug)
+pub fn SmpteUserBits::format_hex(Self) -> String
+pub fn SmpteUserBits::from_hex(String) -> Result[Self, TimecodeInteropError]
 
 pub(all) struct Timecode {
   hour : Int
@@ -120,6 +167,9 @@ pub(all) enum TimecodeInteropError {
   UnsupportedFrameDuration
   InvalidDropFrameRate
   InvalidTimecode(TimecodeParseError)
+  InvalidUserBits
+  InvalidPackedTimecode
+  InvalidEdlEvent
 } derive(Eq, @debug.Debug)
 
 pub(all) enum TimecodeParseError {

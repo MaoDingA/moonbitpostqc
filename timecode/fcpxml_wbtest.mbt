@@ -53,3 +53,37 @@ test "FCPXML attrs can be created from timecode labels" {
   assert_eq(attrs.frame_duration.format(), "1001/30000s")
   assert_eq(attrs.tc_start.format(), "8999991/2500s")
 }
+
+///|
+test "FCPXML attrs round trip all supported frame-rate metadata forms" {
+  for
+    rate in [
+      Fps23976,
+      Fps24,
+      Fps25,
+      Fps47952,
+      Fps48,
+      Fps2997Drop,
+      Fps2997NonDrop,
+      Fps30,
+      Fps50,
+      Fps5994Drop,
+      Fps5994NonDrop,
+      Fps60,
+      Fps72,
+      Fps96,
+      Fps100,
+      Fps11988,
+      Fps120,
+    ] {
+    let source = rate.frames_to_timecode(12345)
+    let attrs = FcpXmlTimecodeAttrs::from_timecode(source)
+    match attrs.to_timecode() {
+      Ok(round_trip) => {
+        assert_true(round_trip.rate == rate)
+        assert_eq(round_trip.to_frames(), source.to_frames())
+      }
+      Err(_) => fail("expected FCPXML metadata round trip")
+    }
+  }
+}

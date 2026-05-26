@@ -10,8 +10,9 @@ MoonBit media tooling. It keeps three concepts separate:
 
 The package supports common production frame rates, drop-frame labels for
 29.97/59.94, exact numerator/denominator conversion, explicit same-rate
-arithmetic, 24-hour wrapping policy, and small metadata adapters for FCPXML,
-IMF, and Apple delivery-package timecode fields.
+arithmetic, 24-hour wrapping policy, ST 12 logical word packing, and small
+metadata adapters for FCPXML, IMF, Apple delivery-package, and EDL timecode
+fields.
 
 ## Import
 
@@ -268,6 +269,23 @@ test "convert IMF timecode fields" {
 }
 ```
 
+Use `ImfCompositionTimecode` when the exact edit-rate ratio must round-trip
+between fractional non-drop and integer non-drop rates.
+
+```mbt check
+///|
+test "convert exact IMF composition timecode fields" {
+  let source = @timecode.Fps2997NonDrop.frames_to_timecode(30000)
+  let imf = @timecode.ImfCompositionTimecode::from_timecode(source)
+  assert_eq(imf.edit_rate.numerator, 30000)
+  assert_eq(imf.edit_rate.denominator, 1001)
+  match imf.to_timecode() {
+    Ok(tc) => assert_true(tc.rate == Fps2997NonDrop)
+    Err(_) => fail("expected exact IMF composition timecode")
+  }
+}
+```
+
 ## Apple Delivery
 
 Apple delivery packages use compact frame-rate mode strings.
@@ -282,6 +300,57 @@ test "parse Apple delivery timecode format" {
 }
 ```
 
+## ST 12 Logical Words
+
+`SmpteTimecodeWord` models the BCD time address, user bits, and flag bits before
+transport-specific encoding. `pack_ltc_bytes` produces the ten LTC codeword
+bytes only for 24h labels at nominal rates up to 30fps; it does not synthesize
+an LTC audio waveform.
+
+```mbt check
+///|
+test "pack ST 12 user bits and time address" {
+  let user_bits = match @timecode.SmpteUserBits::from_hex("1234ABCD") {
+    Ok(bits) => bits
+    Err(_) => fail("expected user bits")
+  }
+  let word = @timecode.SmpteTimecodeWord::{
+    timecode: @timecode.Fps2997Drop.frames_to_timecode(107892),
+    user_bits,
+    color_frame: false,
+    field_mark: false,
+    binary_group_flags: 0,
+  }
+  match word.pack_ltc_bytes() {
+    Ok(bytes) => assert_eq(bytes.length(), 10)
+    Err(_) => fail("expected packed codeword")
+  }
+}
+```
+
+## EDL
+
+`EdlEvent` handles compact CMX-style event lines with source and record
+timecode ranges.
+
+```mbt check
+///|
+test "parse an EDL event line" {
+  match
+    @timecode.EdlEvent::parse(
+      "001 AX V C 01:00:00:00 01:00:10:00 00:00:00:00 00:00:10:00",
+      Fps25,
+    ) {
+    Ok(event) =>
+      assert_eq(
+        event.format(),
+        "001 AX V C 01:00:00:00 01:00:10:00 00:00:00:00 00:00:10:00",
+      )
+    Err(_) => fail("expected EDL event")
+  }
+}
+```
+
 ## Boundaries
 
 This first public version intentionally keeps cross-rate behavior explicit:
@@ -292,7 +361,7 @@ This first public version intentionally keeps cross-rate behavior explicit:
 - Negative `Timecode` positions saturate to zero.
 - `FrameRate::frames_to_timecode` does not wrap at 24 hours unless
   `frames_to_timecode_with_wrap(..., Wrap24Hour)` is used.
-- FCPXML, IMF, and Apple delivery helpers cover timecode metadata fields, not
-  full file parsing.
-- LTC/VITC/ATC transport, ST 12 user bits, binary packing, EDL, and full
-  FCPXML/IMF document parsing are future extension points.
+- FCPXML, IMF, Apple delivery, and EDL helpers cover timecode metadata fields,
+  not full file parsing.
+- LTC/VITC/ATC transport, LTC audio waveform synthesis/decoding, MXF demux, and
+  full FCPXML/IMF document parsing are future extension points.

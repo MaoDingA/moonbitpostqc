@@ -195,6 +195,32 @@ test "cli parses timecode conversion" {
 }
 
 ///|
+test "cli parses timecode IMF and EDL interop commands" {
+  let imf = parse_command([
+    "moonpost", "timecode", "imf-from", "01:00:00;00", "--fps", "29.97df",
+  ])
+  match imf {
+    Timecode(ImfFrom(options)) => {
+      assert_eq(options.value, "01:00:00;00")
+      assert_true(options.frame_rate == @timecode.Fps2997Drop)
+    }
+    _ => fail("expected timecode imf-from")
+  }
+
+  let edl = parse_command([
+    "moonpost", "timecode", "edl-event", "001 AX V C 01:00:00:00 01:00:10:00 00:00:00:00 00:00:10:00",
+    "--fps", "25",
+  ])
+  match edl {
+    Timecode(EdlEvent(options)) => {
+      assert_true(options.frame_rate == @timecode.Fps25)
+      assert_true(options.line.contains("001 AX V C"))
+    }
+    _ => fail("expected timecode edl-event")
+  }
+}
+
+///|
 test "cli parses subtitle convert target and output" {
   let command = parse_command([
     "moonpost", "subtitle", "convert", "demo.srt", "--to", "webvtt", "-o", "demo.vtt",

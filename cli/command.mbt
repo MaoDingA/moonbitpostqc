@@ -64,6 +64,18 @@ pub(all) struct TimecodeConvertOptions {
 } derive(Eq, Debug)
 
 ///|
+pub(all) struct TimecodeImfFromOptions {
+  value : String
+  frame_rate : @timecode.FrameRate
+} derive(Eq, Debug)
+
+///|
+pub(all) struct TimecodeEdlEventOptions {
+  line : String
+  frame_rate : @timecode.FrameRate
+} derive(Eq, Debug)
+
+///|
 pub(all) struct SubtitleConvertOptions {
   input : String
   target : String
@@ -107,6 +119,8 @@ pub(all) enum TimecodeCommand {
   ToFrames(TimecodeValueOptions)
   FromFrames(FrameCountOptions)
   ConvertTimecode(TimecodeConvertOptions)
+  ImfFrom(TimecodeImfFromOptions)
+  EdlEvent(TimecodeEdlEventOptions)
 } derive(Eq, Debug)
 
 ///|
@@ -373,6 +387,26 @@ fn parse_timecode(args : Array[String]) -> Command {
             target_rate: option_frame_rate(args, "--to", @timecode.Fps25),
           }),
         )
+      Some("imf-from") =>
+        Timecode(
+          ImfFrom({
+            value: match args.get(3) {
+              Some(value) => value
+              None => ""
+            },
+            frame_rate: option_frame_rate(args, "--fps", @timecode.Fps25),
+          }),
+        )
+      Some("edl-event") =>
+        Timecode(
+          EdlEvent({
+            line: match args.get(3) {
+              Some(value) => value
+              None => ""
+            },
+            frame_rate: option_frame_rate(args, "--fps", @timecode.Fps25),
+          }),
+        )
       _ => Help(TimecodeHelp)
     }
   }
@@ -537,7 +571,8 @@ pub fn help_lines(topic : HelpTopic) -> Array[String] {
     TimecodeHelp =>
       [
         "Usage:", "  moonpost timecode to-frames <tc> --fps <rate>", "  moonpost timecode from-frames <frames> --fps <rate>",
-        "  moonpost timecode convert <tc> --from <rate> --to <rate>",
+        "  moonpost timecode convert <tc> --from <rate> --to <rate>", "  moonpost timecode imf-from <tc> --fps <rate>",
+        "  moonpost timecode edl-event <line> --fps <rate>",
       ]
     SubtitleHelp =>
       [
