@@ -271,7 +271,27 @@ Commands:
   split-bilingual
               Split bilingual cues into two subtitle tracks
   qc          Compatibility alias for subtitle delivery QC
+  explain     Explain a QC diagnostic code
+  profile     List or show profile configurations
 ```
+
+### Creator AI Clean Example
+
+```bash
+moon run cmd/main --target native -- creator check examples/creator/ai-clean-bad.srt --profile douyin
+```
+
+### Explain and Profile Commands
+
+```bash
+moon run cmd/main --target native -- explain C601
+moon run cmd/main --target native -- explain E101
+moon run cmd/main --target native -- profile list
+moon run cmd/main --target native -- profile show creator --name douyin
+moon run cmd/main --target native -- profile show delivery --name ott-zh
+```
+
+CI integration examples: [`examples/ci-integration.md`](examples/ci-integration.md).
 
 ## Subtitle QC
 

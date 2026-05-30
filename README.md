@@ -175,6 +175,47 @@ moon run cmd/main --target native -- delivery subtitle-check examples/delivery/d
 moon run cmd/main --target native -- delivery subtitle-check examples/delivery/dcp-source-srt-bad.srt --profile dcp-frame-strict --fail-on-warning
 ```
 
+### Creator AI 字幕清洗示例
+
+检查包含 AI 转写产物的字幕：
+
+```bash
+moon run cmd/main --target native -- creator check examples/creator/ai-clean-bad.srt --profile douyin
+```
+
+输出示例：
+
+```text
+examples/creator/ai-clean-bad.srt
+summary: 0 errors, 15 warnings
+
+WARN C601 cue#1 | repeated word: '然后'
+WARN C601 cue#2 | repeated word: '就是'
+WARN C602 cue#3 | ASR marker: ASR music marker '[Music]'
+WARN C401 cue#3 | possible confusion: '认真的做' should be '认真地做'
+WARN C402 | inconsistent term: 'moonpost' vs canonical 'MoonPost'
+WARN C402 | inconsistent term: 'webvtt' vs canonical 'WebVTT'
+```
+
+### explain 和 profile
+
+查看诊断码说明：
+
+```bash
+moon run cmd/main --target native -- explain C601
+moon run cmd/main --target native -- explain E101
+```
+
+查看所有 profile 配置：
+
+```bash
+moon run cmd/main --target native -- profile list
+moon run cmd/main --target native -- profile show creator --name douyin
+moon run cmd/main --target native -- profile show delivery --name ott-zh
+```
+
+CI 集成示例见 [`examples/ci-integration.md`](examples/ci-integration.md)。
+
 `creator clean` 示例中的 profile 应匹配实际语言和平台习惯；这里的
 `douyin` 命令仅用于展示调用形状。
 
@@ -244,6 +285,8 @@ Commands:
   split-bilingual
               Split bilingual cues into two subtitle tracks
   qc          Compatibility alias for subtitle delivery QC
+  explain     Explain a QC diagnostic code
+  profile     List or show profile configurations
 ```
 
 ## 字幕 QC
