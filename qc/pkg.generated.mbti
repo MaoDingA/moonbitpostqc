@@ -10,17 +10,29 @@ import {
 // Values
 pub fn bilingual_text_style_profile() -> TextStyleProfile
 
+pub fn check_ai_clean_cues(Array[@subtitle.Cue], TextStyleMode, Array[AsrMarker], Array[FillerWord]) -> Array[QcIssue]
+
 pub fn check_cues(Array[@subtitle.Cue], QcProfile) -> Array[QcIssue]
 
 pub fn check_cues_with_text_style(Array[@subtitle.Cue], QcProfile, TextStyleProfile) -> Array[QcIssue]
 
 pub fn check_srt_source_track(@subtitle.SubtitleTrack, SrtSourcePolicy) -> Array[QcIssue]
 
+pub fn check_terminology_cues(Array[@subtitle.Cue], Array[ConfusionPair], Array[ConsistencyTerm], Array[UserTerm]) -> Array[QcIssue]
+
 pub fn check_text_style_cues(Array[@subtitle.Cue], TextStyleProfile) -> Array[QcIssue]
 
 pub fn cinema_profile() -> QcProfile
 
 pub fn dcp_source_srt_policy() -> SrtSourcePolicy
+
+pub fn default_asr_markers_list() -> Array[AsrMarker]
+
+pub fn default_confusion_pairs_list() -> Array[ConfusionPair]
+
+pub fn default_consistency_terms_list() -> Array[ConsistencyTerm]
+
+pub fn default_filler_words_list(TextStyleMode) -> Array[FillerWord]
 
 pub fn default_profile() -> QcProfile
 
@@ -57,10 +69,31 @@ pub fn zh_text_style_profile() -> TextStyleProfile
 // Errors
 
 // Types and methods
+pub(all) struct AsrMarker {
+  pattern : String
+  description : String
+} derive(Eq, @debug.Debug)
+
+pub(all) struct ConfusionPair {
+  wrong : String
+  correct : String
+  context : String
+} derive(Eq, @debug.Debug)
+
+pub(all) struct ConsistencyTerm {
+  canonical : String
+  variants : Array[String]
+} derive(Eq, @debug.Debug)
+
 pub(all) struct DictionaryTerm {
   suspicious : String
   replacement : String
   reason : String
+} derive(Eq, @debug.Debug)
+
+pub(all) struct FillerWord {
+  word : String
+  description : String
 } derive(Eq, @debug.Debug)
 
 pub(all) struct QcIssue {
@@ -116,6 +149,13 @@ pub(all) struct TextStyleProfile {
   max_unbroken_chars : Int
   warn_single_char_line : Bool
   dictionary_terms : Array[DictionaryTerm]
+} derive(Eq, @debug.Debug)
+
+pub(all) struct UserTerm {
+  pattern : String
+  preferred : String
+  reason : String
+  forbidden : Bool
 } derive(Eq, @debug.Debug)
 
 // Type aliases
