@@ -1,6 +1,6 @@
 import {
-  "phenom8010/moonpost/qc" @qc,
-  "phenom8010/moonpost/subtitle" @subtitle,
+  "MaoDingA/moonpost/qc" @qc,
+  "MaoDingA/moonpost/subtitle" @subtitle,
 }
 
 options(

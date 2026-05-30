@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "phenom8010/moonpost"
+package "MaoDingA/moonpost"
 
 // Values
 pub fn project_name() -> String

@@ -336,10 +336,7 @@ pub fn parse_webvtt_with_recovery(input : String) -> ParseResult {
   }
   if !saw_header {
     errors.push(parse_error(WebVtt, 1, 1, "missing WEBVTT header"))
-    return {
-      track: { format: WebVtt, cues: [] },
-      errors,
-    }
+    return { track: { format: WebVtt, cues: [] }, errors }
   }
   let mut cue_block = 0
   for block in blocks {

@@ -1,6 +1,6 @@
 # MoonPost Timecode
 
-`phenom8010/moonpost/timecode` is a small SMPTE-style timecode foundation for
+`MaoDingA/moonpost/timecode` is a small SMPTE-style timecode foundation for
 MoonBit media tooling. It keeps three concepts separate:
 
 - `Timecode`: a position label such as `01:00:00;00`
@@ -19,13 +19,13 @@ fields.
 Add the module and import the package:
 
 ```text
-moon add phenom8010/moonpost
+moon add MaoDingA/moonpost
 ```
 
 ```json
 {
   "import": [
-    "phenom8010/moonpost/timecode"
+    "MaoDingA/moonpost/timecode"
   ]
 }
 ```

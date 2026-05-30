@@ -4,14 +4,14 @@ import {
   "moonbitlang/core/env" @env,
   "moonbitlang/async/fs" @fs,
   "moonbitlang/async/io",
-  "phenom8010/moonpost/align" @align,
-  "phenom8010/moonpost/cli" @cli,
-  "phenom8010/moonpost/creator" @creator,
-  "phenom8010/moonpost/delivery" @delivery,
-  "phenom8010/moonpost/qc" @qc,
-  "phenom8010/moonpost/retime" @retime,
-  "phenom8010/moonpost/subtitle" @subtitle,
-  "phenom8010/moonpost/timecode" @timecode,
+  "MaoDingA/moonpost/align" @align,
+  "MaoDingA/moonpost/cli" @cli,
+  "MaoDingA/moonpost/creator" @creator,
+  "MaoDingA/moonpost/delivery" @delivery,
+  "MaoDingA/moonpost/qc" @qc,
+  "MaoDingA/moonpost/retime" @retime,
+  "MaoDingA/moonpost/subtitle" @subtitle,
+  "MaoDingA/moonpost/timecode" @timecode,
 }
 
 supported_targets = "+native"

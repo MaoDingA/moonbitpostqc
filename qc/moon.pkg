@@ -1,5 +1,5 @@
 import {
   "moonbitlang/core/json",
-  "phenom8010/moonpost/subtitle" @subtitle,
-  "phenom8010/moonpost/timecode" @timecode,
+  "MaoDingA/moonpost/subtitle" @subtitle,
+  "MaoDingA/moonpost/timecode" @timecode,
 }

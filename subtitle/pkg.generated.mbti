@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "phenom8010/moonpost/subtitle"
+package "MaoDingA/moonpost/subtitle"
 
 import {
   "moonbitlang/core/debug",

@@ -119,6 +119,27 @@ moon 0.1.20260512
 moonc v0.9.2
 ```
 
+## 安装
+
+MoonPost 已发布到 [mooncakes.io](https://mooncakes.io/MaoDingA/moonpost)，可以在任何 MoonBit 项目中作为依赖使用：
+
+```bash
+moon add MaoDingA/moonpost
+```
+
+安装后在代码中按需导入子包：
+
+```moonbit
+// 字幕解析与写出
+let track = parse_srt(input)
+// 时间码与帧率
+let tc = parse_timecode("01:00:00:00", FrameRate::fps_25())
+// QC 校验
+let issues = check_cues(track.cues, default_profile())
+```
+
+可用的子包包括 `MaoDingA/moonpost/subtitle`、`MaoDingA/moonpost/timecode`、`MaoDingA/moonpost/qc`、`MaoDingA/moonpost/creator`、`MaoDingA/moonpost/delivery`、`MaoDingA/moonpost/retime` 和 `MaoDingA/moonpost/align`。完整 API 参考 README 中的"核心公开 API"章节。
+
 ## 快速开始
 
 克隆仓库后运行测试：
@@ -316,7 +337,7 @@ CLI 也支持通过 `--fps <rate>` 覆盖当前 profile 的帧网格。
 
 ## 时间码
 
-`phenom8010/moonpost/timecode` 是 MoonPost 的通用 SMPTE 时间码基础包。它把
+`MaoDingA/moonpost/timecode` 是 MoonPost 的通用 SMPTE 时间码基础包。它把
 时间码标签、帧数、时长和半开时间码区间分开建模，支持 drop-frame 边界计算、
 同帧率时间码算术、显式比较，以及基于精确帧率分子/分母的 23.976 / 29.97 /
 59.94 换算。它还提供 24 小时 wrap policy、rational seconds、ST 12 logical
@@ -522,14 +543,14 @@ MoonPost 由多个小型 MoonBit package 组成。公开 API 可参考生成的
 
 | Package | 用途 |
 | --- | --- |
-| `phenom8010/moonpost/timecode` | 帧率、时间码解析、帧数/时长/区间转换、同帧率算术和 drop-frame 计算。 |
-| `phenom8010/moonpost/subtitle` | SRT/WebVTT 解析、时间戳格式化、字幕写出。 |
-| `phenom8010/moonpost/qc` | QC profiles、issue 模型、cue 检查、报告格式化。 |
-| `phenom8010/moonpost/creator` | 创作者字幕 profile、文本检查和清洗流程。 |
-| `phenom8010/moonpost/retime` | cue 的整体偏移、帧率转换和帧吸附。 |
-| `phenom8010/moonpost/align` | 双语字幕合并和拆分 helpers。 |
-| `phenom8010/moonpost/cli` | CLI 参数解析。 |
-| `phenom8010/moonpost/wasm_demo/core` | demo 使用的 Wasm 导出 `qc_subtitle`。 |
+| `MaoDingA/moonpost/timecode` | 帧率、时间码解析、帧数/时长/区间转换、同帧率算术和 drop-frame 计算。 |
+| `MaoDingA/moonpost/subtitle` | SRT/WebVTT 解析、时间戳格式化、字幕写出。 |
+| `MaoDingA/moonpost/qc` | QC profiles、issue 模型、cue 检查、报告格式化。 |
+| `MaoDingA/moonpost/creator` | 创作者字幕 profile、文本检查和清洗流程。 |
+| `MaoDingA/moonpost/retime` | cue 的整体偏移、帧率转换和帧吸附。 |
+| `MaoDingA/moonpost/align` | 双语字幕合并和拆分 helpers。 |
+| `MaoDingA/moonpost/cli` | CLI 参数解析。 |
+| `MaoDingA/moonpost/wasm_demo/core` | demo 使用的 Wasm 导出 `qc_subtitle`。 |
 
 ### 核心公开 API
 

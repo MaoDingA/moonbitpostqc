@@ -1,9 +1,9 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "phenom8010/moonpost/cli"
+package "MaoDingA/moonpost/cli"
 
 import {
+  "MaoDingA/moonpost/timecode",
   "moonbitlang/core/debug",
-  "phenom8010/moonpost/timecode",
 }
 
 // Values

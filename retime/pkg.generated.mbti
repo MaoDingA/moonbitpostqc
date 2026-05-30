@@ -1,9 +1,9 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "phenom8010/moonpost/retime"
+package "MaoDingA/moonpost/retime"
 
 import {
-  "phenom8010/moonpost/subtitle",
-  "phenom8010/moonpost/timecode",
+  "MaoDingA/moonpost/subtitle",
+  "MaoDingA/moonpost/timecode",
 }
 
 // Values

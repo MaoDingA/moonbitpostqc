@@ -141,6 +141,27 @@ moon 0.1.20260512
 moonc v0.9.2
 ```
 
+## Installation
+
+MoonPost is published on [mooncakes.io](https://mooncakes.io/MaoDingA/moonpost) and can be used as a dependency in any MoonBit project:
+
+```bash
+moon add MaoDingA/moonpost
+```
+
+After installation, import the sub-packages you need:
+
+```moonbit
+// Subtitle parsing and writing
+let track = parse_srt(input)
+// Timecode and frame rates
+let tc = parse_timecode("01:00:00:00", FrameRate::fps_25())
+// QC checks
+let issues = check_cues(track.cues, default_profile())
+```
+
+Available sub-packages: `MaoDingA/moonpost/subtitle`, `MaoDingA/moonpost/timecode`, `MaoDingA/moonpost/qc`, `MaoDingA/moonpost/creator`, `MaoDingA/moonpost/delivery`, `MaoDingA/moonpost/retime`, and `MaoDingA/moonpost/align`. See the "Core Public API" section for the full API reference.
+
 ## Quick Start
 
 Clone the repository and run the test suite:
@@ -345,7 +366,7 @@ run.
 
 ## Timecode
 
-`phenom8010/moonpost/timecode` is MoonPost's reusable SMPTE timecode foundation.
+`MaoDingA/moonpost/timecode` is MoonPost's reusable SMPTE timecode foundation.
 It models timecode labels, frame counts, durations, and half-open timecode
 ranges separately, with drop-frame boundary handling, same-rate arithmetic,
 explicit comparison, and exact numerator/denominator based conversion for
@@ -556,14 +577,14 @@ the generated `pkg.generated.mbti` files.
 
 | Package | Purpose |
 | --- | --- |
-| `phenom8010/moonpost/timecode` | Frame rates, timecode parsing, frame/duration/range conversion, same-rate arithmetic, drop-frame math. |
-| `phenom8010/moonpost/subtitle` | SRT/WebVTT parsing, timestamp formatting, subtitle writing. |
-| `phenom8010/moonpost/qc` | QC profiles, issue model, cue checks, report formatting. |
-| `phenom8010/moonpost/creator` | Creator subtitle profiles, text checks, and cleanup workflows. |
-| `phenom8010/moonpost/retime` | Offset, frame-rate conversion, frame snapping for cues. |
-| `phenom8010/moonpost/align` | Bilingual merge and split helpers. |
-| `phenom8010/moonpost/cli` | CLI argument parser. |
-| `phenom8010/moonpost/wasm_demo/core` | Wasm-exported `qc_subtitle` entry point for the demo. |
+| `MaoDingA/moonpost/timecode` | Frame rates, timecode parsing, frame/duration/range conversion, same-rate arithmetic, drop-frame math. |
+| `MaoDingA/moonpost/subtitle` | SRT/WebVTT parsing, timestamp formatting, subtitle writing. |
+| `MaoDingA/moonpost/qc` | QC profiles, issue model, cue checks, report formatting. |
+| `MaoDingA/moonpost/creator` | Creator subtitle profiles, text checks, and cleanup workflows. |
+| `MaoDingA/moonpost/retime` | Offset, frame-rate conversion, frame snapping for cues. |
+| `MaoDingA/moonpost/align` | Bilingual merge and split helpers. |
+| `MaoDingA/moonpost/cli` | CLI argument parser. |
+| `MaoDingA/moonpost/wasm_demo/core` | Wasm-exported `qc_subtitle` entry point for the demo. |
 
 ### Core Public APIs
 

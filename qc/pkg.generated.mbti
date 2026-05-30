@@ -1,10 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "phenom8010/moonpost/qc"
+package "MaoDingA/moonpost/qc"
 
 import {
+  "MaoDingA/moonpost/subtitle",
+  "MaoDingA/moonpost/timecode",
   "moonbitlang/core/debug",
-  "phenom8010/moonpost/subtitle",
-  "phenom8010/moonpost/timecode",
 }
 
 // Values
