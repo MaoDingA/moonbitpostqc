@@ -1,12 +1,15 @@
 import {
   "MaoDingA/moonpost/qc" @qc,
   "MaoDingA/moonpost/subtitle" @subtitle,
+  "MaoDingA/moonpost/creator" @creator,
+  "MaoDingA/moonpost/delivery" @delivery,
+  "MaoDingA/moonpost/timecode" @timecode,
 }
 
 options(
   link: {
     "wasm-gc": {
-      "exports": [ "qc_subtitle" ],
+      "exports": [ "qc_subtitle", "creator_check", "delivery_check" ],
       "use-js-builtin-string": true,
       "imported-string-constants": "_",
     },

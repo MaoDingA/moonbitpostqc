@@ -62,16 +62,28 @@
               <p id="summary-label">No report yet</p>
             </div>
             <div class="controls">
-              <label>
+              <div class="mode-tabs">
+                <button class="tab active" data-mode="creator">Creator</button>
+                <button class="tab" data-mode="delivery">Delivery</button>
+                <button class="tab" data-mode="qc">QC</button>
+              </div>
+              <label id="profile-label">
                 Profile
                 <select id="profile-select" aria-label="QC profile">
-                  <option value="streaming">Streaming</option>
-                  <option value="cinema">Cinema</option>
-                  <option value="social-video">Social video</option>
-                  <option value="default">Default</option>
                 </select>
               </label>
-              <button id="run-button" type="button">Run QC</button>
+              <label id="fps-label" style="display:none">
+                FPS
+                <select id="fps-select" aria-label="Frame rate">
+                  <option value="">Default</option>
+                  <option value="24">24</option>
+                  <option value="25">25</option>
+                  <option value="29.97">29.97</option>
+                  <option value="29.97df">29.97df</option>
+                  <option value="30">30</option>
+                </select>
+              </label>
+              <button id="run-button" type="button">Run</button>
             </div>
           </div>
 

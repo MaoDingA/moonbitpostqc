@@ -152,6 +152,38 @@ h2 {
   gap: 4px;
 }
 
+.mode-tabs {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.mode-tabs .tab {
+  background: var(--panel);
+  border: none;
+  border-right: 1px solid var(--line);
+  border-radius: 0;
+  color: var(--muted);
+  font-size: 13px;
+  min-height: 32px;
+  padding: 0 14px;
+}
+
+.mode-tabs .tab:last-child {
+  border-right: none;
+}
+
+.mode-tabs .tab:hover {
+  color: var(--accent);
+}
+
+.mode-tabs .tab.active {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
 select {
   background: #ffffff;
   border: 1px solid var(--line);

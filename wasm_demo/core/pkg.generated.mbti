@@ -2,6 +2,10 @@
 package "MaoDingA/moonpost/wasm_demo/core"
 
 // Values
+pub fn creator_check(String, String) -> String
+
+pub fn delivery_check(String, String, String) -> String
+
 pub fn qc_subtitle(String, String) -> String
 
 // Errors
