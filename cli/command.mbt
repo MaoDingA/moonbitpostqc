@@ -115,6 +115,22 @@ pub(all) struct SplitBilingualOptions {
 } derive(Eq, Debug)
 
 ///|
+pub(all) struct ExplainOptions {
+  code : String
+} derive(Eq, Debug)
+
+///|
+pub(all) struct ProfileListOptions {
+  scope : String
+} derive(Eq, Debug)
+
+///|
+pub(all) struct ProfileShowOptions {
+  scope : String
+  name : String
+} derive(Eq, Debug)
+
+///|
 pub(all) enum TimecodeCommand {
   ToFrames(TimecodeValueOptions)
   FromFrames(FrameCountOptions)
@@ -151,6 +167,7 @@ pub(all) enum HelpTopic {
   SubtitleHelp
   MergeHelp
   SplitBilingualHelp
+  ExplainHelp
 } derive(Eq, Debug)
 
 ///|
@@ -163,6 +180,9 @@ pub(all) enum Command {
   Retime(RetimeOptions)
   Merge(MergeOptions)
   SplitBilingual(SplitBilingualOptions)
+  Explain(ExplainOptions)
+  ProfileList(ProfileListOptions)
+  ProfileShow(ProfileShowOptions)
   Help(HelpTopic)
 } derive(Eq, Debug)
 
@@ -531,8 +551,32 @@ pub fn parse_command(args : Array[String]) -> Command {
     Some("retime") => parse_retime(args)
     Some("merge") => parse_merge(args)
     Some("split-bilingual") => parse_split_bilingual(args)
+    Some("explain") =>
+      Explain({
+        code: match args.get(2) {
+          Some(value) => value
+          None => ""
+        },
+      })
+    Some("profile") => parse_profile(args)
     Some("--help") | Some("-h") => Help(RootHelp)
     _ => Help(RootHelp)
+  }
+}
+
+///|
+fn parse_profile(args : Array[String]) -> Command {
+  match args.get(2) {
+    Some("list") => ProfileList({ scope: option_value(args, "--scope", "all") })
+    Some("show") =>
+      ProfileShow({
+        scope: match args.get(3) {
+          Some(value) => value
+          None => ""
+        },
+        name: option_value(args, "--name", ""),
+      })
+    _ => ProfileList({ scope: "all" })
   }
 }
 
@@ -586,6 +630,15 @@ pub fn help_lines(topic : HelpTopic) -> Array[String] {
     SplitBilingualHelp =>
       [
         "Usage:", "  moonpost split-bilingual <file> --primary <file> --secondary <file>",
+      ]
+    ExplainHelp =>
+      [
+        "Usage:", "  moonpost explain <code>", "", "Explain a QC diagnostic code. Examples: E101, W310, C601, D403",
+        "", "Code ranges:", "  E1xx  Timecode hard errors", "  E2xx  Text hard errors",
+        "  W2xx  Duration and line warnings", "  W3xx  Reading speed warnings", "  W4xx  Frame grid and gap warnings",
+        "  W5xx  Text style warnings", "  W6xx  SRT source file risk warnings", "  W7xx  DCP source warnings",
+        "  C4xx  Terminology warnings", "  C6xx  AI transcript clean warnings", "  D1xx  Delivery asset errors",
+        "  D2xx  Delivery metadata warnings", "  D4xx  Delivery checksum errors",
       ]
   }
 }

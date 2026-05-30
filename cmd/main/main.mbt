@@ -580,6 +580,9 @@ async fn run_command(command : @cli.Command) -> Int {
     @cli.Retime(options) => run_retime(options)
     @cli.Merge(options) => run_merge(options)
     @cli.SplitBilingual(options) => run_split_bilingual(options)
+    @cli.Explain(options) => run_explain(options.code)
+    @cli.ProfileList(options) => run_profile_list(options.scope)
+    @cli.ProfileShow(options) => run_profile_show(options.scope, options.name)
     @cli.Help(topic) => {
       print_lines(@cli.help_lines(topic))
       0

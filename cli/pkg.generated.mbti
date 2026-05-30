@@ -25,6 +25,9 @@ pub(all) enum Command {
   Retime(RetimeOptions)
   Merge(MergeOptions)
   SplitBilingual(SplitBilingualOptions)
+  Explain(ExplainOptions)
+  ProfileList(ProfileListOptions)
+  ProfileShow(ProfileShowOptions)
   Help(HelpTopic)
 } derive(Eq, @debug.Debug)
 
@@ -70,6 +73,10 @@ pub(all) struct DeliverySubtitleCheckOptions {
   fail_on_warning : Bool
 } derive(Eq, @debug.Debug)
 
+pub(all) struct ExplainOptions {
+  code : String
+} derive(Eq, @debug.Debug)
+
 pub(all) struct FrameCountOptions {
   frames : Int
   frame_rate : @timecode.FrameRate
@@ -84,6 +91,7 @@ pub(all) enum HelpTopic {
   SubtitleHelp
   MergeHelp
   SplitBilingualHelp
+  ExplainHelp
 } derive(Eq, @debug.Debug)
 
 pub(all) struct MergeOptions {
@@ -91,6 +99,15 @@ pub(all) struct MergeOptions {
   secondary : String
   output : String?
   tolerance_ms : Int
+} derive(Eq, @debug.Debug)
+
+pub(all) struct ProfileListOptions {
+  scope : String
+} derive(Eq, @debug.Debug)
+
+pub(all) struct ProfileShowOptions {
+  scope : String
+  name : String
 } derive(Eq, @debug.Debug)
 
 pub(all) struct QcOptions {
