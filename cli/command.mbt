@@ -379,7 +379,7 @@ fn parse_timecode(args : Array[String]) -> Command {
               Some(value) => value
               None => ""
             },
-            frame_rate: option_frame_rate(args, "--fps", @timecode.Fps25),
+            frame_rate: option_frame_rate(args, "--fps", Fps25),
           }),
         )
       Some("from-frames") =>
@@ -393,7 +393,7 @@ fn parse_timecode(args : Array[String]) -> Command {
                 }
               None => 0
             },
-            frame_rate: option_frame_rate(args, "--fps", @timecode.Fps25),
+            frame_rate: option_frame_rate(args, "--fps", Fps25),
           }),
         )
       Some("convert") =>
@@ -403,8 +403,8 @@ fn parse_timecode(args : Array[String]) -> Command {
               Some(value) => value
               None => ""
             },
-            source_rate: option_frame_rate(args, "--from", @timecode.Fps23976),
-            target_rate: option_frame_rate(args, "--to", @timecode.Fps25),
+            source_rate: option_frame_rate(args, "--from", Fps23976),
+            target_rate: option_frame_rate(args, "--to", Fps25),
           }),
         )
       Some("imf-from") =>
@@ -414,7 +414,7 @@ fn parse_timecode(args : Array[String]) -> Command {
               Some(value) => value
               None => ""
             },
-            frame_rate: option_frame_rate(args, "--fps", @timecode.Fps25),
+            frame_rate: option_frame_rate(args, "--fps", Fps25),
           }),
         )
       Some("edl-event") =>
@@ -424,7 +424,7 @@ fn parse_timecode(args : Array[String]) -> Command {
               Some(value) => value
               None => ""
             },
-            frame_rate: option_frame_rate(args, "--fps", @timecode.Fps25),
+            frame_rate: option_frame_rate(args, "--fps", Fps25),
           }),
         )
       _ => Help(TimecodeHelp)

@@ -5,8 +5,8 @@ test "creator profiles map self-media names to text-aware qc defaults" {
       assert_eq(profile.name, "douyin")
       assert_true(profile.qc_profile.max_cpl is None)
       assert_eq(profile.qc_profile.max_cps, 10)
-      assert_true(profile.text_style.mode == @qc.TextStyleZh)
-      assert_true(profile.punctuation_mode == @qc.TextStyleZh)
+      assert_true(profile.text_style.mode == TextStyleZh)
+      assert_true(profile.punctuation_mode == TextStyleZh)
     }
     None => fail("expected douyin profile")
   }
@@ -15,8 +15,8 @@ test "creator profiles map self-media names to text-aware qc defaults" {
       assert_eq(profile.name, "bilingual")
       assert_true(profile.qc_profile.max_cpl is None)
       assert_eq(profile.qc_profile.max_cps, 12)
-      assert_true(profile.text_style.mode == @qc.TextStyleBilingual)
-      assert_true(profile.punctuation_mode == @qc.TextStyleBilingual)
+      assert_true(profile.text_style.mode == TextStyleBilingual)
+      assert_true(profile.punctuation_mode == TextStyleBilingual)
     }
     None => fail("expected bilingual profile")
   }
@@ -30,16 +30,16 @@ test "creator profile aliases cover exported platform defaults" {
       assert_eq(profile.name, "bilibili")
       assert_true(profile.qc_profile.max_cpl is None)
       assert_eq(profile.qc_profile.max_cps, 9)
-      assert_true(profile.text_style.mode == @qc.TextStyleZh)
-      assert_true(profile.punctuation_mode == @qc.TextStyleZh)
+      assert_true(profile.text_style.mode == TextStyleZh)
+      assert_true(profile.punctuation_mode == TextStyleZh)
     }
     None => fail("expected bilibili profile")
   }
   match creator_profile_by_name("bili") {
     Some(profile) => {
       assert_eq(profile.name, "bilibili")
-      assert_true(profile.text_style.mode == @qc.TextStyleZh)
-      assert_true(profile.punctuation_mode == @qc.TextStyleZh)
+      assert_true(profile.text_style.mode == TextStyleZh)
+      assert_true(profile.punctuation_mode == TextStyleZh)
     }
     None => fail("expected bili alias")
   }
@@ -48,16 +48,16 @@ test "creator profile aliases cover exported platform defaults" {
       assert_eq(profile.name, "youtube")
       assert_true(profile.qc_profile.max_cpl is None)
       assert_eq(profile.qc_profile.max_cps, 20)
-      assert_true(profile.text_style.mode == @qc.TextStyleEn)
-      assert_true(profile.punctuation_mode == @qc.TextStyleEn)
+      assert_true(profile.text_style.mode == TextStyleEn)
+      assert_true(profile.punctuation_mode == TextStyleEn)
     }
     None => fail("expected youtube profile")
   }
   match creator_profile_by_name("yt") {
     Some(profile) => {
       assert_eq(profile.name, "youtube")
-      assert_true(profile.text_style.mode == @qc.TextStyleEn)
-      assert_true(profile.punctuation_mode == @qc.TextStyleEn)
+      assert_true(profile.text_style.mode == TextStyleEn)
+      assert_true(profile.punctuation_mode == TextStyleEn)
     }
     None => fail("expected yt alias")
   }
@@ -80,7 +80,7 @@ test "new creator profiles cover additional platforms" {
       assert_eq(profile.qc_profile.max_cps, 8)
       assert_eq(profile.qc_profile.min_duration_ms, 800)
       assert_eq(profile.qc_profile.max_duration_ms, 5000)
-      assert_true(profile.punctuation_mode == @qc.TextStyleZh)
+      assert_true(profile.punctuation_mode == TextStyleZh)
     }
     None => fail("expected xiaohongshu profile")
   }
@@ -127,8 +127,8 @@ test "new creator profiles cover additional platforms" {
       assert_eq(profile.qc_profile.max_cps, 20)
       assert_eq(profile.qc_profile.min_duration_ms, 500)
       assert_eq(profile.qc_profile.max_duration_ms, 5000)
-      assert_true(profile.text_style.mode == @qc.TextStyleEn)
-      assert_true(profile.punctuation_mode == @qc.TextStyleEn)
+      assert_true(profile.text_style.mode == TextStyleEn)
+      assert_true(profile.punctuation_mode == TextStyleEn)
     }
     None => fail("expected tiktok profile")
   }

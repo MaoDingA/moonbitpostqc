@@ -6,7 +6,7 @@ fn frame_rate_label(rate : @timecode.FrameRate) -> String {
 ///|
 fn timecode_command_lines(command : @cli.TimecodeCommand) -> Array[String] {
   match command {
-    @cli.ToFrames(options) =>
+    ToFrames(options) =>
       match @timecode.parse_timecode(options.value, options.frame_rate) {
         Some(tc) =>
           [
@@ -14,11 +14,11 @@ fn timecode_command_lines(command : @cli.TimecodeCommand) -> Array[String] {
           ]
         None => ["invalid timecode: \{options.value}"]
       }
-    @cli.FromFrames(options) =>
+    FromFrames(options) =>
       [
         "\{options.frames} frames @\{frame_rate_label(options.frame_rate)} = \{options.frame_rate.frames_to_timecode(options.frames).format()}",
       ]
-    @cli.ConvertTimecode(options) =>
+    ConvertTimecode(options) =>
       match @timecode.parse_timecode(options.value, options.source_rate) {
         Some(tc) =>
           [
@@ -26,7 +26,7 @@ fn timecode_command_lines(command : @cli.TimecodeCommand) -> Array[String] {
           ]
         None => ["invalid timecode: \{options.value}"]
       }
-    @cli.ImfFrom(options) =>
+    ImfFrom(options) =>
       match @timecode.parse_timecode(options.value, options.frame_rate) {
         Some(tc) => {
           let imf = @timecode.ImfCompositionTimecode::from_timecode(tc)
@@ -36,7 +36,7 @@ fn timecode_command_lines(command : @cli.TimecodeCommand) -> Array[String] {
         }
         None => ["invalid timecode: \{options.value}"]
       }
-    @cli.EdlEvent(options) =>
+    EdlEvent(options) =>
       match @timecode.EdlEvent::parse(options.line, options.frame_rate) {
         Ok(event) => [event.format()]
         Err(_) => ["invalid EDL event: \{options.line}"]
@@ -118,18 +118,18 @@ fn subtitle_convert_text(input : String, target : String) -> String? {
 ///|
 fn write_track(track : @subtitle.SubtitleTrack) -> String {
   match track.format {
-    @subtitle.Srt => @subtitle.write_srt(track)
-    @subtitle.WebVtt => @subtitle.write_webvtt(track)
+    Srt => @subtitle.write_srt(track)
+    WebVtt => @subtitle.write_webvtt(track)
   }
 }
 
 ///|
 fn punctuation_mode_from_name(name : String) -> @qc.TextStyleMode? {
   match name {
-    "bilingual" => Some(@qc.TextStyleBilingual)
-    "zh" | "chinese" => Some(@qc.TextStyleZh)
-    "en" | "english" => Some(@qc.TextStyleEn)
-    "none" => Some(@qc.TextStyleNone)
+    "bilingual" => Some(TextStyleBilingual)
+    "zh" | "chinese" => Some(TextStyleZh)
+    "en" | "english" => Some(TextStyleEn)
+    "none" => Some(TextStyleNone)
     _ => None
   }
 }
@@ -236,12 +236,7 @@ fn qc_result_for_text(
     Ok(profile) => profile
     Err(message) => {
       let issues = [
-        @qc.QcIssue::{
-          severity: @qc.Error,
-          code: "E000",
-          cue_index: None,
-          message,
-        },
+        @qc.QcIssue::{ severity: Error, code: "E000", cue_index: None, message },
       ]
       return {
         lines: if options.output_json {
@@ -278,7 +273,7 @@ fn qc_result_for_text(
     Err(error) => {
       let issues = [
         @qc.QcIssue::{
-          severity: @qc.Error,
+          severity: Error,
           code: "E000",
           cue_index: None,
           message: "could not parse subtitle file: \{error.format_message()}",
@@ -565,25 +560,25 @@ async fn run_split_bilingual(options : @cli.SplitBilingualOptions) -> Int {
 ///|
 async fn run_command(command : @cli.Command) -> Int {
   match command {
-    @cli.Qc(options) => run_qc(options)
-    @cli.Creator(@cli.CreatorCheck(options)) => run_creator_check(options)
-    @cli.Creator(@cli.CreatorClean(options)) => run_creator_clean(options)
-    @cli.Delivery(@cli.DeliverySubtitleCheck(options)) =>
+    Qc(options) => run_qc(options)
+    Creator(CreatorCheck(options)) => run_creator_check(options)
+    Creator(CreatorClean(options)) => run_creator_clean(options)
+    Delivery(DeliverySubtitleCheck(options)) =>
       run_delivery_subtitle_check(options)
-    @cli.Delivery(@cli.DeliveryCheck(options)) => run_delivery_check(options)
-    @cli.Timecode(command) => {
+    Delivery(DeliveryCheck(options)) => run_delivery_check(options)
+    Timecode(command) => {
       print_lines(timecode_command_lines(command))
       0
     }
-    @cli.Subtitle(@cli.Convert(options)) => run_subtitle_convert(options)
-    @cli.Subtitle(@cli.Normalize(options)) => run_subtitle_normalize(options)
-    @cli.Retime(options) => run_retime(options)
-    @cli.Merge(options) => run_merge(options)
-    @cli.SplitBilingual(options) => run_split_bilingual(options)
-    @cli.Explain(options) => run_explain(options.code)
-    @cli.ProfileList(options) => run_profile_list(options.scope)
-    @cli.ProfileShow(options) => run_profile_show(options.scope, options.name)
-    @cli.Help(topic) => {
+    Subtitle(Convert(options)) => run_subtitle_convert(options)
+    Subtitle(Normalize(options)) => run_subtitle_normalize(options)
+    Retime(options) => run_retime(options)
+    Merge(options) => run_merge(options)
+    SplitBilingual(options) => run_split_bilingual(options)
+    Explain(options) => run_explain(options.code)
+    ProfileList(options) => run_profile_list(options.scope)
+    ProfileShow(options) => run_profile_show(options.scope, options.name)
+    Help(topic) => {
       print_lines(@cli.help_lines(topic))
       0
     }

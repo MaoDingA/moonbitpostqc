@@ -35,7 +35,7 @@ test "qc catches frame alignment at 25fps" {
     min_duration_ms: 800,
     max_duration_ms: 7000,
     min_gap_frames: 2,
-    frame_rate: Some(@timecode.Fps25),
+    frame_rate: Some(Fps25),
   }
   let issues = check_cues(cues, profile)
   assert_true(issues.any(issue => issue.code == "W401"))
@@ -80,17 +80,12 @@ test "json report includes summary and issue payload" {
 test "qc can detect whether issues contain errors" {
   assert_true(
     has_errors([
-      QcIssue::{
-        severity: Error,
-        code: "E101",
-        cue_index: Some(1),
-        message: "overlap",
-      },
+      { severity: Error, code: "E101", cue_index: Some(1), message: "overlap" },
     ]),
   )
   assert_false(
     has_errors([
-      QcIssue::{
+      {
         severity: Warning,
         code: "W203",
         cue_index: Some(1),
@@ -104,17 +99,17 @@ test "qc can detect whether issues contain errors" {
 test "qc exposes named delivery profiles" {
   match profile_by_name("cinema") {
     Some(profile) => {
-      assert_eq(profile.max_cpl, Some(32))
+      assert_true(profile.max_cpl == Some(32))
       assert_eq(profile.max_cps, 17)
-      assert_true(profile.frame_rate == Some(@timecode.Fps24))
+      assert_true(profile.frame_rate == Some(Fps24))
     }
     None => fail("expected cinema profile")
   }
   match profile_by_name("social-video") {
     Some(profile) => {
-      assert_eq(profile.max_cpl, Some(30))
+      assert_true(profile.max_cpl == Some(30))
       assert_eq(profile.min_duration_ms, 500)
-      assert_true(profile.frame_rate == Some(@timecode.Fps30))
+      assert_true(profile.frame_rate == Some(Fps30))
     }
     None => fail("expected social-video profile")
   }
@@ -130,7 +125,7 @@ test "qc reports line count and small gap issues" {
     min_duration_ms: 800,
     max_duration_ms: 7000,
     min_gap_frames: 2,
-    frame_rate: Some(@timecode.Fps25),
+    frame_rate: Some(Fps25),
   }
   let issues = check_cues(
     [cue(1, 1000, 2000, ["one", "two", "three"]), cue(2, 2040, 3000, ["next"])],
@@ -212,7 +207,7 @@ test "punctuation normalization supports zh en and bilingual modes" {
 test "qc can detect whether issues contain warnings" {
   assert_true(
     has_warnings([
-      QcIssue::{
+      {
         severity: Warning,
         code: "W203",
         cue_index: Some(1),
@@ -222,12 +217,7 @@ test "qc can detect whether issues contain warnings" {
   )
   assert_false(
     has_warnings([
-      QcIssue::{
-        severity: Error,
-        code: "E101",
-        cue_index: Some(1),
-        message: "overlap",
-      },
+      { severity: Error, code: "E101", cue_index: Some(1), message: "overlap" },
     ]),
   )
 }
@@ -242,7 +232,7 @@ test "json report can include command profile schema and exit metadata" {
       message: "line too long",
     },
   ]
-  let report = format_json_report_with_context("episode.zh.srt", issues, QcReportContext::{
+  let report = format_json_report_with_context("episode.zh.srt", issues, {
     command: "delivery subtitle-check",
     schema_version: "moonpost.qc.v1",
     profile_name: Some("ott-zh"),

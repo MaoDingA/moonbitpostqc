@@ -45,7 +45,7 @@ pub fn streaming_profile() -> QcProfile {
     min_duration_ms: 800,
     max_duration_ms: 7000,
     min_gap_frames: 2,
-    frame_rate: Some(@timecode.Fps25),
+    frame_rate: Some(Fps25),
   }
 }
 
@@ -58,7 +58,7 @@ pub fn cinema_profile() -> QcProfile {
     min_duration_ms: 1000,
     max_duration_ms: 6000,
     min_gap_frames: 2,
-    frame_rate: Some(@timecode.Fps24),
+    frame_rate: Some(Fps24),
   }
 }
 
@@ -71,7 +71,7 @@ pub fn social_video_profile() -> QcProfile {
     min_duration_ms: 500,
     max_duration_ms: 5000,
     min_gap_frames: 1,
-    frame_rate: Some(@timecode.Fps30),
+    frame_rate: Some(Fps30),
   }
 }
 

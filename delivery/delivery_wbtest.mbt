@@ -91,7 +91,7 @@ test "delivery subtitle profiles map film and ott qc defaults" {
     Some(profile) => {
       assert_eq(profile.name, "ott-zh")
       assert_true(profile.qc_profile == @qc.streaming_profile())
-      assert_true(profile.text_style.mode == @qc.TextStyleNone)
+      assert_true(profile.text_style.mode == TextStyleNone)
       assert_true(profile.srt_policy is None)
     }
     None => fail("expected ott-zh profile")
@@ -109,7 +109,7 @@ test "delivery subtitle profiles map film and ott qc defaults" {
       assert_eq(profile.name, "srt-basic")
       assert_eq(profile.qc_profile.min_duration_ms, 500)
       assert_eq(profile.qc_profile.max_duration_ms, 7000)
-      assert_eq(profile.qc_profile.max_cpl, Some(42))
+      assert_true(profile.qc_profile.max_cpl == Some(42))
       assert_eq(profile.qc_profile.max_cps, 20)
       assert_true(profile.qc_profile.frame_rate is None)
       assert_true(profile.text_style == @qc.no_text_style_profile())
@@ -119,8 +119,8 @@ test "delivery subtitle profiles map film and ott qc defaults" {
   }
   match delivery_subtitle_profile_by_name("dcp-source-srt") {
     Some(profile) => {
-      assert_eq(profile.name, "dcp-source-srt")
-      assert_eq(profile.qc_profile.max_cpl, Some(32))
+      assert_true(profile.name == "dcp-source-srt")
+      assert_true(profile.qc_profile.max_cpl == Some(32))
       assert_eq(profile.qc_profile.max_cps, 17)
       assert_eq(profile.qc_profile.min_duration_ms, 500)
       assert_true(profile.qc_profile.frame_rate is None)
@@ -206,7 +206,7 @@ test "delivery subtitle profiles expose stable metadata" {
   assert_eq(dcp.name, "dcp-source-srt")
   assert_eq(dcp.version, "v1")
   assert_true(dcp.description.contains("DCP"))
-  assert_eq(dcp.qc_profile.max_cpl, Some(32))
+  assert_true(dcp.qc_profile.max_cpl == Some(32))
   assert_true(dcp.qc_profile.frame_rate is None)
   assert_true(dcp.srt_policy is Some(_))
   let strict = dcp_frame_strict_subtitle_profile()
@@ -384,8 +384,8 @@ test "delivery checksum check reports missing unreadable and mismatched targets"
   let video_hash = sha256_hex(b"video")
   let entries = [
     ChecksumEntry::{ expected_sha256: video_hash, target: "E01.mp4" },
-    ChecksumEntry::{ expected_sha256: video_hash, target: "E01.missing.mp4" },
-    ChecksumEntry::{ expected_sha256: video_hash, target: "E01.unreadable.srt" },
+    { expected_sha256: video_hash, target: "E01.missing.mp4" },
+    { expected_sha256: video_hash, target: "E01.unreadable.srt" },
   ]
   let issues = check_checksum_entries(
     entries,

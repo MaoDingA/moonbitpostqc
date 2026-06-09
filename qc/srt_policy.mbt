@@ -124,7 +124,7 @@ pub fn check_srt_source_track(
   policy : SrtSourcePolicy,
 ) -> Array[QcIssue] {
   let issues : Array[QcIssue] = []
-  if policy.expect_srt && track.format != @subtitle.Srt {
+  if policy.expect_srt && track.format != Srt {
     push_srt_policy_issue(
       issues,
       "W100",

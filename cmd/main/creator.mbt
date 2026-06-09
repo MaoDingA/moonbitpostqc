@@ -18,12 +18,7 @@ fn creator_check_result_for_text(
     Ok(profile) => profile
     Err(message) => {
       let issues = [
-        @qc.QcIssue::{
-          severity: @qc.Error,
-          code: "E000",
-          cue_index: None,
-          message,
-        },
+        @qc.QcIssue::{ severity: Error, code: "E000", cue_index: None, message },
       ]
       return {
         lines: if options.output_json {
@@ -55,7 +50,7 @@ fn creator_check_result_for_text(
     Err(error) => {
       let issues = [
         @qc.QcIssue::{
-          severity: @qc.Error,
+          severity: Error,
           code: "E000",
           cue_index: None,
           message: "could not parse subtitle file: \{error.format_message()}",

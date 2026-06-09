@@ -27,18 +27,14 @@ test "negative offset clamps at zero" {
 
 ///|
 test "fps conversion applies the source-to-target speed change" {
-  let converted = convert_fps_cues(
-    [cue(1000, 2000)],
-    @timecode.Fps23976,
-    @timecode.Fps25,
-  )
+  let converted = convert_fps_cues([cue(1000, 2000)], Fps23976, Fps25)
   assert_eq(converted[0].start_ms, 959)
   assert_eq(converted[0].end_ms, 1918)
 }
 
 ///|
 test "snap to frames rounds cue edges" {
-  let snapped = snap_cues_to_frames([cue(1123, 2037)], @timecode.Fps25)
+  let snapped = snap_cues_to_frames([cue(1123, 2037)], Fps25)
   assert_eq(snapped[0].start_ms, 1120)
   assert_eq(snapped[0].end_ms, 2040)
 }
@@ -52,7 +48,7 @@ test "zero offset preserves cue timing" {
 
 ///|
 test "snap to 30fps uses nearest frame" {
-  let snapped = snap_cues_to_frames([cue(1017, 1984)], @timecode.Fps30)
+  let snapped = snap_cues_to_frames([cue(1017, 1984)], Fps30)
   assert_eq(snapped[0].start_ms, 1033)
   assert_eq(snapped[0].end_ms, 2000)
 }

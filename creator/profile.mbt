@@ -20,7 +20,7 @@ pub fn douyin_profile() -> CreatorProfile {
       frame_rate: None,
     },
     text_style: @qc.zh_text_style_profile(),
-    punctuation_mode: @qc.TextStyleZh,
+    punctuation_mode: TextStyleZh,
   }
 }
 
@@ -38,7 +38,7 @@ pub fn bilibili_profile() -> CreatorProfile {
       frame_rate: None,
     },
     text_style: @qc.zh_text_style_profile(),
-    punctuation_mode: @qc.TextStyleZh,
+    punctuation_mode: TextStyleZh,
   }
 }
 
@@ -56,7 +56,7 @@ pub fn youtube_profile() -> CreatorProfile {
       frame_rate: None,
     },
     text_style: @qc.en_text_style_profile(),
-    punctuation_mode: @qc.TextStyleEn,
+    punctuation_mode: TextStyleEn,
   }
 }
 
@@ -74,7 +74,7 @@ pub fn bilingual_profile() -> CreatorProfile {
       frame_rate: None,
     },
     text_style: @qc.bilingual_text_style_profile(),
-    punctuation_mode: @qc.TextStyleBilingual,
+    punctuation_mode: TextStyleBilingual,
   }
 }
 
@@ -92,7 +92,7 @@ pub fn xiaohongshu_profile() -> CreatorProfile {
       frame_rate: None,
     },
     text_style: @qc.zh_text_style_profile(),
-    punctuation_mode: @qc.TextStyleZh,
+    punctuation_mode: TextStyleZh,
   }
 }
 
@@ -110,7 +110,7 @@ pub fn kuaishou_profile() -> CreatorProfile {
       frame_rate: None,
     },
     text_style: @qc.zh_text_style_profile(),
-    punctuation_mode: @qc.TextStyleZh,
+    punctuation_mode: TextStyleZh,
   }
 }
 
@@ -128,7 +128,7 @@ pub fn wechat_profile() -> CreatorProfile {
       frame_rate: None,
     },
     text_style: @qc.zh_text_style_profile(),
-    punctuation_mode: @qc.TextStyleZh,
+    punctuation_mode: TextStyleZh,
   }
 }
 
@@ -146,7 +146,7 @@ pub fn tiktok_profile() -> CreatorProfile {
       frame_rate: None,
     },
     text_style: @qc.en_text_style_profile(),
-    punctuation_mode: @qc.TextStyleEn,
+    punctuation_mode: TextStyleEn,
   }
 }
 

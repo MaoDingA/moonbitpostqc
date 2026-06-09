@@ -8,7 +8,7 @@ test "cli parses qc command with fps profile and output" {
     Qc(options) => {
       assert_eq(options.input, "movie.zh.srt")
       assert_eq(options.profile, "streaming")
-      assert_true(options.frame_rate == Some(@timecode.Fps25))
+      assert_true(options.frame_rate == Some(Fps25))
       assert_true(options.text_style is None)
       assert_true(options.output_json)
       assert_true(options.fail_on_error)
@@ -113,7 +113,7 @@ test "cli parses delivery subtitle check command" {
     Delivery(DeliverySubtitleCheck(options)) => {
       assert_eq(options.input, "episode.zh.srt")
       assert_eq(options.profile, "ott-zh")
-      assert_true(options.frame_rate == Some(@timecode.Fps25))
+      assert_true(options.frame_rate == Some(Fps25))
       assert_true(options.output_json)
       assert_true(options.fail_on_error)
       assert_true(options.fail_on_warning)
@@ -152,7 +152,7 @@ test "cli parses delivery package check command" {
       assert_eq(options.input, "deliveries/E01")
       assert_eq(options.profile, "distribution")
       assert_eq(options.subtitle_profile, "cinema-zh")
-      assert_true(options.frame_rate == Some(@timecode.Fps24))
+      assert_true(options.frame_rate == Some(Fps24))
       assert_true(options.output_json)
       assert_true(options.fail_on_error)
       assert_true(options.fail_on_warning)
@@ -188,7 +188,7 @@ test "cli parses timecode conversion" {
   match command {
     Timecode(ToFrames(options)) => {
       assert_eq(options.value, "01:00:00:00")
-      assert_true(options.frame_rate == @timecode.Fps25)
+      assert_true(options.frame_rate == Fps25)
     }
     _ => fail("expected timecode to-frames")
   }
@@ -202,7 +202,7 @@ test "cli parses timecode IMF and EDL interop commands" {
   match imf {
     Timecode(ImfFrom(options)) => {
       assert_eq(options.value, "01:00:00;00")
-      assert_true(options.frame_rate == @timecode.Fps2997Drop)
+      assert_true(options.frame_rate == Fps2997Drop)
     }
     _ => fail("expected timecode imf-from")
   }
@@ -213,7 +213,7 @@ test "cli parses timecode IMF and EDL interop commands" {
   ])
   match edl {
     Timecode(EdlEvent(options)) => {
-      assert_true(options.frame_rate == @timecode.Fps25)
+      assert_true(options.frame_rate == Fps25)
       assert_true(options.line.contains("001 AX V C"))
     }
     _ => fail("expected timecode edl-event")
@@ -341,11 +341,11 @@ test "delivery help describes strict flags and profiles" {
 
 ///|
 test "cli parses frame rate aliases" {
-  assert_true(parse_frame_rate("23.98") == Some(@timecode.Fps23976))
-  assert_true(parse_frame_rate("29.97df") == Some(@timecode.Fps2997Drop))
-  assert_true(parse_frame_rate("29.97 drop") == Some(@timecode.Fps2997Drop))
-  assert_true(parse_frame_rate("59.94") == Some(@timecode.Fps5994NonDrop))
-  assert_true(parse_frame_rate("59.94ndf") == Some(@timecode.Fps5994NonDrop))
+  assert_true(parse_frame_rate("23.98") == Some(Fps23976))
+  assert_true(parse_frame_rate("29.97df") == Some(Fps2997Drop))
+  assert_true(parse_frame_rate("29.97 drop") == Some(Fps2997Drop))
+  assert_true(parse_frame_rate("59.94") == Some(Fps5994NonDrop))
+  assert_true(parse_frame_rate("59.94ndf") == Some(Fps5994NonDrop))
   assert_true(parse_frame_rate("bad") is None)
 }
 
@@ -355,8 +355,7 @@ test "timecode command falls back to 25fps on unknown fps" {
     "moonpost", "timecode", "to-frames", "00:00:01:00", "--fps", "bad",
   ])
   match command {
-    Timecode(ToFrames(options)) =>
-      assert_true(options.frame_rate == @timecode.Fps25)
+    Timecode(ToFrames(options)) => assert_true(options.frame_rate == Fps25)
     _ => fail("expected timecode to-frames")
   }
 }

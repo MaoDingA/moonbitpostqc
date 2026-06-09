@@ -78,26 +78,6 @@ fn is_zh_char(ch : Char) -> Bool {
 }
 
 ///|
-fn collect_zh_words(text : String) -> Array[String] {
-  let words : Array[String] = []
-  let mut current = ""
-  for ch in text.iter() {
-    if is_zh_char(ch) {
-      current = current + ch.to_string()
-    } else {
-      if current.char_length() >= 2 {
-        words.push(current)
-      }
-      current = ""
-    }
-  }
-  if current.char_length() >= 2 {
-    words.push(current)
-  }
-  words
-}
-
-///|
 fn collect_en_words(text : String) -> Array[String] {
   let words : Array[String] = []
   let mut current = ""

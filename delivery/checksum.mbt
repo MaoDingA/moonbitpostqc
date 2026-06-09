@@ -16,7 +16,7 @@ fn push_checksum_issue(
   code : String,
   message : String,
 ) -> Unit {
-  issues.push({ severity: @qc.Error, code, cue_index: None, message })
+  issues.push({ severity: Error, code, cue_index: None, message })
 }
 
 ///|

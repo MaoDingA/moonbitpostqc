@@ -126,7 +126,7 @@ test "no false positive for normal text" {
   )
   let mut c_count = 0
   for issue in issues {
-    if issue.code.starts_with("C6") {
+    if issue.code.has_prefix("C6") {
       c_count += 1
     }
   }

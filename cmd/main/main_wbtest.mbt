@@ -482,15 +482,15 @@ test "delivery subtitle options can override profile frame rate" {
     delivery_subtitle_profile_from_options(@cli.DeliverySubtitleCheckOptions::{
       input: "episode.srt",
       profile: "cinema-zh",
-      frame_rate: Some(@timecode.Fps25),
+      frame_rate: Some(Fps25),
       output_json: false,
       fail_on_error: false,
       fail_on_warning: false,
     }) {
     Ok(profile) => {
-      assert_true(profile.qc_profile.frame_rate == Some(@timecode.Fps25))
-      assert_eq(profile.qc_profile.max_cpl, @qc.cinema_profile().max_cpl)
-      assert_eq(profile.qc_profile.max_cps, @qc.cinema_profile().max_cps)
+      assert_true(profile.qc_profile.frame_rate == Some(Fps25))
+      assert_true(profile.qc_profile.max_cpl == @qc.cinema_profile().max_cpl)
+      assert_true(profile.qc_profile.max_cps == @qc.cinema_profile().max_cps)
     }
     Err(message) => fail(message)
   }
@@ -502,13 +502,13 @@ test "delivery subtitle options preserve srt policy when overriding frame rate" 
     delivery_subtitle_profile_from_options(@cli.DeliverySubtitleCheckOptions::{
       input: "episode.srt",
       profile: "dcp-source-srt",
-      frame_rate: Some(@timecode.Fps25),
+      frame_rate: Some(Fps25),
       output_json: false,
       fail_on_error: false,
       fail_on_warning: false,
     }) {
     Ok(profile) => {
-      assert_true(profile.qc_profile.frame_rate == Some(@timecode.Fps25))
+      assert_true(profile.qc_profile.frame_rate == Some(Fps25))
       assert_true(profile.srt_policy is Some(_))
     }
     Err(message) => fail(message)
@@ -553,7 +553,7 @@ test "delivery package result combines asset and subtitle checks" {
     None,
     Map([]),
     [
-      PackageSubtitleInput::{
+      {
         name: "E01.zh.srt",
         text: "1\n00:00:01,000 --> 00:00:01,100\nToo short\n",
       },
@@ -562,7 +562,7 @@ test "delivery package result combines asset and subtitle checks" {
       input: "deliveries/E01",
       profile: "distribution",
       subtitle_profile: "ott-zh",
-      frame_rate: Some(@timecode.Fps25),
+      frame_rate: Some(Fps25),
       output_json: false,
       fail_on_error: true,
       fail_on_warning: false,
@@ -590,7 +590,7 @@ test "delivery package result prefixes srt source policy subtitle issues" {
     None,
     Map([]),
     [
-      PackageSubtitleInput::{
+      {
         name: "E01.zh.srt",
         text: "1\n00:00:01,000 --> 00:00:03,000\n<font color=\"red\">Opening</font>\n",
       },
@@ -624,7 +624,7 @@ test "delivery package result prefixes dcp frame strict warnings" {
     None,
     Map([]),
     [
-      PackageSubtitleInput::{
+      {
         name: "E01.zh.srt",
         text: "1\n00:00:01,123 --> 00:00:03,123\nOpening\n\n2\n00:00:03,163 --> 00:00:05,000\nNext\n",
       },
@@ -662,17 +662,12 @@ test "delivery package result uses manifest language requirements" {
     Some(manifest),
     None,
     Map([]),
-    [
-      PackageSubtitleInput::{
-        name: "E01.zh.srt",
-        text: "1\n00:00:01,000 --> 00:00:03,000\nReady\n",
-      },
-    ],
+    [{ name: "E01.zh.srt", text: "1\n00:00:01,000 --> 00:00:03,000\nReady\n" }],
     @cli.DeliveryCheckOptions::{
       input: "deliveries/E01",
       profile: "distribution",
       subtitle_profile: "ott-zh",
-      frame_rate: Some(@timecode.Fps25),
+      frame_rate: Some(Fps25),
       output_json: false,
       fail_on_error: true,
       fail_on_warning: false,
@@ -699,17 +694,12 @@ test "delivery package json includes stable package context" {
     Some(manifest),
     None,
     Map([]),
-    [
-      PackageSubtitleInput::{
-        name: "E01.zh.srt",
-        text: "1\n00:00:01,000 --> 00:00:03,000\nReady\n",
-      },
-    ],
+    [{ name: "E01.zh.srt", text: "1\n00:00:01,000 --> 00:00:03,000\nReady\n" }],
     @cli.DeliveryCheckOptions::{
       input: "deliveries/good",
       profile: "distribution",
       subtitle_profile: "ott-zh",
-      frame_rate: Some(@timecode.Fps25),
+      frame_rate: Some(Fps25),
       output_json: true,
       fail_on_error: true,
       fail_on_warning: false,
@@ -738,17 +728,12 @@ test "delivery package result includes checksum verification issues" {
     None,
     Some("\{expected_hash}  E01.mp4\nbad  E01.poster.jpg\n"),
     Map([("E01.mp4", actual_hash)]),
-    [
-      PackageSubtitleInput::{
-        name: "E01.zh.srt",
-        text: "1\n00:00:01,000 --> 00:00:03,000\nReady\n",
-      },
-    ],
+    [{ name: "E01.zh.srt", text: "1\n00:00:01,000 --> 00:00:03,000\nReady\n" }],
     @cli.DeliveryCheckOptions::{
       input: "deliveries/checksum-bad",
       profile: "distribution",
       subtitle_profile: "ott-zh",
-      frame_rate: Some(@timecode.Fps25),
+      frame_rate: Some(Fps25),
       output_json: false,
       fail_on_error: true,
       fail_on_warning: false,

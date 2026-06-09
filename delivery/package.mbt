@@ -74,7 +74,7 @@ fn require_asset_kind(
     !issues.any(issue => issue.code == "D101" && issue.message.contains(label)) {
     push_package_issue(
       issues,
-      @qc.Error,
+      Error,
       "D101",
       "missing required asset: \{label}",
     )
@@ -90,7 +90,7 @@ fn warn_asset_kind(
   if !has_asset_kind(assets, kind) {
     push_package_issue(
       issues,
-      @qc.Warning,
+      Warning,
       "D102",
       "missing recommended asset: \{asset_kind_label(kind)}",
     )
@@ -141,7 +141,7 @@ fn check_manifest_subtitles(
     if !has_subtitle_language(pkg.assets, language) {
       push_package_issue(
         issues,
-        @qc.Error,
+        Error,
         "D202",
         "missing required subtitle language: \{language}",
       )

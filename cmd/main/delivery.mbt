@@ -82,8 +82,8 @@ fn issue_counts(issues : Array[@qc.QcIssue]) -> (Int, Int) {
   let mut warnings = 0
   for issue in issues {
     match issue.severity {
-      @qc.Error => errors += 1
-      @qc.Warning => warnings += 1
+      Error => errors += 1
+      Warning => warnings += 1
     }
   }
   (errors, warnings)
@@ -149,12 +149,7 @@ fn delivery_subtitle_result_for_text(
     Ok(profile) => profile
     Err(message) => {
       let issues = [
-        @qc.QcIssue::{
-          severity: @qc.Error,
-          code: "E000",
-          cue_index: None,
-          message,
-        },
+        @qc.QcIssue::{ severity: Error, code: "E000", cue_index: None, message },
       ]
       return {
         lines: if options.output_json {
@@ -195,7 +190,7 @@ fn delivery_subtitle_result_for_text(
     Err(error) => {
       let issues = [
         @qc.QcIssue::{
-          severity: @qc.Error,
+          severity: Error,
           code: "E000",
           cue_index: None,
           message: "could not parse subtitle file: \{error.format_message()}",
@@ -224,13 +219,13 @@ fn delivery_subtitle_result_for_text(
 ///|
 fn delivery_asset_kind_label(kind : @delivery.AssetKind) -> String {
   match kind {
-    @delivery.VideoAsset => "video"
-    @delivery.SubtitleAsset => "subtitle"
-    @delivery.PosterAsset => "poster"
-    @delivery.MetadataAsset => "metadata"
-    @delivery.ChecksumAsset => "checksum"
-    @delivery.ManifestAsset => "manifest"
-    @delivery.OtherAsset => "other"
+    VideoAsset => "video"
+    SubtitleAsset => "subtitle"
+    PosterAsset => "poster"
+    MetadataAsset => "metadata"
+    ChecksumAsset => "checksum"
+    ManifestAsset => "manifest"
+    OtherAsset => "other"
   }
 }
 
@@ -365,9 +360,9 @@ fn append_subtitle_check_issues(
         push_cli_issue(
           issues,
           if @qc.has_errors(subtitle_issues) {
-            @qc.Error
+            Error
           } else {
-            @qc.Warning
+            Warning
           },
           "D302",
           "\{subtitle.name}: subtitle QC reported \{errors} errors, \{warnings} warnings",
@@ -402,12 +397,7 @@ fn delivery_package_result_for_inputs_with_checksums(
     Ok(profile) => profile
     Err(message) => {
       let issues = [
-        @qc.QcIssue::{
-          severity: @qc.Error,
-          code: "E000",
-          cue_index: None,
-          message,
-        },
+        @qc.QcIssue::{ severity: Error, code: "E000", cue_index: None, message },
       ]
       return {
         lines: if options.output_json {
@@ -427,12 +417,7 @@ fn delivery_package_result_for_inputs_with_checksums(
     Ok(profile) => profile
     Err(message) => {
       let issues = [
-        @qc.QcIssue::{
-          severity: @qc.Error,
-          code: "E000",
-          cue_index: None,
-          message,
-        },
+        @qc.QcIssue::{ severity: Error, code: "E000", cue_index: None, message },
       ]
       return {
         lines: if options.output_json {
@@ -452,7 +437,7 @@ fn delivery_package_result_for_inputs_with_checksums(
         Err(message) => {
           push_cli_issue(
             issues,
-            @qc.Error,
+            Error,
             "D201",
             "could not parse delivery manifest: \{message}",
           )
@@ -507,7 +492,7 @@ fn delivery_package_result_for_inputs_with_checksums(
 ///|
 fn first_checksum_file(entries : Array[String]) -> String? {
   for name in entries {
-    if @delivery.classify_asset(name) == @delivery.ChecksumAsset {
+    if @delivery.classify_asset(name) == ChecksumAsset {
       return Some(name)
     }
   }
@@ -585,7 +570,7 @@ async fn run_delivery_check(options : @cli.DeliveryCheckOptions) -> Int {
       }
       let subtitles : Array[PackageSubtitleInput] = []
       for name in entries {
-        if @delivery.classify_asset(name) == @delivery.SubtitleAsset {
+        if @delivery.classify_asset(name) == SubtitleAsset {
           match read_text_file(join_path(options.input, name)) {
             Some(text) => subtitles.push({ name, text })
             None => subtitles.push({ name, text: "" })
