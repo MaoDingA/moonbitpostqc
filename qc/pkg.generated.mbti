@@ -60,6 +60,8 @@ pub fn no_text_style_profile() -> TextStyleProfile
 
 pub fn normalize_punctuation(String, mode~ : TextStyleMode) -> String
 
+pub fn parse_user_terms_file(String) -> Result[UserTermsFile, String]
+
 pub fn profile_by_name(String) -> QcProfile?
 
 pub fn social_video_profile() -> QcProfile
@@ -175,6 +177,12 @@ pub(all) struct UserTerm {
   preferred : String
   reason : String
   forbidden : Bool
+} derive(Eq, @debug.Debug)
+
+pub(all) struct UserTermsFile {
+  confusion_pairs : Array[ConfusionPair]
+  consistency_terms : Array[ConsistencyTerm]
+  user_terms : Array[UserTerm]
 } derive(Eq, @debug.Debug)
 
 // Type aliases

@@ -36,6 +36,7 @@ pub(all) struct CreatorCheckOptions {
   profile : String
   output_json : Bool
   fail_on_error : Bool
+  terms : String?
 } derive(Eq, @debug.Debug)
 
 pub(all) struct CreatorCleanOptions {
@@ -43,6 +44,7 @@ pub(all) struct CreatorCleanOptions {
   profile : String
   output : String?
   verbose : Bool
+  terms : String?
 } derive(Eq, @debug.Debug)
 
 pub(all) enum CreatorCommand {

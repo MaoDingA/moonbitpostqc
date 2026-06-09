@@ -1,0 +1,12 @@
+{
+  "confusion_pairs": [
+    { "wrong": "老铁", "correct": "朋友", "context": "品牌调性" },
+    { "wrong": "up主", "correct": "UP主", "context": "规范写法" }
+  ],
+  "consistency_terms": [
+    { "canonical": "MoonPost", "variants": ["moonpost", "MOONPOST"] }
+  ],
+  "user_terms": [
+    { "pattern": "TODO", "preferred": "（待删除）", "reason": "残留标记", "forbidden": true }
+  ]
+}

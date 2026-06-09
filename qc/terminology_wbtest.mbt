@@ -209,3 +209,106 @@ test "fix confusion pairs replaces de complement" {
   )
   assert_eq(result.text, "跑得快")
 }
+
+///|
+test "parse user terms file loads confusion pairs" {
+  let raw =
+    #|{
+    #|  "confusion_pairs": [
+    #|    { "wrong": "登陆", "correct": "登录", "context": "登录/登陆" },
+    #|    { "wrong": "帐号", "correct": "账号", "context": "账号/帐号" }
+    #|  ]
+    #|}
+  match parse_user_terms_file(raw) {
+    Ok(terms) => {
+      assert_eq(terms.confusion_pairs.length(), 2)
+      assert_eq(terms.confusion_pairs[0].wrong, "登陆")
+      assert_eq(terms.confusion_pairs[0].correct, "登录")
+      assert_eq(terms.confusion_pairs[1].wrong, "帐号")
+      assert_eq(terms.consistency_terms.length(), 0)
+      assert_eq(terms.user_terms.length(), 0)
+    }
+    Err(message) => fail("parse failed: \{message}")
+  }
+}
+
+///|
+test "parse user terms file loads consistency terms" {
+  let raw =
+    #|{
+    #|  "consistency_terms": [
+    #|    { "canonical": "Vue", "variants": ["vue", "VUE"] },
+    #|    { "canonical": "React", "variants": ["react"] }
+    #|  ]
+    #|}
+  match parse_user_terms_file(raw) {
+    Ok(terms) => {
+      assert_eq(terms.consistency_terms.length(), 2)
+      assert_eq(terms.consistency_terms[0].canonical, "Vue")
+      assert_eq(terms.consistency_terms[0].variants.length(), 2)
+      assert_eq(terms.confusion_pairs.length(), 0)
+    }
+    Err(message) => fail("parse failed: \{message}")
+  }
+}
+
+///|
+test "parse user terms file loads user terms with forbidden flag" {
+  let raw =
+    #|{
+    #|  "user_terms": [
+    #|    { "pattern": "老铁", "preferred": "朋友", "reason": "品牌调性", "forbidden": true },
+    #|    { "pattern": "github", "preferred": "GitHub", "reason": "品牌大小写" }
+    #|  ]
+    #|}
+  match parse_user_terms_file(raw) {
+    Ok(terms) => {
+      assert_eq(terms.user_terms.length(), 2)
+      assert_true(terms.user_terms[0].forbidden)
+      assert_false(terms.user_terms[1].forbidden)
+      assert_eq(terms.user_terms[1].preferred, "GitHub")
+    }
+    Err(message) => fail("parse failed: \{message}")
+  }
+}
+
+///|
+test "parse user terms file handles empty object" {
+  let raw = "{}"
+  match parse_user_terms_file(raw) {
+    Ok(terms) => {
+      assert_eq(terms.confusion_pairs.length(), 0)
+      assert_eq(terms.consistency_terms.length(), 0)
+      assert_eq(terms.user_terms.length(), 0)
+    }
+    Err(message) => fail("parse failed: \{message}")
+  }
+}
+
+///|
+test "parse user terms file rejects invalid json" {
+  let raw = "not json"
+  match parse_user_terms_file(raw) {
+    Ok(_) => fail("expected parse error")
+    Err(message) => assert_true(message.contains("invalid terms file"))
+  }
+}
+
+///|
+test "parse user terms file skips entries missing required fields" {
+  let raw =
+    #|{
+    #|  "confusion_pairs": [
+    #|    { "wrong": "登陆" },
+    #|    { "wrong": "帐号", "correct": "账号" }
+    #|  ]
+    #|}
+  match parse_user_terms_file(raw) {
+    Ok(terms) => {
+      // First entry missing "correct" — skipped
+      assert_eq(terms.confusion_pairs.length(), 1)
+      assert_eq(terms.confusion_pairs[0].wrong, "帐号")
+    }
+    Err(message) => fail("parse failed: \{message}")
+  }
+}

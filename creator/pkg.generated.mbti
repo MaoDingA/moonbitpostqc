@@ -12,11 +12,11 @@ pub fn bilibili_profile() -> CreatorProfile
 
 pub fn bilingual_profile() -> CreatorProfile
 
-pub fn check_creator_cues(Array[@subtitle.Cue], CreatorProfile) -> Array[@qc.QcIssue]
+pub fn check_creator_cues(Array[@subtitle.Cue], CreatorProfile, @qc.UserTermsFile?) -> Array[@qc.QcIssue]
 
-pub fn clean_creator_cues(Array[@subtitle.Cue], CreatorProfile) -> CueCleanResult
+pub fn clean_creator_cues(Array[@subtitle.Cue], CreatorProfile, @qc.UserTermsFile?) -> CueCleanResult
 
-pub fn clean_creator_line(String, CreatorProfile) -> @qc.LineCleanResult
+pub fn clean_creator_line(String, CreatorProfile, @qc.UserTermsFile?) -> @qc.LineCleanResult
 
 pub fn creator_profile_by_name(String) -> CreatorProfile?
 

@@ -14,6 +14,7 @@ pub(all) struct CreatorCheckOptions {
   profile : String
   output_json : Bool
   fail_on_error : Bool
+  terms : String?
 } derive(Eq, Debug)
 
 ///|
@@ -22,6 +23,7 @@ pub(all) struct CreatorCleanOptions {
   profile : String
   output : String?
   verbose : Bool
+  terms : String?
 } derive(Eq, Debug)
 
 ///|
@@ -309,6 +311,7 @@ fn parse_creator(args : Array[String]) -> Command {
             profile: option_value(args, "--profile", "douyin"),
             output_json: has_flag(args, "--json"),
             fail_on_error: has_flag(args, "--fail-on-error"),
+            terms: option_string(args, "--terms"),
           }),
         )
       Some("clean") =>
@@ -321,6 +324,7 @@ fn parse_creator(args : Array[String]) -> Command {
             profile: option_value(args, "--profile", "douyin"),
             output: output_option(args),
             verbose: has_flag(args, "--verbose") || has_flag(args, "-v"),
+            terms: option_string(args, "--terms"),
           }),
         )
       _ => Help(CreatorHelp)
@@ -600,8 +604,8 @@ pub fn help_lines(topic : HelpTopic) -> Array[String] {
       ]
     CreatorHelp =>
       [
-        "Usage:", "  moonpost creator check <file> [--profile <name>] [--json] [--fail-on-error]",
-        "  moonpost creator clean <file> [--profile <name>] [-o <file>|--output <file>] [--verbose|-v]",
+        "Usage:", "  moonpost creator check <file> [--profile <name>] [--json] [--fail-on-error] [--terms <file>]",
+        "  moonpost creator clean <file> [--profile <name>] [-o <file>|--output <file>] [--verbose|-v] [--terms <file>]",
       ]
     DeliveryHelp =>
       [

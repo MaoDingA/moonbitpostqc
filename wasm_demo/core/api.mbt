@@ -39,7 +39,7 @@ pub fn creator_check(input : String, profile_name : String) -> String {
         Some(profile) =>
           @qc.format_report(
             "uploaded subtitle",
-            @creator.check_creator_cues(track.cues, profile),
+            @creator.check_creator_cues(track.cues, profile, None),
           ).join("\n")
         None =>
           [

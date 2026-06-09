@@ -238,12 +238,18 @@ test "split bilingual text returns two subtitle tracks" {
 ///|
 test "creator check reports text style warnings through creator profile" {
   let input = "1\n00:00:01,000 --> 00:00:03,000\n你好, world！！\n"
-  let result = creator_check_result_for_text("creator.srt", input, @cli.CreatorCheckOptions::{
-    input: "creator.srt",
-    profile: "bilingual",
-    output_json: false,
-    fail_on_error: false,
-  })
+  let result = creator_check_result_for_text(
+    "creator.srt",
+    input,
+    @cli.CreatorCheckOptions::{
+      input: "creator.srt",
+      profile: "bilingual",
+      output_json: false,
+      fail_on_error: false,
+      terms: None,
+    },
+    None,
+  )
   let report = result.lines.join("\n")
   assert_true(report.contains("W501"))
   assert_true(report.contains("W502"))
@@ -254,12 +260,17 @@ test "creator check reports text style warnings through creator profile" {
 test "creator clean normalizes punctuation through creator profile" {
   let input = "1\n00:00:01,000 --> 00:00:02,000\n你好,世界!\n"
   match
-    creator_clean_text(input, @cli.CreatorCleanOptions::{
-      input: "creator.srt",
-      profile: "douyin",
-      output: None,
-      verbose: false,
-    }) {
+    creator_clean_text(
+      input,
+      @cli.CreatorCleanOptions::{
+        input: "creator.srt",
+        profile: "douyin",
+        output: None,
+        verbose: false,
+        terms: None,
+      },
+      None,
+    ) {
     Some(result) => assert_true(result.output.contains("你好，世界！"))
     None => fail("expected creator clean output")
   }
@@ -268,12 +279,17 @@ test "creator clean normalizes punctuation through creator profile" {
 ///|
 test "creator clean text fixes repeated words confusion and punctuation" {
   let input = "1\n00:00:01,000 --> 00:00:03,500\n然后然后我们认真的做好每一步\n\n2\n00:00:04,000 --> 00:00:07,000\n[Music] 你好,世界!\n"
-  let clean_result = creator_clean_text(input, @cli.CreatorCleanOptions::{
-    input: "ai.srt",
-    profile: "douyin",
-    output: None,
-    verbose: false,
-  })
+  let clean_result = creator_clean_text(
+    input,
+    @cli.CreatorCleanOptions::{
+      input: "ai.srt",
+      profile: "douyin",
+      output: None,
+      verbose: false,
+      terms: None,
+    },
+    None,
+  )
   match clean_result {
     Some(result) => {
       // Repeated word fixed
@@ -302,12 +318,17 @@ test "creator clean text fixes repeated words confusion and punctuation" {
 ///|
 test "creator clean text leaves good subtitle mostly unchanged" {
   let input = "1\n00:00:01,000 --> 00:00:03,500\n今天我们来介绍 MoonPost\n"
-  let clean_result = creator_clean_text(input, @cli.CreatorCleanOptions::{
-    input: "good.srt",
-    profile: "douyin",
-    output: None,
-    verbose: false,
-  })
+  let clean_result = creator_clean_text(
+    input,
+    @cli.CreatorCleanOptions::{
+      input: "good.srt",
+      profile: "douyin",
+      output: None,
+      verbose: false,
+      terms: None,
+    },
+    None,
+  )
   match clean_result {
     Some(result) =>
       assert_true(result.output.contains("今天我们来介绍 MoonPost"))
@@ -318,12 +339,17 @@ test "creator clean text leaves good subtitle mostly unchanged" {
 ///|
 test "creator clean text handles bilingual profile" {
   let input = "1\n00:00:01,000 --> 00:00:03,000\n然后然后 the the quick brown fox\n"
-  let clean_result = creator_clean_text(input, @cli.CreatorCleanOptions::{
-    input: "mixed.srt",
-    profile: "bilingual",
-    output: None,
-    verbose: false,
-  })
+  let clean_result = creator_clean_text(
+    input,
+    @cli.CreatorCleanOptions::{
+      input: "mixed.srt",
+      profile: "bilingual",
+      output: None,
+      verbose: false,
+      terms: None,
+    },
+    None,
+  )
   match clean_result {
     Some(result) => {
       assert_false(result.output.contains("然后然后"))
@@ -519,12 +545,18 @@ test "delivery subtitle json report keeps schema for parse errors" {
 
 ///|
 test "creator check rejects unknown profile" {
-  let result = creator_check_result_for_text("creator.srt", "", @cli.CreatorCheckOptions::{
-    input: "creator.srt",
-    profile: "typo",
-    output_json: false,
-    fail_on_error: false,
-  })
+  let result = creator_check_result_for_text(
+    "creator.srt",
+    "",
+    @cli.CreatorCheckOptions::{
+      input: "creator.srt",
+      profile: "typo",
+      output_json: false,
+      fail_on_error: false,
+      terms: None,
+    },
+    None,
+  )
   let report = result.lines.join("\n")
   assert_true(report.contains("unknown creator profile: typo"))
   assert_eq(result.exit_code, 2)
@@ -855,4 +887,73 @@ test "format clean summary shows no changes for clean file" {
   let report = lines.join("\n")
   assert_true(report.contains("Clean summary for good.srt:"))
   assert_true(report.contains("No changes applied."))
+}
+
+///|
+test "creator clean with user terms file fixes custom confusion pairs" {
+  let terms_json =
+    #|{
+    #|  "confusion_pairs": [
+    #|    { "wrong": "老铁", "correct": "朋友", "context": "品牌调性" }
+    #|  ]
+    #|}
+  match @qc.parse_user_terms_file(terms_json) {
+    Ok(terms) => {
+      let input = "1\n00:00:01,000 --> 00:00:03,000\n老铁们大家好\n"
+      let clean_result = creator_clean_text(
+        input,
+        @cli.CreatorCleanOptions::{
+          input: "test.srt",
+          profile: "douyin",
+          output: None,
+          verbose: false,
+          terms: None,
+        },
+        Some(terms),
+      )
+      match clean_result {
+        Some(result) => {
+          assert_false(result.output.contains("老铁"))
+          assert_true(result.output.contains("朋友"))
+          assert_true(result.actions.length() > 0)
+          assert_true(result.actions[0].original == "老铁")
+          assert_true(result.actions[0].replacement == "朋友")
+        }
+        None => fail("expected cleaned output")
+      }
+    }
+    Err(message) => fail("terms parse failed: \{message}")
+  }
+}
+
+///|
+test "creator check with user terms file detects custom issues" {
+  let terms_json =
+    #|{
+    #|  "user_terms": [
+    #|    { "pattern": "TODO", "preferred": "remove", "reason": "undone", "forbidden": true }
+    #|  ]
+    #|}
+  let user_terms = @qc.parse_user_terms_file(terms_json)
+  match user_terms {
+    Ok(terms) => {
+      let input = "1\n00:00:01,000 --> 00:00:03,000\nTODO fix this later\n"
+      let result = creator_check_result_for_text(
+        "test.srt",
+        input,
+        @cli.CreatorCheckOptions::{
+          input: "test.srt",
+          profile: "douyin",
+          output_json: false,
+          fail_on_error: true,
+          terms: None,
+        },
+        Some(terms),
+      )
+      let report = result.lines.join("\n")
+      assert_true(report.contains("C403"))
+      assert_eq(result.exit_code, 1) // forbidden = error
+    }
+    Err(message) => fail("terms parse failed: \{message}")
+  }
 }

@@ -13,6 +13,7 @@ fn creator_check_result_for_text(
   name : String,
   input : String,
   options : @cli.CreatorCheckOptions,
+  user_terms : @qc.UserTermsFile?,
 ) -> QcCliResult {
   let creator_profile = match creator_profile_from_name(options.profile) {
     Ok(profile) => profile
@@ -32,7 +33,11 @@ fn creator_check_result_for_text(
   }
   match parse_subtitle_text_detailed(input) {
     Ok(track) => {
-      let issues = @creator.check_creator_cues(track.cues, creator_profile)
+      let issues = @creator.check_creator_cues(
+        track.cues,
+        creator_profile,
+        user_terms,
+      )
       let lines = if options.output_json {
         [@qc.format_json_report(name, issues)]
       } else {
@@ -78,11 +83,12 @@ struct CleanTextResult {
 fn creator_clean_text(
   input : String,
   options : @cli.CreatorCleanOptions,
+  user_terms : @qc.UserTermsFile?,
 ) -> CleanTextResult? {
   match
     (parse_subtitle_text(input), creator_profile_from_name(options.profile)) {
     (Some(track), Ok(profile)) => {
-      let result = @creator.clean_creator_cues(track.cues, profile)
+      let result = @creator.clean_creator_cues(track.cues, profile, user_terms)
       Some({
         output: write_track({ format: track.format, cues: result.cues }),
         actions: result.actions,
@@ -113,9 +119,32 @@ fn format_clean_summary(
 
 ///|
 async fn run_creator_check(options : @cli.CreatorCheckOptions) -> Int {
+  let user_terms = match options.terms {
+    Some(path) =>
+      match read_text_file(path) {
+        Some(raw) =>
+          match @qc.parse_user_terms_file(raw) {
+            Ok(terms) => Some(terms)
+            Err(message) => {
+              println("warning: could not parse terms file: \{message}")
+              None
+            }
+          }
+        None => {
+          println("warning: could not read terms file: \{path}")
+          None
+        }
+      }
+    None => None
+  }
   match read_text_file(options.input) {
     Some(text) => {
-      let result = creator_check_result_for_text(options.input, text, options)
+      let result = creator_check_result_for_text(
+        options.input,
+        text,
+        options,
+        user_terms,
+      )
       print_lines(result.lines)
       result.exit_code
     }
@@ -135,9 +164,27 @@ async fn run_creator_clean(options : @cli.CreatorCleanOptions) -> Int {
       return 2
     }
   }
+  let user_terms = match options.terms {
+    Some(path) =>
+      match read_text_file(path) {
+        Some(raw) =>
+          match @qc.parse_user_terms_file(raw) {
+            Ok(terms) => Some(terms)
+            Err(message) => {
+              println("warning: could not parse terms file: \{message}")
+              None
+            }
+          }
+        None => {
+          println("warning: could not read terms file: \{path}")
+          None
+        }
+      }
+    None => None
+  }
   match read_text_file(options.input) {
     Some(text) =>
-      match creator_clean_text(text, options) {
+      match creator_clean_text(text, options, user_terms) {
         Some(result) =>
           match options.output {
             Some(path) => {
