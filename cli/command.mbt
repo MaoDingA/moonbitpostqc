@@ -21,6 +21,7 @@ pub(all) struct CreatorCleanOptions {
   input : String
   profile : String
   output : String?
+  verbose : Bool
 } derive(Eq, Debug)
 
 ///|
@@ -319,6 +320,7 @@ fn parse_creator(args : Array[String]) -> Command {
             },
             profile: option_value(args, "--profile", "douyin"),
             output: output_option(args),
+            verbose: has_flag(args, "--verbose") || has_flag(args, "-v"),
           }),
         )
       _ => Help(CreatorHelp)
@@ -599,7 +601,7 @@ pub fn help_lines(topic : HelpTopic) -> Array[String] {
     CreatorHelp =>
       [
         "Usage:", "  moonpost creator check <file> [--profile <name>] [--json] [--fail-on-error]",
-        "  moonpost creator clean <file> [--profile <name>] [-o <file>|--output <file>]",
+        "  moonpost creator clean <file> [--profile <name>] [-o <file>|--output <file>] [--verbose|-v]",
       ]
     DeliveryHelp =>
       [

@@ -258,8 +258,9 @@ test "creator clean normalizes punctuation through creator profile" {
       input: "creator.srt",
       profile: "douyin",
       output: None,
+      verbose: false,
     }) {
-    Some(output) => assert_true(output.contains("你好，世界！"))
+    Some(result) => assert_true(result.output.contains("你好，世界！"))
     None => fail("expected creator clean output")
   }
 }
@@ -271,21 +272,28 @@ test "creator clean text fixes repeated words confusion and punctuation" {
     input: "ai.srt",
     profile: "douyin",
     output: None,
+    verbose: false,
   })
   match clean_result {
-    Some(output) => {
+    Some(result) => {
       // Repeated word fixed
-      assert_false(output.contains("然后然后"))
-      assert_true(output.contains("然后我们"))
+      assert_false(result.output.contains("然后然后"))
+      assert_true(result.output.contains("然后我们"))
       // ASR marker removed
-      assert_false(output.contains("[Music]"))
+      assert_false(result.output.contains("[Music]"))
       // Confusion pair fixed
-      assert_false(output.contains("认真的做"))
-      assert_true(output.contains("认真地做"))
+      assert_false(result.output.contains("认真的做"))
+      assert_true(result.output.contains("认真地做"))
       // Punctuation normalized
-      assert_true(output.contains("你好，世界！"))
+      assert_true(result.output.contains("你好，世界！"))
       // Timing unchanged
-      assert_true(output.contains("00:00:01,000 --> 00:00:03,500"))
+      assert_true(result.output.contains("00:00:01,000 --> 00:00:03,500"))
+      // Actions recorded
+      assert_true(result.actions.length() > 0)
+      let codes = result.actions.map(fn(a) { a.code })
+      assert_true(codes.contains("C601"))
+      assert_true(codes.contains("C602"))
+      assert_true(codes.contains("C401"))
     }
     None => fail("expected cleaned subtitle output")
   }
@@ -298,10 +306,11 @@ test "creator clean text leaves good subtitle mostly unchanged" {
     input: "good.srt",
     profile: "douyin",
     output: None,
+    verbose: false,
   })
   match clean_result {
-    Some(output) =>
-      assert_true(output.contains("今天我们来介绍 MoonPost"))
+    Some(result) =>
+      assert_true(result.output.contains("今天我们来介绍 MoonPost"))
     None => fail("expected cleaned subtitle output")
   }
 }
@@ -313,11 +322,12 @@ test "creator clean text handles bilingual profile" {
     input: "mixed.srt",
     profile: "bilingual",
     output: None,
+    verbose: false,
   })
   match clean_result {
-    Some(output) => {
-      assert_false(output.contains("然后然后"))
-      assert_false(output.contains("the the"))
+    Some(result) => {
+      assert_false(result.output.contains("然后然后"))
+      assert_false(result.output.contains("the the"))
     }
     None => fail("expected cleaned subtitle output")
   }
@@ -813,4 +823,36 @@ async test "delivery file sha256 reads file bytes" {
     Some(hash) => assert_eq(hash, @delivery.sha256_hex(b"actual-video"))
     None => fail("expected file hash")
   }
+}
+
+///|
+test "format clean summary lists actions for changed file" {
+  let actions = [
+    @qc.CleanAction::{
+      code: "C601",
+      original: "然后然后",
+      replacement: "然后",
+    },
+    @qc.CleanAction::{ code: "C602", original: "[Music]", replacement: "" },
+    @qc.CleanAction::{
+      code: "C401",
+      original: "认真的做",
+      replacement: "认真地做",
+    },
+  ]
+  let lines = format_clean_summary("ai.srt", actions)
+  let report = lines.join("\n")
+  assert_true(report.contains("Clean summary for ai.srt:"))
+  assert_true(report.contains("C601: '然后然后' → '然后'"))
+  assert_true(report.contains("C602: '[Music]' → ''"))
+  assert_true(report.contains("C401: '认真的做' → '认真地做'"))
+  assert_true(report.contains("3 action(s) applied."))
+}
+
+///|
+test "format clean summary shows no changes for clean file" {
+  let lines = format_clean_summary("good.srt", [])
+  let report = lines.join("\n")
+  assert_true(report.contains("Clean summary for good.srt:"))
+  assert_true(report.contains("No changes applied."))
 }

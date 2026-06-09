@@ -69,18 +69,46 @@ fn creator_check_result_for_text(
 }
 
 ///|
+struct CleanTextResult {
+  output : String
+  actions : Array[@qc.CleanAction]
+} derive(Eq, Debug)
+
+///|
 fn creator_clean_text(
   input : String,
   options : @cli.CreatorCleanOptions,
-) -> String? {
+) -> CleanTextResult? {
   match
     (parse_subtitle_text(input), creator_profile_from_name(options.profile)) {
     (Some(track), Ok(profile)) => {
       let result = @creator.clean_creator_cues(track.cues, profile)
-      Some(write_track({ format: track.format, cues: result.cues }))
+      Some({
+        output: write_track({ format: track.format, cues: result.cues }),
+        actions: result.actions,
+      })
     }
     _ => None
   }
+}
+
+///|
+fn format_clean_summary(
+  name : String,
+  actions : Array[@qc.CleanAction],
+) -> Array[String] {
+  let lines : Array[String] = []
+  if actions.length() == 0 {
+    lines.push("Clean summary for \{name}:")
+    lines.push("  No changes applied.")
+    return lines
+  }
+  lines.push("Clean summary for \{name}:")
+  for action in actions {
+    lines.push("  \{action.describe()}")
+  }
+  lines.push("\{actions.length()} action(s) applied.")
+  lines
 }
 
 ///|
@@ -110,17 +138,25 @@ async fn run_creator_clean(options : @cli.CreatorCleanOptions) -> Int {
   match read_text_file(options.input) {
     Some(text) =>
       match creator_clean_text(text, options) {
-        Some(output) =>
+        Some(result) =>
           match options.output {
-            Some(path) =>
-              if !write_text_file(path, output) {
+            Some(path) => {
+              if options.verbose {
+                print_lines(format_clean_summary(options.input, result.actions))
+              }
+              if !write_text_file(path, result.output) {
                 println("could not write file: \{path}")
                 2
               } else {
                 0
               }
+            }
             None => {
-              println(output)
+              if options.verbose {
+                print_lines(format_clean_summary(options.input, result.actions))
+                println("---")
+              }
+              println(result.output)
               0
             }
           }

@@ -42,6 +42,7 @@ pub(all) struct CreatorCleanOptions {
   input : String
   profile : String
   output : String?
+  verbose : Bool
 } derive(Eq, @debug.Debug)
 
 pub(all) enum CreatorCommand {
