@@ -38,6 +38,12 @@ pub fn default_profile() -> QcProfile
 
 pub fn en_text_style_profile() -> TextStyleProfile
 
+pub fn fix_asr_markers_line(String, Array[AsrMarker]) -> LineCleanResult
+
+pub fn fix_confusion_pairs_line(String, Array[ConfusionPair]) -> LineCleanResult
+
+pub fn fix_repeated_words_line(String, TextStyleMode) -> LineCleanResult
+
 pub fn format_json_report(String, Array[QcIssue]) -> String
 
 pub fn format_json_report_with_context(String, Array[QcIssue], QcReportContext) -> String
@@ -74,6 +80,13 @@ pub(all) struct AsrMarker {
   description : String
 } derive(Eq, @debug.Debug)
 
+pub(all) struct CleanAction {
+  code : String
+  original : String
+  replacement : String
+} derive(Eq, @debug.Debug)
+pub fn CleanAction::describe(Self) -> String
+
 pub(all) struct ConfusionPair {
   wrong : String
   correct : String
@@ -95,6 +108,12 @@ pub(all) struct FillerWord {
   word : String
   description : String
 } derive(Eq, @debug.Debug)
+
+pub(all) struct LineCleanResult {
+  text : String
+  actions : Array[CleanAction]
+} derive(Eq, @debug.Debug)
+pub fn LineCleanResult::is_clean(Self) -> Bool
 
 pub(all) struct QcIssue {
   severity : Severity

@@ -38,3 +38,64 @@ pub fn normalize_creator_line(
 ) -> String {
   @qc.normalize_punctuation(text, mode=profile.punctuation_mode)
 }
+
+///|
+pub(all) struct CueCleanResult {
+  cues : Array[@subtitle.Cue]
+  actions : Array[@qc.CleanAction]
+} derive(Eq, Debug)
+
+///|
+pub fn CueCleanResult::total_actions(self : CueCleanResult) -> Int {
+  self.actions.length()
+}
+
+///|
+pub fn clean_creator_line(
+  text : String,
+  profile : CreatorProfile,
+) -> @qc.LineCleanResult {
+  let mode = profile.text_style.mode
+  let markers = @qc.default_asr_markers_list()
+  let pairs = @qc.default_confusion_pairs_list()
+
+  // Step 1: fix repeated words
+  let step1 = @qc.fix_repeated_words_line(text, mode)
+  // Step 2: remove ASR markers
+  let step2 = @qc.fix_asr_markers_line(step1.text, markers)
+  // Step 3: fix confusion pairs
+  let step3 = @qc.fix_confusion_pairs_line(step2.text, pairs)
+  // Step 4: normalize punctuation
+  let normalized = @qc.normalize_punctuation(step3.text, mode~)
+
+  let all_actions = step1.actions + step2.actions + step3.actions
+  { text: normalized, actions: all_actions }
+}
+
+///|
+pub fn clean_creator_cues(
+  cues : Array[@subtitle.Cue],
+  profile : CreatorProfile,
+) -> CueCleanResult {
+  let cleaned_cues : Array[@subtitle.Cue] = []
+  let all_actions : Array[@qc.CleanAction] = []
+  for cue in cues {
+    let text : Array[String] = []
+    for line in cue.text {
+      let result = clean_creator_line(line, profile)
+      text.push(result.text)
+      for action in result.actions {
+        all_actions.push(action)
+      }
+    }
+    cleaned_cues.push({
+      index: cue.index,
+      identifier: cue.identifier,
+      start_ms: cue.start_ms,
+      end_ms: cue.end_ms,
+      text,
+      settings: cue.settings,
+    })
+  }
+  { cues: cleaned_cues, actions: all_actions }
+}

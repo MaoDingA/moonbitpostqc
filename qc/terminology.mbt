@@ -260,3 +260,23 @@ pub fn check_terminology_cues(
   check_consistency(issues, cues, consistency_terms)
   issues
 }
+
+///|
+pub fn fix_confusion_pairs_line(
+  line : String,
+  pairs : Array[ConfusionPair],
+) -> LineCleanResult {
+  let actions : Array[CleanAction] = []
+  let mut result = line
+  for pair in pairs {
+    if result.contains(pair.wrong) {
+      actions.push({
+        code: "C401",
+        original: pair.wrong,
+        replacement: pair.correct,
+      })
+      result = result.replace_all(old=pair.wrong, new=pair.correct)
+    }
+  }
+  { text: result, actions }
+}

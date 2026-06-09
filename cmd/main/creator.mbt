@@ -76,22 +76,8 @@ fn creator_clean_text(
   match
     (parse_subtitle_text(input), creator_profile_from_name(options.profile)) {
     (Some(track), Ok(profile)) => {
-      let cues : Array[@subtitle.Cue] = []
-      for cue in track.cues {
-        let text : Array[String] = []
-        for line in cue.text {
-          text.push(@creator.normalize_creator_line(line, profile))
-        }
-        cues.push({
-          index: cue.index,
-          identifier: cue.identifier,
-          start_ms: cue.start_ms,
-          end_ms: cue.end_ms,
-          text,
-          settings: cue.settings,
-        })
-      }
-      Some(write_track({ format: track.format, cues }))
+      let result = @creator.clean_creator_cues(track.cues, profile)
+      Some(write_track({ format: track.format, cues: result.cues }))
     }
     _ => None
   }

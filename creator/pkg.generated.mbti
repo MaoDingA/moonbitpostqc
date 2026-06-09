@@ -14,6 +14,10 @@ pub fn bilingual_profile() -> CreatorProfile
 
 pub fn check_creator_cues(Array[@subtitle.Cue], CreatorProfile) -> Array[@qc.QcIssue]
 
+pub fn clean_creator_cues(Array[@subtitle.Cue], CreatorProfile) -> CueCleanResult
+
+pub fn clean_creator_line(String, CreatorProfile) -> @qc.LineCleanResult
+
 pub fn creator_profile_by_name(String) -> CreatorProfile?
 
 pub fn douyin_profile() -> CreatorProfile
@@ -39,6 +43,12 @@ pub(all) struct CreatorProfile {
   text_style : @qc.TextStyleProfile
   punctuation_mode : @qc.TextStyleMode
 } derive(Eq, @debug.Debug)
+
+pub(all) struct CueCleanResult {
+  cues : Array[@subtitle.Cue]
+  actions : Array[@qc.CleanAction]
+} derive(Eq, @debug.Debug)
+pub fn CueCleanResult::total_actions(Self) -> Int
 
 // Type aliases
 

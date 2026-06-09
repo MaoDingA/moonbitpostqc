@@ -265,6 +265,65 @@ test "creator clean normalizes punctuation through creator profile" {
 }
 
 ///|
+test "creator clean text fixes repeated words confusion and punctuation" {
+  let input = "1\n00:00:01,000 --> 00:00:03,500\n然后然后我们认真的做好每一步\n\n2\n00:00:04,000 --> 00:00:07,000\n[Music] 你好,世界!\n"
+  let clean_result = creator_clean_text(input, @cli.CreatorCleanOptions::{
+    input: "ai.srt",
+    profile: "douyin",
+    output: None,
+  })
+  match clean_result {
+    Some(output) => {
+      // Repeated word fixed
+      assert_false(output.contains("然后然后"))
+      assert_true(output.contains("然后我们"))
+      // ASR marker removed
+      assert_false(output.contains("[Music]"))
+      // Confusion pair fixed
+      assert_false(output.contains("认真的做"))
+      assert_true(output.contains("认真地做"))
+      // Punctuation normalized
+      assert_true(output.contains("你好，世界！"))
+      // Timing unchanged
+      assert_true(output.contains("00:00:01,000 --> 00:00:03,500"))
+    }
+    None => fail("expected cleaned subtitle output")
+  }
+}
+
+///|
+test "creator clean text leaves good subtitle mostly unchanged" {
+  let input = "1\n00:00:01,000 --> 00:00:03,500\n今天我们来介绍 MoonPost\n"
+  let clean_result = creator_clean_text(input, @cli.CreatorCleanOptions::{
+    input: "good.srt",
+    profile: "douyin",
+    output: None,
+  })
+  match clean_result {
+    Some(output) =>
+      assert_true(output.contains("今天我们来介绍 MoonPost"))
+    None => fail("expected cleaned subtitle output")
+  }
+}
+
+///|
+test "creator clean text handles bilingual profile" {
+  let input = "1\n00:00:01,000 --> 00:00:03,000\n然后然后 the the quick brown fox\n"
+  let clean_result = creator_clean_text(input, @cli.CreatorCleanOptions::{
+    input: "mixed.srt",
+    profile: "bilingual",
+    output: None,
+  })
+  match clean_result {
+    Some(output) => {
+      assert_false(output.contains("然后然后"))
+      assert_false(output.contains("the the"))
+    }
+    None => fail("expected cleaned subtitle output")
+  }
+}
+
+///|
 test "delivery subtitle check uses delivery profile defaults" {
   let input = "1\n00:00:01,000 --> 00:00:03,000\n1234567890123456789012345678901234567890\n"
   let result = delivery_subtitle_result_for_text("episode.srt", input, @cli.DeliverySubtitleCheckOptions::{

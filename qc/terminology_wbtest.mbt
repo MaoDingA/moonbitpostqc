@@ -168,3 +168,44 @@ test "no false positive for clean terminology" {
   )
   assert_eq(issues.length(), 0)
 }
+
+///|
+test "fix confusion pairs replaces known wrong forms" {
+  let result = fix_confusion_pairs_line(
+    "认真的做好每一步",
+    default_confusion_pairs_list(),
+  )
+  assert_eq(result.text, "认真地做好每一步")
+  assert_true(result.actions.length() > 0)
+  assert_true(result.actions[0].code == "C401")
+  assert_true(result.actions[0].original == "认真的做")
+  assert_true(result.actions[0].replacement == "认真地做")
+}
+
+///|
+test "fix confusion pairs handles multiple replacements" {
+  let result = fix_confusion_pairs_line(
+    "认真的做好，偶而按装完成",
+    default_confusion_pairs_list(),
+  )
+  assert_eq(result.text, "认真地做好，偶尔安装完成")
+  assert_true(result.actions.length() == 3)
+}
+
+///|
+test "fix confusion pairs leaves clean text untouched" {
+  let result = fix_confusion_pairs_line(
+    "今天天气很好",
+    default_confusion_pairs_list(),
+  )
+  assert_true(result.is_clean())
+}
+
+///|
+test "fix confusion pairs replaces de complement" {
+  let result = fix_confusion_pairs_line(
+    "跑的快",
+    default_confusion_pairs_list(),
+  )
+  assert_eq(result.text, "跑得快")
+}

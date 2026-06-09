@@ -132,3 +132,118 @@ test "no false positive for normal text" {
   }
   assert_eq(c_count, 0)
 }
+
+///|
+test "clean action describe formats readable diff" {
+  let action = CleanAction::{
+    code: "C601",
+    original: "然后然后",
+    replacement: "然后",
+  }
+  assert_eq(action.describe(), "C601: '然后然后' → '然后'")
+}
+
+///|
+test "line clean result knows when nothing changed" {
+  let clean = LineCleanResult::{ text: "你好世界", actions: [] }
+  assert_true(clean.is_clean())
+}
+
+///|
+test "line clean result detects changes" {
+  let dirty = LineCleanResult::{
+    text: "你好",
+    actions: [
+      CleanAction::{ code: "C401", original: "登陆", replacement: "登录" },
+    ],
+  }
+  assert_false(dirty.is_clean())
+}
+
+///|
+test "fix repeated zh words collapses adjacent duplicates" {
+  let result = fix_repeated_words_line(
+    "然后然后我们今天来",
+    TextStyleZh,
+  )
+  assert_eq(result.text, "然后我们今天来")
+  assert_true(result.actions.length() > 0)
+  assert_true(result.actions[0].code == "C601")
+}
+
+///|
+test "fix repeated en words collapses adjacent duplicates" {
+  let result = fix_repeated_words_line(
+    "the the quick brown fox fox",
+    TextStyleEn,
+  )
+  assert_false(result.text.contains("the the"))
+  assert_false(result.text.contains("fox fox"))
+  assert_true(result.actions.length() >= 2)
+}
+
+///|
+test "fix repeated words leaves clean text untouched" {
+  let result = fix_repeated_words_line("今天天气很好", TextStyleZh)
+  assert_true(result.is_clean())
+  assert_eq(result.text, "今天天气很好")
+}
+
+///|
+test "fix repeated words bilingual fixes both" {
+  let result = fix_repeated_words_line(
+    "然后然后 the the quick brown fox",
+    TextStyleBilingual,
+  )
+  assert_false(result.text.contains("然后然后"))
+  assert_false(result.text.contains("the the"))
+}
+
+///|
+test "fix asr markers removes bracket markers" {
+  let result = fix_asr_markers_line(
+    "[Music] 然后呢我们开始",
+    default_asr_markers_list(),
+  )
+  assert_eq(result.text, "然后呢我们开始")
+  assert_true(result.actions.length() > 0)
+  assert_true(result.actions[0].code == "C602")
+}
+
+///|
+test "fix asr markers removes parenthesized markers" {
+  let result = fix_asr_markers_line(
+    "大家好(applause)继续",
+    default_asr_markers_list(),
+  )
+  assert_eq(result.text, "大家好继续")
+}
+
+///|
+test "fix asr markers leaves clean text untouched" {
+  let result = fix_asr_markers_line(
+    "这是一句正常的话",
+    default_asr_markers_list(),
+  )
+  assert_true(result.is_clean())
+  assert_eq(result.text, "这是一句正常的话")
+}
+
+///|
+test "fix asr markers handles multiple markers" {
+  let result = fix_asr_markers_line(
+    "[Music][applause]继续",
+    default_asr_markers_list(),
+  )
+  assert_eq(result.text, "继续")
+  assert_true(result.actions.length() >= 2)
+}
+
+///|
+test "fix asr markers strips whitespace after removal" {
+  let result = fix_asr_markers_line(
+    "  [Music]  你好  ",
+    default_asr_markers_list(),
+  )
+  assert_eq(result.text, "你好")
+}

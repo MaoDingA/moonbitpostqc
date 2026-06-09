@@ -278,3 +278,226 @@ pub fn default_filler_words_list(mode : TextStyleMode) -> Array[FillerWord] {
     TextStyleNone => []
   }
 }
+
+///|
+fn fix_repeated_zh_line(line : String) -> LineCleanResult {
+  let actions : Array[CleanAction] = []
+  let mut result = line
+  for word_len in [4, 3, 2] {
+    let chars = result.iter().filter(fn(ch) { is_zh_char(ch) }).collect()
+    if chars.length() < word_len * 2 {
+      continue
+    }
+    let mut i = 0
+    while i + word_len * 2 <= chars.length() {
+      let mut same = true
+      for j in 0..<word_len {
+        if chars[i + j] != chars[i + word_len + j] {
+          same = false
+          break
+        }
+      }
+      if same {
+        let word_chars : Array[Char] = []
+        for k in i..<(i + word_len) {
+          word_chars.push(chars[k])
+        }
+        let word = String::from_array(word_chars)
+        let dup = word + word
+        if result.contains(dup) {
+          result = result.replace_all(old=dup, new=word)
+          actions.push({ code: "C601", original: dup, replacement: word })
+        }
+        i += word_len * 2
+      } else {
+        i += 1
+      }
+    }
+  }
+  { text: result, actions }
+}
+
+///|
+fn fix_repeated_en_line(line : String) -> LineCleanResult {
+  let actions : Array[CleanAction] = []
+  let mut result = line
+  // Keep scanning until no more duplicates found
+  let mut changed = true
+  while changed {
+    changed = false
+    let words = collect_en_words(result)
+    if words.length() < 2 {
+      break
+    }
+    let mut idx = 0
+    while idx < words.length() - 1 {
+      if words[idx] == words[idx + 1] && words[idx].length() >= 2 {
+        let lower_word = words[idx]
+        // Scan result to find the case-preserving duplicate pattern
+        let mut pos = 0
+        while pos < result.length() {
+          match result.get_char(pos) {
+            Some(c) =>
+              if c.is_ascii_alphabetic() {
+                let mut w1_end = pos
+                let w1_chars : Array[Char] = []
+                while w1_end < result.length() {
+                  match result.get_char(w1_end) {
+                    Some(wc) =>
+                      if wc.is_ascii_alphabetic() || wc is '\'' {
+                        w1_chars.push(wc)
+                        w1_end += 1
+                      } else {
+                        break
+                      }
+                    None => break
+                  }
+                }
+                let w1 = String::from_array(w1_chars)
+                if w1.to_lower() == lower_word && w1.length() >= 2 {
+                  let mut gap_end = w1_end
+                  while gap_end < result.length() {
+                    match result.get_char(gap_end) {
+                      Some(gc) =>
+                        if gc.is_whitespace() {
+                          gap_end += 1
+                        } else {
+                          break
+                        }
+                      None => break
+                    }
+                  }
+                  if gap_end < result.length() {
+                    match result.get_char(gap_end) {
+                      Some(nc) =>
+                        if nc.is_ascii_alphabetic() {
+                          let mut w2_end = gap_end
+                          let w2_chars : Array[Char] = []
+                          while w2_end < result.length() {
+                            match result.get_char(w2_end) {
+                              Some(wc) =>
+                                if wc.is_ascii_alphabetic() || wc is '\'' {
+                                  w2_chars.push(wc)
+                                  w2_end += 1
+                                } else {
+                                  break
+                                }
+                              None => break
+                            }
+                          }
+                          let w2 = String::from_array(w2_chars)
+                          if w2.to_lower() == lower_word && w2.length() >= 2 {
+                            let dup = w1 + " " + w2
+                            actions.push({
+                              code: "C601",
+                              original: dup,
+                              replacement: w1,
+                            })
+                            result = result.replace_all(old=dup, new=w1)
+                            changed = true
+                            pos = w2_end
+                          } else {
+                            pos = w2_end
+                          }
+                        } else {
+                          pos = gap_end
+                        }
+                      None => pos = result.length()
+                    }
+                  } else {
+                    pos = w1_end
+                  }
+                } else {
+                  pos = w1_end
+                }
+              } else {
+                pos += 1
+              }
+            None => pos += 1
+          }
+        }
+        // Restart outer scan after any change
+        if changed {
+          break
+        }
+        idx += 2
+      } else {
+        idx += 1
+      }
+    }
+  }
+  // Deduplicate actions
+  let unique : Array[CleanAction] = []
+  for action in actions {
+    let mut found = false
+    for existing in unique {
+      if existing.original == action.original &&
+        existing.replacement == action.replacement {
+        found = true
+      }
+    }
+    if !found {
+      unique.push(action)
+    }
+  }
+  { text: result, actions: unique }
+}
+
+///|
+pub fn fix_repeated_words_line(
+  line : String,
+  mode : TextStyleMode,
+) -> LineCleanResult {
+  let empty_actions : Array[CleanAction] = []
+  let mut result = { text: line, actions: empty_actions }
+  if mode == TextStyleEn || mode == TextStyleBilingual {
+    let en_result = fix_repeated_en_line(result.text)
+    result = {
+      text: en_result.text,
+      actions: result.actions + en_result.actions,
+    }
+  }
+  if mode == TextStyleZh || mode == TextStyleBilingual {
+    let zh_result = fix_repeated_zh_line(result.text)
+    result = {
+      text: zh_result.text,
+      actions: result.actions + zh_result.actions,
+    }
+  }
+  result
+}
+
+///|
+fn collapse_whitespace(text : String) -> String {
+  let mut result = ""
+  let mut prev_space = false
+  for ch in text.iter() {
+    if ch.is_whitespace() {
+      if !prev_space {
+        result = result + " "
+        prev_space = true
+      }
+    } else {
+      result = result + ch.to_string()
+      prev_space = false
+    }
+  }
+  result
+}
+
+///|
+pub fn fix_asr_markers_line(
+  line : String,
+  markers : Array[AsrMarker],
+) -> LineCleanResult {
+  let actions : Array[CleanAction] = []
+  let mut result = line
+  for marker in markers {
+    if result.contains(marker.pattern) {
+      actions.push({ code: "C602", original: marker.pattern, replacement: "" })
+      result = result.replace_all(old=marker.pattern, new="")
+    }
+  }
+  let cleaned = collapse_whitespace(result).trim().to_owned()
+  { text: cleaned, actions }
+}

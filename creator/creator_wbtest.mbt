@@ -199,3 +199,82 @@ test "creator profiles skip cpl check regardless of line length" {
     None => fail("expected douyin profile")
   }
 }
+
+///|
+test "clean creator line fixes repeated words asr and confusion" {
+  match creator_profile_by_name("douyin") {
+    Some(profile) => {
+      let result = clean_creator_line(
+        "然后然后我们认真的做 [Music] 你好,世界!", profile,
+      )
+      assert_eq(result.text, "然后我们认真地做 你好，世界！")
+      let codes = result.actions.map(fn(a) { a.code })
+      assert_true(codes.contains("C601")) // repeated word
+      assert_true(codes.contains("C602")) // ASR marker
+      assert_true(codes.contains("C401")) // confusion pair
+    }
+    None => fail("expected douyin profile")
+  }
+}
+
+///|
+test "clean creator line leaves clean text untouched" {
+  match creator_profile_by_name("douyin") {
+    Some(profile) => {
+      let result = clean_creator_line("今天天气很好", profile)
+      assert_eq(result.text, "今天天气很好")
+      assert_eq(result.actions.length(), 0)
+    }
+    None => fail("expected douyin profile")
+  }
+}
+
+///|
+test "clean creator cues applies line cleaning to all cues" {
+  match creator_profile_by_name("douyin") {
+    Some(profile) => {
+      let cues = [
+        @subtitle.Cue::{
+          index: Some(1),
+          identifier: None,
+          start_ms: 1000,
+          end_ms: 3000,
+          text: ["然后然后我们认真的做"],
+          settings: "",
+        },
+        @subtitle.Cue::{
+          index: Some(2),
+          identifier: None,
+          start_ms: 4000,
+          end_ms: 7000,
+          text: ["[Music] 你好,世界!"],
+          settings: "",
+        },
+      ]
+      let result = clean_creator_cues(cues, profile)
+      assert_eq(result.cues[0].text[0], "然后我们认真地做")
+      assert_eq(result.cues[1].text[0], "你好，世界！")
+      assert_true(result.total_actions() > 0)
+      // Timing unchanged
+      assert_eq(result.cues[0].start_ms, 1000)
+      assert_eq(result.cues[0].end_ms, 3000)
+      // Index unchanged
+      assert_true(result.cues[0].index == Some(1))
+    }
+    None => fail("expected douyin profile")
+  }
+}
+
+///|
+test "clean creator line bilingual mode fixes both zh and en" {
+  match creator_profile_by_name("bilingual") {
+    Some(profile) => {
+      let result = clean_creator_line(
+        "然后然后 the the quick brown fox", profile,
+      )
+      assert_false(result.text.contains("然后然后"))
+      assert_false(result.text.contains("the the"))
+    }
+    None => fail("expected bilingual profile")
+  }
+}
