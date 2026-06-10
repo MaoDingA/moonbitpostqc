@@ -87,6 +87,7 @@ const elements = {
   fileInput: document.querySelector("#file-input"),
   dropZone: document.querySelector("#drop-zone"),
   runButton: document.querySelector("#run-button"),
+  cleanButton: document.querySelector("#clean-button"),
   sampleButton: document.querySelector("#sample-button"),
   copyButton: document.querySelector("#copy-button"),
   downloadButton: document.querySelector("#download-button"),
@@ -197,6 +198,29 @@ function runQc() {
   setReport(result);
 }
 
+function runClean() {
+  if (!exports) {
+    setReport("MoonPost Wasm runtime is not ready.");
+    return;
+  }
+
+  const input = elements.input.value.trim();
+  if (!input) {
+    setReport("ERROR: subtitle text is empty");
+    return;
+  }
+
+  const profileName = elements.profile.value;
+
+  if (currentMode !== "creator") {
+    setReport("Clean is only available in Creator mode.");
+    return;
+  }
+
+  const result = exports.creator_clean(input, profileName);
+  setReport(result);
+}
+
 async function loadFile(file) {
   const text = await file.text();
   elements.input.value = text;
@@ -220,6 +244,7 @@ document.querySelectorAll(".tab").forEach((tab) => {
 });
 
 elements.runButton.addEventListener("click", runQc);
+elements.cleanButton.addEventListener("click", runClean);
 elements.profile.addEventListener("change", runQc);
 elements.fps.addEventListener("change", runQc);
 elements.sampleButton.addEventListener("click", () => {

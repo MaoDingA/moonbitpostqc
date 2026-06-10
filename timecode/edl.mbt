@@ -1,5 +1,9 @@
 ///|
-/// A minimal CMX-style EDL event with source and record timecode ranges.
+/// A CMX-style EDL event with source and record timecode ranges.
+///
+/// Optional remark fields (`clip_name`, `comment`, `source_file`) are populated
+/// by the full-file parser `parse_edl` from `* FROM CLIP NAME`, `* COMMENT`,
+/// and `* SOURCE FILE` remark lines that follow the event line.
 pub(all) struct EdlEvent {
   event_number : Int
   reel : String
@@ -7,6 +11,9 @@ pub(all) struct EdlEvent {
   transition : String
   source : TimecodeRange
   record : TimecodeRange
+  clip_name : String?
+  comment : String?
+  source_file : String?
 } derive(Eq, Debug)
 
 ///|
@@ -55,12 +62,48 @@ fn pad3(value : Int) -> String {
 }
 
 ///|
-/// Parses a minimal CMX-style event line with four timecode fields.
+/// Merges a separate transition code and duration token (e.g. "D" + "050")
+/// into a single transition string ("D050"). Returns the original if no merge
+/// is needed.
+fn merge_dissolve_transition(code : String, maybe_duration : String) -> String {
+  if (code == "D" || code == "W" || code == "K") &&
+    !maybe_duration.is_empty() &&
+    parse_int(maybe_duration) is Some(_) {
+    code + maybe_duration
+  } else {
+    code
+  }
+}
+
+///|
+/// Parses a CMX-style event line with four timecode fields.
+///
+/// Accepts both the standard 8-field format and the 9-field variant where
+/// dissolve/wipe transitions are split into a code and frame-count token
+/// (e.g. `D 050`).
 pub fn EdlEvent::parse(
   raw : String,
   rate : FrameRate,
 ) -> Result[EdlEvent, TimecodeInteropError] {
-  match split_edl_fields(raw) {
+  let fields = split_edl_fields(raw)
+  // Normalize 9-field dissolve lines into 8 fields.
+  let fields : Array[String] = if fields.length() == 9 &&
+    (fields[3] == "D" || fields[3] == "W" || fields[3] == "K") {
+    let transition = merge_dissolve_transition(fields[3], fields[4])
+    [
+      fields[0],
+      fields[1],
+      fields[2],
+      transition,
+      fields[5],
+      fields[6],
+      fields[7],
+      fields[8],
+    ]
+  } else {
+    fields
+  }
+  match fields {
     [
       event_number,
       reel,
@@ -85,7 +128,17 @@ pub fn EdlEvent::parse(
                   edl_range(record_start, record_end),
                 ) {
                 (Ok(source), Ok(record)) =>
-                  Ok({ event_number, reel, track, transition, source, record })
+                  Ok({
+                    event_number,
+                    reel,
+                    track,
+                    transition,
+                    source,
+                    record,
+                    clip_name: None,
+                    comment: None,
+                    source_file: None,
+                  })
                 (Err(error), _) => Err(error)
                 (_, Err(error)) => Err(error)
               }

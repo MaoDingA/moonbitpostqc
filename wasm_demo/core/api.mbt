@@ -57,6 +57,46 @@ pub fn creator_check(input : String, profile_name : String) -> String {
 }
 
 ///|
+pub fn creator_clean(input : String, profile_name : String) -> String {
+  match parse_subtitle_text(input) {
+    Some(track) =>
+      match @creator.creator_profile_by_name(profile_name) {
+        Some(profile) => {
+          let result = @creator.clean_creator_cues(track.cues, profile, None)
+          let lines : Array[String] = []
+          lines.push("Clean summary:")
+          if result.actions.length() == 0 {
+            lines.push("  No changes applied.")
+          } else {
+            for action in result.actions {
+              lines.push("  \{action.describe()}")
+            }
+            lines.push("\{result.actions.length()} action(s) applied.")
+          }
+          lines.push("---")
+          // Write cleaned subtitle
+          match track.format {
+            @subtitle.Srt =>
+              lines.push(
+                @subtitle.write_srt({ format: track.format, cues: result.cues }),
+              )
+            @subtitle.WebVtt =>
+              lines.push(
+                @subtitle.write_webvtt({
+                  format: track.format,
+                  cues: result.cues,
+                }),
+              )
+          }
+          lines.join("\n")
+        }
+        None => "ERROR: unknown creator profile: \{profile_name}"
+      }
+    None => "ERROR: could not parse subtitle text"
+  }
+}
+
+///|
 fn make_profile_with_fps(
   profile : @qc.QcProfile,
   fps_str : String,

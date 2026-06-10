@@ -9,7 +9,12 @@ import {
 options(
   link: {
     "wasm-gc": {
-      "exports": [ "qc_subtitle", "creator_check", "delivery_check" ],
+      "exports": [
+        "qc_subtitle",
+        "creator_check",
+        "creator_clean",
+        "delivery_check",
+      ],
       "use-js-builtin-string": true,
       "imported-string-constants": "_",
     },
