@@ -267,6 +267,7 @@ test "creator clean normalizes punctuation through creator profile" {
         profile: "douyin",
         output: None,
         verbose: false,
+        output_json: false,
         terms: None,
       },
       None,
@@ -286,6 +287,7 @@ test "creator clean text fixes repeated words confusion and punctuation" {
       profile: "douyin",
       output: None,
       verbose: false,
+      output_json: false,
       terms: None,
     },
     None,
@@ -325,6 +327,7 @@ test "creator clean text leaves good subtitle mostly unchanged" {
       profile: "douyin",
       output: None,
       verbose: false,
+      output_json: false,
       terms: None,
     },
     None,
@@ -346,6 +349,7 @@ test "creator clean text handles bilingual profile" {
       profile: "bilingual",
       output: None,
       verbose: false,
+      output_json: false,
       terms: None,
     },
     None,
@@ -907,6 +911,7 @@ test "creator clean with user terms file fixes custom confusion pairs" {
           profile: "douyin",
           output: None,
           verbose: false,
+          output_json: false,
           terms: None,
         },
         Some(terms),
@@ -956,4 +961,44 @@ test "creator check with user terms file detects custom issues" {
     }
     Err(message) => fail("terms parse failed: \{message}")
   }
+}
+
+///|
+test "format json clean report produces valid structured output" {
+  let actions = [
+    @qc.CleanAction::{
+      code: "C601",
+      original: "然后然后",
+      replacement: "然后",
+    },
+    @qc.CleanAction::{
+      code: "C401",
+      original: "认真的做",
+      replacement: "认真地做",
+    },
+  ]
+  let json = @qc.format_json_clean_report(
+    "ai.srt", "douyin", actions, "然后我们认真地做",
+  )
+  assert_true(json.contains("\"schema_version\":\"moonpost.clean.v1\""))
+  assert_true(json.contains("\"command\":\"creator clean\""))
+  assert_true(json.contains("\"name\":\"ai.srt\""))
+  assert_true(json.contains("\"profile\":\"douyin\""))
+  assert_true(json.contains("\"actions\":2"))
+  assert_true(json.contains("\"code\":\"C601\""))
+  assert_true(json.contains("\"original\":\"然后然后\""))
+  assert_true(json.contains("\"replacement\":\"然后\""))
+  assert_true(json.contains("\"output\":\"然后我们认真地做\""))
+}
+
+///|
+test "format json clean report with no actions shows zero count" {
+  let json = @qc.format_json_clean_report(
+    "good.srt",
+    "douyin",
+    [],
+    "今天天气很好",
+  )
+  assert_true(json.contains("\"actions\":0"))
+  assert_true(json.contains("[]"))
 }

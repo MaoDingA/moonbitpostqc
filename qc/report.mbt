@@ -157,6 +157,41 @@ pub fn format_json_report(name : String, issues : Array[QcIssue]) -> String {
 }
 
 ///|
+fn action_json(action : CleanAction) -> Json {
+  Json::object(
+    Map([
+      ("code", Json::string(action.code)),
+      ("original", Json::string(action.original)),
+      ("replacement", Json::string(action.replacement)),
+    ]),
+  )
+}
+
+///|
+pub fn format_json_clean_report(
+  name : String,
+  profile : String,
+  actions : Array[CleanAction],
+  output : String,
+) -> String {
+  let action_values : Array[Json] = []
+  for action in actions {
+    action_values.push(action_json(action))
+  }
+  Json::object(
+    Map([
+      ("schema_version", Json::string("moonpost.clean.v1")),
+      ("command", Json::string("creator clean")),
+      ("name", Json::string(name)),
+      ("profile", Json::string(profile)),
+      ("summary", Json::object(Map([("actions", int_json(actions.length()))]))),
+      ("actions", Json::array(action_values)),
+      ("output", Json::string(output)),
+    ]),
+  ).stringify()
+}
+
+///|
 pub fn format_json_report_with_context(
   name : String,
   issues : Array[QcIssue],

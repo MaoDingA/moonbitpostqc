@@ -186,25 +186,50 @@ async fn run_creator_clean(options : @cli.CreatorCleanOptions) -> Int {
     Some(text) =>
       match creator_clean_text(text, options, user_terms) {
         Some(result) =>
-          match options.output {
-            Some(path) => {
-              if options.verbose {
-                print_lines(format_clean_summary(options.input, result.actions))
+          if options.output_json {
+            println(
+              @qc.format_json_clean_report(
+                options.input,
+                options.profile,
+                result.actions,
+                result.output,
+              ),
+            )
+            match options.output {
+              Some(path) =>
+                if !write_text_file(path, result.output) {
+                  println("could not write file: \{path}")
+                  2
+                } else {
+                  0
+                }
+              None => 0
+            }
+          } else {
+            match options.output {
+              Some(path) => {
+                if options.verbose {
+                  print_lines(
+                    format_clean_summary(options.input, result.actions),
+                  )
+                }
+                if !write_text_file(path, result.output) {
+                  println("could not write file: \{path}")
+                  2
+                } else {
+                  0
+                }
               }
-              if !write_text_file(path, result.output) {
-                println("could not write file: \{path}")
-                2
-              } else {
+              None => {
+                if options.verbose {
+                  print_lines(
+                    format_clean_summary(options.input, result.actions),
+                  )
+                  println("---")
+                }
+                println(result.output)
                 0
               }
-            }
-            None => {
-              if options.verbose {
-                print_lines(format_clean_summary(options.input, result.actions))
-                println("---")
-              }
-              println(result.output)
-              0
             }
           }
         None => {

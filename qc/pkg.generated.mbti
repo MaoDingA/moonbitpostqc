@@ -44,6 +44,8 @@ pub fn fix_confusion_pairs_line(String, Array[ConfusionPair]) -> LineCleanResult
 
 pub fn fix_repeated_words_line(String, TextStyleMode) -> LineCleanResult
 
+pub fn format_json_clean_report(String, String, Array[CleanAction], String) -> String
+
 pub fn format_json_report(String, Array[QcIssue]) -> String
 
 pub fn format_json_report_with_context(String, Array[QcIssue], QcReportContext) -> String
