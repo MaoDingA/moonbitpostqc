@@ -80,6 +80,8 @@ fn parse_subtitle_text_detailed(
     Some(line) =>
       if line == "WEBVTT" || line.has_prefix("WEBVTT ") {
         @subtitle.parse_webvtt_detailed(input)
+      } else if line == "[Script Info]" {
+        @subtitle.parse_ass_detailed(input)
       } else {
         match @subtitle.parse_srt_detailed(input) {
           Ok(track) => Ok(track)
@@ -109,6 +111,7 @@ fn subtitle_convert_text(input : String, target : String) -> String? {
       match target {
         "srt" => Some(@subtitle.write_srt(track))
         "webvtt" | "vtt" => Some(@subtitle.write_webvtt(track))
+        "ass" | "ssa" => Some(@subtitle.write_ass(track))
         _ => None
       }
     None => None
@@ -120,6 +123,8 @@ fn write_track(track : @subtitle.SubtitleTrack) -> String {
   match track.format {
     Srt => @subtitle.write_srt(track)
     WebVtt => @subtitle.write_webvtt(track)
+    Ass => @subtitle.write_ass(track)
+    Ssa => @subtitle.write_ssa(track)
   }
 }
 

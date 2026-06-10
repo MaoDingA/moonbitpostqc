@@ -2,6 +2,8 @@
 pub(all) enum SubtitleFormat {
   Srt
   WebVtt
+  Ass
+  Ssa
 } derive(Eq, Debug)
 
 ///|

@@ -6,9 +6,19 @@ import {
 }
 
 // Values
+pub fn format_ass_timestamp(Int) -> String
+
 pub fn format_srt_timestamp(Int) -> String
 
 pub fn format_vtt_timestamp(Int) -> String
+
+pub fn parse_ass(String) -> SubtitleTrack?
+
+pub fn parse_ass_detailed(String) -> Result[SubtitleTrack, ParseError]
+
+pub fn parse_ass_timestamp_ms(String) -> Int?
+
+pub fn parse_ass_with_recovery(String) -> ParseResult
 
 pub fn parse_srt(String) -> SubtitleTrack?
 
@@ -24,7 +34,11 @@ pub fn parse_webvtt_detailed(String) -> Result[SubtitleTrack, ParseError]
 
 pub fn parse_webvtt_with_recovery(String) -> ParseResult
 
+pub fn write_ass(SubtitleTrack) -> String
+
 pub fn write_srt(SubtitleTrack) -> String
+
+pub fn write_ssa(SubtitleTrack) -> String
 
 pub fn write_webvtt(SubtitleTrack) -> String
 
@@ -59,6 +73,8 @@ pub fn ParseResult::has_errors(Self) -> Bool
 pub(all) enum SubtitleFormat {
   Srt
   WebVtt
+  Ass
+  Ssa
 } derive(Eq, @debug.Debug)
 
 pub(all) struct SubtitleTrack {

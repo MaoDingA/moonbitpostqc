@@ -192,3 +192,120 @@ test "recovery errors preserve block and line numbers" {
   assert_eq(result.errors[0].block, 2)
   assert_eq(result.errors[0].line, 6)
 }
+
+///|
+fn sample_ass() -> String {
+  "[Script Info]\nTitle: Test\nScriptType: v4.00+\nPlayResX: 384\nPlayResY: 288\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Arial,20,&H00FFFFFF,&H0300FFBE,&H00000008,&H00000000,-1,0,0,0,100,100,0,0,1,2,0,2,10,10,10,0\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\nDialogue: 0,0:00:01.00,0:00:03.20,Default,,0,0,0,,Hello ASS\nDialogue: 0,0:00:04.00,0:00:05.50,Default,,0,0,0,,{\\b1}Bold text{\\b0}\\NSecond line\n"
+}
+
+///|
+test "ass parser extracts cues with correct timing and text" {
+  match parse_ass(sample_ass()) {
+    Some(track) => {
+      assert_true(track.format == Ass)
+      assert_eq(track.cues.length(), 2)
+      assert_eq(track.cues[0].start_ms, 1000)
+      assert_eq(track.cues[0].end_ms, 3200)
+      assert_eq(track.cues[0].text.length(), 1)
+      assert_eq(track.cues[0].text[0], "Hello ASS")
+      assert_true(track.cues[0].identifier == Some("Default"))
+    }
+    None => fail("expected ASS track")
+  }
+}
+
+///|
+test "ass parser strips override tags and splits \\N lines" {
+  match parse_ass(sample_ass()) {
+    Some(track) => {
+      assert_eq(track.cues.length(), 2)
+      // Second cue: "{\b1}Bold text{\b0}\NSecond line"
+      // Should strip tags, split on \N
+      let cue = track.cues[1]
+      assert_eq(cue.text.length(), 2)
+      assert_eq(cue.text[0], "Bold text")
+      assert_eq(cue.text[1], "Second line")
+    }
+    None => fail("expected ASS track")
+  }
+}
+
+///|
+test "ass timestamp conversion" {
+  assert_true(parse_ass_timestamp_ms("0:00:01.00") == Some(1000))
+  assert_true(parse_ass_timestamp_ms("1:02:03.45") == Some(3723450))
+  assert_true(parse_ass_timestamp_ms("0:00:00.00") == Some(0))
+  assert_eq(format_ass_timestamp(1000), "0:00:01.00")
+  assert_eq(format_ass_timestamp(3723450), "1:02:03.45")
+  assert_eq(format_ass_timestamp(0), "0:00:00.00")
+}
+
+///|
+test "ass writer produces valid ASS output" {
+  match parse_ass(sample_ass()) {
+    Some(track) => {
+      let output = write_ass(track)
+      assert_true(output.has_prefix("[Script Info]"))
+      assert_true(output.contains("[V4+ Styles]"))
+      assert_true(output.contains("[Events]"))
+      assert_true(output.contains("Dialogue: 0,0:00:01.00,0:00:03.20,Default"))
+      assert_true(output.contains("Hello ASS"))
+    }
+    None => fail("expected ASS track")
+  }
+}
+
+///|
+test "ssa format detection" {
+  let ssa_input = "[Script Info]\nScriptType: v4.00\n\n[V4 Styles]\nFormat: Name, Fontname, Fontsize\nStyle: Default,Arial,20\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\nDialogue: 0,0:00:01.00,0:00:02.00,Default,,0,0,0,,Hello SSA\n"
+  match parse_ass(ssa_input) {
+    Some(track) => {
+      assert_true(track.format == Ssa)
+      assert_eq(track.cues.length(), 1)
+      assert_eq(track.cues[0].text[0], "Hello SSA")
+    }
+    None => fail("expected SSA track")
+  }
+}
+
+///|
+test "ass roundtrip preserves cues" {
+  match parse_ass(sample_ass()) {
+    Some(track) => {
+      let output = write_ass(track)
+      match parse_ass(output) {
+        Some(roundtrip) => {
+          assert_eq(roundtrip.cues.length(), track.cues.length())
+          assert_eq(roundtrip.cues[0].start_ms, track.cues[0].start_ms)
+          assert_eq(roundtrip.cues[0].end_ms, track.cues[0].end_ms)
+          assert_true(roundtrip.cues[0].text == track.cues[0].text)
+        }
+        None => fail("expected roundtrip ASS track")
+      }
+    }
+    None => fail("expected ASS track")
+  }
+}
+
+///|
+test "ass recovery returns partial cues alongside errors" {
+  let raw = "[Script Info]\nScriptType: v4.00+\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\nDialogue: 0,0:00:01.00,0:00:02.00,Default,,0,0,0,,Good cue\nDialogue: 0,BAD_TIMING,0:00:04.00,Default,,0,0,0,,Bad cue\nDialogue: 0,0:00:05.00,0:00:06.00,Default,,0,0,0,,Another good\n"
+  let result = parse_ass_with_recovery(raw)
+  assert_eq(result.cues().length(), 2)
+  assert_eq(result.error_count(), 1)
+  assert_true(result.errors[0].message.contains("timing"))
+  assert_eq(result.cues()[0].text[0], "Good cue")
+  assert_eq(result.cues()[1].text[0], "Another good")
+}
+
+///|
+test "ass parser rejects invalid timing in detailed mode" {
+  let raw = "[Script Info]\nScriptType: v4.00+\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\nDialogue: 0,0:00:99.00,0:00:02.00,Default,,0,0,0,,Bad\n"
+  match parse_ass_detailed(raw) {
+    Err(error) => {
+      assert_true(error.format == Some(Ass))
+      assert_true(error.message.contains("timing"))
+    }
+    Ok(_) => fail("expected parse error for invalid timing")
+  }
+}

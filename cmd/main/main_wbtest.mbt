@@ -198,7 +198,7 @@ test "retime text offsets srt cues" {
 ///|
 test "subtitle convert rejects unknown target" {
   assert_true(
-    subtitle_convert_text("1\n00:00:01,000 --> 00:00:02,000\nHello\n", "ass")
+    subtitle_convert_text("1\n00:00:01,000 --> 00:00:02,000\nHello\n", "stl")
     is None,
   )
 }

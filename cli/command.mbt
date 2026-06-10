@@ -628,7 +628,7 @@ pub fn help_lines(topic : HelpTopic) -> Array[String] {
       ]
     SubtitleHelp =>
       [
-        "Usage:", "  moonpost subtitle convert <file> --to <srt|webvtt> [-o <file>]",
+        "Usage:", "  moonpost subtitle convert <file> --to <srt|webvtt|ass> [-o <file>]",
         "  moonpost subtitle normalize <file> --punctuation <bilingual|zh|en> [-o <file>]",
       ]
     MergeHelp =>

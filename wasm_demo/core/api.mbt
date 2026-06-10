@@ -87,6 +87,14 @@ pub fn creator_clean(input : String, profile_name : String) -> String {
                   cues: result.cues,
                 }),
               )
+            @subtitle.Ass =>
+              lines.push(
+                @subtitle.write_ass({ format: track.format, cues: result.cues }),
+              )
+            @subtitle.Ssa =>
+              lines.push(
+                @subtitle.write_ssa({ format: track.format, cues: result.cues }),
+              )
           }
           lines.join("\n")
         }
