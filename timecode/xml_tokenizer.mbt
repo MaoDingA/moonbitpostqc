@@ -33,11 +33,11 @@ pub(all) enum XmlError {
 /// Unescapes common XML entities in an attribute value.
 fn xml_unescape(raw : String) -> String {
   raw
-    .replace_all(old="&amp;", new="&")
-    .replace_all(old="&lt;", new="<")
-    .replace_all(old="&gt;", new=">")
-    .replace_all(old="&quot;", new="\"")
-    .replace_all(old="&apos;", new="'")
+  .replace_all(old="&amp;", new="&")
+  .replace_all(old="&lt;", new="<")
+  .replace_all(old="&gt;", new=">")
+  .replace_all(old="&quot;", new="\"")
+  .replace_all(old="&apos;", new="'")
 }
 
 ///|
@@ -71,7 +71,10 @@ fn take_while(src : String, start : Int, pred : (UInt16) -> Bool) -> String {
 ///|
 /// Parses a double-quoted attribute value starting after the opening `"`.
 /// Returns (value, position_after_closing_quote).
-fn parse_attr_value(src : String, start : Int) -> Result[(String, Int), XmlError] {
+fn parse_attr_value(
+  src : String,
+  start : Int,
+) -> Result[(String, Int), XmlError] {
   let mut i = start
   let parts : Array[String] = []
   let mut seg_start = i
@@ -187,7 +190,7 @@ pub fn tokenize_xml(raw : String) -> Result[Array[XmlToken], XmlError] {
       if i + 1 < raw.length() && raw[i + 1] == '?' {
         let mut end = i + 2
         while end + 1 < raw.length() &&
-          !(raw[end] == '?' && raw[end + 1] == '>') {
+              !(raw[end] == '?' && raw[end + 1] == '>') {
           end += 1
         }
         if end + 1 >= raw.length() {
@@ -204,7 +207,7 @@ pub fn tokenize_xml(raw : String) -> Result[Array[XmlToken], XmlError] {
         raw[i + 3] == '-' {
         let mut end = i + 4
         while end + 2 < raw.length() &&
-          !(raw[end] == '-' && raw[end + 1] == '-' && raw[end + 2] == '>') {
+              !(raw[end] == '-' && raw[end + 1] == '-' && raw[end + 2] == '>') {
           end += 1
         }
         if end + 2 >= raw.length() {
@@ -335,16 +338,18 @@ fn XmlCursor::advance(self : XmlCursor) -> XmlToken? {
 ///|
 /// Advances past an open tag and all its children until the matching close
 /// tag, positioning the cursor just past the close tag.
+///
+/// Must be called when the cursor is positioned at an `OpenTag` token.
 fn XmlCursor::skip_element(self : XmlCursor) -> Unit {
   let mut depth = 0
   while self.has_next() {
     match self.advance() {
       Some(OpenTag(_, _)) => depth += 1
       Some(CloseTag(_)) => {
-        if depth == 0 {
+        depth -= 1
+        if depth <= 0 {
           return ()
         }
-        depth -= 1
       }
       _ => ()
     }

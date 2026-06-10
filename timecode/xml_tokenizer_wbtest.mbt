@@ -62,9 +62,7 @@ test "tokenize_xml parses attributes with entity references" {
     Ok(tokens) => {
       assert_eq(tokens.length(), 1)
       match tokens[0] {
-        SelfCloseTag(_, attrs) => {
-          assert_eq(attrs[0].value, "a&b")
-        }
+        SelfCloseTag(_, attrs) => assert_eq(attrs[0].value, "a&b")
         _ => fail("expected SelfCloseTag")
       }
     }
