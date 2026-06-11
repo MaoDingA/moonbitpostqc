@@ -12,7 +12,7 @@ English | <a href="README.md">简体中文</a>
   <img alt="license Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-22c55e?style=flat-square">
   <img alt="terminal first" src="https://img.shields.io/badge/terminal-first-475569?style=flat-square">
   <img alt="mode CLI + Wasm" src="https://img.shields.io/badge/mode-CLI%20%2B%20Wasm-2563eb?style=flat-square">
-  <img alt="formats SRT + WebVTT" src="https://img.shields.io/badge/formats-SRT%20%2B%20WebVTT-f97316?style=flat-square">
+  <img alt="formats SRT + WebVTT + ASS" src="https://img.shields.io/badge/formats-SRT%20%2B%20WebVTT%20%2B%20ASS-f97316?style=flat-square">
   <img alt="QC ready" src="https://img.shields.io/badge/QC-ready-0ea5e9?style=flat-square">
 </p>
 
@@ -31,7 +31,7 @@ habits and delivery requirements into one oversized checker:
   stricter validation and focuses on timeline legality, frame grids, CPL/CPS,
   minimum gaps, JSON reports, and automated failure exit codes.
 
-Both lines share the same SRT/WebVTT parser, QC rule engine, timecode helpers,
+Both lines share the same SRT/WebVTT/ASS parser, QC rule engine, timecode helpers,
 and report formatter. The shared core stays neutral; platform habits and
 delivery requirements are expressed through Creator and Delivery profiles.
 
@@ -48,7 +48,7 @@ project, the source, license, and scope will be documented.
 
 Shared foundation:
 
-- Parse and write SRT / WebVTT subtitle files and convert between them.
+- Parse and write SRT / WebVTT / ASS subtitle files and convert between them.
 - Parse and format SMPTE-style timecode, including precise conversion between
   timecode labels, frame counts, durations, and common frame rates.
 - Support common frame rates: `23.976`, `24`, `25`, `29.97`, `29.97df`, `30`,
@@ -100,7 +100,7 @@ Creator workflows:
 
 Delivery workflows:
 
-- Check SRT/WebVTT subtitles for overlaps, duration, line length, line count,
+- Check SRT/WebVTT/ASS subtitles for overlaps, duration, line length, line count,
   and reading speed before delivery.
 - Validate frame-rate assumptions, frame-grid alignment, and minimum cue gaps.
 - Shift subtitles, convert frame-rate assumptions, or snap cue timing after
@@ -109,7 +109,7 @@ Delivery workflows:
 
 Shared workflows:
 
-- Convert SRT/WebVTT files and run basic QC in creator and localization flows.
+- Convert SRT/WebVTT/ASS files and run basic QC in creator and localization flows.
 - Run browser-local core QC through the Wasm demo without uploading subtitle
   text.
 
@@ -122,7 +122,7 @@ pre-publish checks, and delivery validation.
 | --- | --- |
 | Creators and publishers | Checks AI captions, spoken-content subtitles, punctuation, line length, reading speed, and platform-specific subtitle habits before upload. |
 | Editors and subtitle editors | Finds overlaps, empty cues, long lines, short durations, and reading-speed issues before publishing or handoff. |
-| Localization teams | Runs repeatable SRT/WebVTT checks and bilingual subtitle workflows during translation, review, and handoff. |
+| Localization teams | Runs repeatable SRT/WebVTT/ASS checks and bilingual subtitle workflows during translation, review, and handoff. |
 | Post-production and media QA | Checks timecode, frame grids, cue gaps, and readable QC reports. |
 | Delivery engineers and platform operators | Uses JSON reports and failure exit codes to integrate subtitle QC into batch or CI workflows. |
 
@@ -219,7 +219,7 @@ moon run cmd/main --target native -- delivery check examples/delivery-package/sr
 subtitle, poster, metadata, checksum, and `moonpost.delivery.json` assets,
 checks package-profile and manifest requirements, validates required subtitle
 languages, verifies SHA-256 entries from `checksum.txt`, `checksums.txt`, or
-`SHA256SUMS`, and runs subtitle QC for SRT/WebVTT files in the folder. Checksum
+`SHA256SUMS`, and runs subtitle QC for SRT/WebVTT/ASS files in the folder. Checksum
 files currently support standard `sha256sum`-style `<64hex>  filename` and
 `<64hex> *filename` lines; paths that escape the delivery folder are rejected.
 
@@ -295,7 +295,7 @@ CI integration examples: [`examples/ci-integration.md`](examples/ci-integration.
 
 ## Subtitle QC
 
-Run QC on an SRT or WebVTT file:
+Run QC on an SRT, WebVTT or ASS file:
 
 ```bash
 moon run cmd/main --target native -- qc examples/bad.srt --fps 25 --profile streaming
@@ -486,10 +486,24 @@ and EDL helpers cover timecode metadata fields, not complete file parsing.
 
 ## Subtitle Conversion
 
+MoonPost supports conversion between SRT, WebVTT and ASS (Advanced SubStation Alpha) formats.
+
 Convert SRT to WebVTT:
 
 ```bash
 moon run cmd/main --target native -- subtitle convert examples/good.srt --to webvtt
+```
+
+Convert SRT to ASS:
+
+```bash
+moon run cmd/main --target native -- subtitle convert examples/good.srt --to ass -o output.ass
+```
+
+Convert ASS to SRT (automatically strips override tags and `\N` line breaks):
+
+```bash
+moon run cmd/main --target native -- subtitle convert examples/anime.ass --to srt -o output.srt
 ```
 
 Write converted output to a file:
@@ -598,7 +612,7 @@ the generated `pkg.generated.mbti` files.
 | Package | Purpose |
 | --- | --- |
 | `MaoDingA/moonpost/timecode` | Frame rates, timecode parsing, frame/duration/range conversion, same-rate arithmetic, drop-frame math. |
-| `MaoDingA/moonpost/subtitle` | SRT/WebVTT parsing, timestamp formatting, subtitle writing. |
+| `MaoDingA/moonpost/subtitle` | SRT/WebVTT/ASS parsing, timestamp formatting, subtitle writing. |
 | `MaoDingA/moonpost/qc` | QC profiles, issue model, cue checks, report formatting. |
 | `MaoDingA/moonpost/creator` | Creator subtitle profiles, text checks, and cleanup workflows. |
 | `MaoDingA/moonpost/retime` | Offset, frame-rate conversion, frame snapping for cues. |
@@ -731,7 +745,7 @@ directory map.
 ```text
 moonpost/
 ├── timecode/        SMPTE-style timecode and frame-rate helpers
-├── subtitle/        SRT/WebVTT parser, timestamp, and writer
+├── subtitle/        SRT/WebVTT/ASS parser, timestamp, and writer
 ├── qc/              Subtitle QC, reports, text style, and punctuation normalization
 ├── retime/          Offset, frame-rate conversion, and frame snapping
 ├── align/           Bilingual subtitle merge/split helpers

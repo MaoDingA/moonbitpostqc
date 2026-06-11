@@ -12,7 +12,7 @@
   <img alt="license Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-22c55e?style=flat-square">
   <img alt="terminal first" src="https://img.shields.io/badge/terminal-first-475569?style=flat-square">
   <img alt="mode CLI + Wasm" src="https://img.shields.io/badge/mode-CLI%20%2B%20Wasm-2563eb?style=flat-square">
-  <img alt="formats SRT + WebVTT" src="https://img.shields.io/badge/formats-SRT%20%2B%20WebVTT-f97316?style=flat-square">
+  <img alt="formats SRT + WebVTT + ASS" src="https://img.shields.io/badge/formats-SRT%20%2B%20WebVTT%20%2B%20ASS-f97316?style=flat-square">
   <img alt="QC ready" src="https://img.shields.io/badge/QC-ready-0ea5e9?style=flat-square">
 </p>
 
@@ -25,7 +25,7 @@ MoonPost 现在按两条能力线组织，而不是把自媒体规则和影视�
 - Creator：面向自媒体、口播、短视频和 AI 字幕清洗，默认温和提示，关注文本规范、标点、错别字/术语提示、阅读体验和平台化字幕习惯。
 - Delivery：面向影视、OTT、广播和字幕交付 QC，默认严格验收，关注时间轴合法性、帧网格、CPL/CPS、最小间隔、JSON 报告和自动化失败退出码。
 
-底层的 SRT/WebVTT parser、QC rule engine、timecode 和 report formatter
+底层的 SRT/WebVTT/ASS parser、QC rule engine、timecode 和 report formatter
 由两条能力线共享。共享底座保持中性，具体平台习惯和交付规范通过 Creator /
 Delivery profile 区分。
 
@@ -40,7 +40,7 @@ MoonPost 是原创 MoonBit 项目，不是对特定第三方库的移植；如�
 
 共享基础能力：
 
-- 解析和写出 SRT / WebVTT 字幕文件，并支持两种格式相互转换。
+- 解析和写出 SRT / WebVTT / ASS 字幕文件，并支持多种格式相互转换。
 - 解析和格式化 SMPTE 风格时间码，支持时间码、帧数、时长和常用帧率之间的精确换算。
 - 支持常用帧率：`23.976`、`24`、`25`、`29.97`、`29.97df`、`30`、
   `50`、`59.94`、`59.94df`。
@@ -84,14 +84,14 @@ Creator 场景：
 
 Delivery 场景：
 
-- 交付前检查 SRT/WebVTT 字幕的重叠、时长、行长、行数和阅读速度问题。
+- 交付前检查 SRT/WebVTT/ASS 字幕的重叠、时长、行长、行数和阅读速度问题。
 - 检查帧率假设、帧网格对齐和 cue 最小间隔。
 - 在剪辑或版本变更后平移字幕、转换帧率或吸附到目标帧网格。
 - 输出 JSON report，并用 `--fail-on-error` 接入自动化交付流程。
 
 共享场景：
 
-- 在创作者和本地化流程中完成 SRT/WebVTT 转换与基础质检。
+- 在创作者和本地化流程中完成 SRT/WebVTT/ASS 转换与基础质检。
 - 通过浏览器本地 Wasm demo 运行核心 QC，字幕文本不上传服务器。
 
 ## 适用人群
@@ -102,7 +102,7 @@ MoonPost 主要面向会直接处理字幕文件、发布前检查和交付验�
 | --- | --- |
 | 创作者与发布者 | 上传前检查 AI 字幕、口播字幕、标点、行长、阅读速度和平台化字幕习惯。 |
 | 剪辑师与字幕编辑 | 在交付或发布前发现重叠、空字幕、超长行、过短时长和阅读速度问题。 |
-| 本地化团队 | 在翻译、审校和回传过程中做可重复的 SRT/WebVTT 检查与双语字幕处理。 |
+| 本地化团队 | 在翻译、审校和回传过程中做可重复的 SRT/WebVTT/ASS 检查与双语字幕处理。 |
 | 后期与媒体 QA | 检查时间码、帧网格、cue 间隔，并生成可读且可自动化消费的 QC 报告。 |
 | 交付工程与平台运营 | 使用 JSON report 和失败退出码，把字幕 QC 接入批处理或 CI 流程。 |
 
@@ -236,7 +236,7 @@ moon run cmd/main --target native -- delivery check examples/delivery-package/sr
 `delivery check` 会扫描交付目录第一层，识别 video、subtitle、poster、
 metadata、checksum 和 `moonpost.delivery.json`，根据 package profile 与
 manifest 检查缺失资产和必需字幕语言，解析 `checksum.txt` / `checksums.txt` /
-`SHA256SUMS` 中的 SHA-256 条目校验文件内容，并对目录内 SRT/WebVTT 运行字幕
+`SHA256SUMS` 中的 SHA-256 条目校验文件内容，并对目录内 SRT/WebVTT/ASS 运行字幕
 QC。checksum 当前支持标准 `sha256sum` 风格的 `<64hex>  filename` 和
 `<64hex> *filename` 行；checksum 指向目录外路径会报错。
 
@@ -478,10 +478,24 @@ delivery 和 EDL helpers 只处理时间码相关 metadata 字段，不解析完
 
 ## 字幕转换
 
+MoonPost 支持 SRT、WebVTT 和 ASS（Advanced SubStation Alpha）之间的相互转换。
+
 SRT 转 WebVTT：
 
 ```bash
 moon run cmd/main --target native -- subtitle convert examples/good.srt --to webvtt
+```
+
+SRT 转 ASS：
+
+```bash
+moon run cmd/main --target native -- subtitle convert examples/good.srt --to ass -o output.ass
+```
+
+ASS 转 SRT（自动剥离 override tags 和 `\N` 换行符）：
+
+```bash
+moon run cmd/main --target native -- subtitle convert examples/anime.ass --to srt -o output.srt
 ```
 
 写出到文件：
@@ -587,7 +601,7 @@ MoonPost 由多个小型 MoonBit package 组成。公开 API 可参考生成的
 | Package | 用途 |
 | --- | --- |
 | `MaoDingA/moonpost/timecode` | 帧率、时间码解析、帧数/时长/区间转换、同帧率算术和 drop-frame 计算。 |
-| `MaoDingA/moonpost/subtitle` | SRT/WebVTT 解析、时间戳格式化、字幕写出。 |
+| `MaoDingA/moonpost/subtitle` | SRT/WebVTT/ASS 解析、时间戳格式化、字幕写出。 |
 | `MaoDingA/moonpost/qc` | QC profiles、issue 模型、cue 检查、报告格式化。 |
 | `MaoDingA/moonpost/creator` | 创作者字幕 profile、文本检查和清洗流程。 |
 | `MaoDingA/moonpost/retime` | cue 的整体偏移、帧率转换和帧吸附。 |
@@ -719,7 +733,7 @@ qc_subtitle(String, String) -> String
 ```text
 moonpost/
 ├── timecode/        SMPTE 风格时间码和帧率 helpers
-├── subtitle/        SRT/WebVTT parser、timestamp 和 writer
+├── subtitle/        SRT/WebVTT/ASS parser、timestamp 和 writer
 ├── qc/              字幕 QC、报告、双语文本规范和标点规范化
 ├── retime/          整体偏移、帧率转换和帧吸附
 ├── align/           双语字幕 merge/split helpers
