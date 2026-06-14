@@ -26,6 +26,8 @@ fn delivery_subtitle_profile_from_parts(
               max_duration_ms: profile.qc_profile.max_duration_ms,
               min_gap_frames: profile.qc_profile.min_gap_frames,
               frame_rate: Some(rate),
+              max_wps: profile.qc_profile.max_wps,
+              max_line_imbalance: profile.qc_profile.max_line_imbalance,
             },
             text_style: profile.text_style,
             srt_policy: profile.srt_policy,

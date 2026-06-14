@@ -220,13 +220,17 @@ test "delivery subtitle profiles expose stable metadata" {
 ///|
 test "delivery subtitle profiles can be listed for help output" {
   let profiles = delivery_subtitle_profiles()
-  assert_eq(profiles.length(), 6)
+  assert_eq(profiles.length(), 10)
   assert_true(profiles.any(profile => profile.name == "ott-zh"))
   assert_true(profiles.any(profile => profile.name == "cinema-zh"))
   assert_true(profiles.any(profile => profile.name == "broadcast"))
   assert_true(profiles.any(profile => profile.name == "srt-basic"))
   assert_true(profiles.any(profile => profile.name == "dcp-source-srt"))
   assert_true(profiles.any(profile => profile.name == "dcp-frame-strict"))
+  assert_true(profiles.any(profile => profile.name == "iqiyi"))
+  assert_true(profiles.any(profile => profile.name == "youku"))
+  assert_true(profiles.any(profile => profile.name == "tencent"))
+  assert_true(profiles.any(profile => profile.name == "nrta"))
 }
 
 ///|
@@ -407,4 +411,51 @@ test "delivery checksum check reports missing unreadable and mismatched targets"
       issue.code == "D404" && issue.message.contains("E01.unreadable.srt")
     }),
   )
+}
+
+///|
+test "iqiyi profile has CJK-tuned limits" {
+  match delivery_subtitle_profile_by_name("iqiyi") {
+    Some(profile) => {
+      assert_eq(profile.qc_profile.max_cps, 14)
+      match profile.qc_profile.max_cpl {
+        Some(cpl) => assert_eq(cpl, 18)
+        None => fail("iqiyi should set max_cpl")
+      }
+      assert_eq(profile.qc_profile.min_duration_ms, 1000)
+      assert_true(profile.qc_profile.frame_rate == Some(Fps25))
+    }
+    None => fail("iqiyi profile should exist")
+  }
+}
+
+///|
+test "nrta profile is the strictest China platform profile" {
+  match delivery_subtitle_profile_by_name("nrta") {
+    Some(profile) => {
+      assert_eq(profile.qc_profile.max_cps, 12)
+      match profile.qc_profile.max_cpl {
+        Some(cpl) => assert_eq(cpl, 15)
+        None => fail("nrta should set max_cpl")
+      }
+      assert_eq(profile.qc_profile.min_duration_ms, 1200)
+    }
+    None => fail("nrta profile should exist")
+  }
+}
+
+///|
+test "china platform profiles use zh text style" {
+  for name in ["iqiyi", "youku", "tencent", "nrta"] {
+    match delivery_subtitle_profile_by_name(name) {
+      Some(profile) => assert_true(profile.text_style.mode == @qc.TextStyleZh)
+      None => fail("\{name} profile should exist")
+    }
+  }
+}
+
+///|
+test "tencent-video is accepted as alias for tencent" {
+  assert_true(delivery_subtitle_profile_by_name("tencent-video") is Some(_))
+  assert_true(delivery_subtitle_profile_by_name("nrtasub") is Some(_))
 }

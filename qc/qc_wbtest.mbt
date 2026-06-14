@@ -36,6 +36,8 @@ test "qc catches frame alignment at 25fps" {
     max_duration_ms: 7000,
     min_gap_frames: 2,
     frame_rate: Some(Fps25),
+    max_wps: None,
+    max_line_imbalance: None,
   }
   let issues = check_cues(cues, profile)
   assert_true(issues.any(issue => issue.code == "W401"))
@@ -126,6 +128,8 @@ test "qc reports line count and small gap issues" {
     max_duration_ms: 7000,
     min_gap_frames: 2,
     frame_rate: Some(Fps25),
+    max_wps: None,
+    max_line_imbalance: None,
   }
   let issues = check_cues(
     [cue(1, 1000, 2000, ["one", "two", "three"]), cue(2, 2040, 3000, ["next"])],

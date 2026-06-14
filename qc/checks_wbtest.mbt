@@ -92,6 +92,8 @@ test "check_cues detects duration below minimum" {
     max_duration_ms: 7000,
     min_gap_frames: 2,
     frame_rate: None,
+    max_wps: None,
+    max_line_imbalance: None,
   }
   let issues = check_cues(cues, profile)
   assert_true(issues.any(fn(i) { i.code == "W201" }))
@@ -160,6 +162,8 @@ test "check_cues skips CPL check when max_cpl is None" {
     max_duration_ms: 7000,
     min_gap_frames: 2,
     frame_rate: None,
+    max_wps: None,
+    max_line_imbalance: None,
   }
   let issues = check_cues(cues, profile)
   assert_false(issues.any(fn(i) { i.code == "W203" }))
@@ -195,6 +199,8 @@ test "check_cues detects misaligned start time" {
     max_duration_ms: 7000,
     min_gap_frames: 2,
     frame_rate: Some(Fps25),
+    max_wps: None,
+    max_line_imbalance: None,
   }
   let issues = check_cues(cues, profile)
   assert_true(issues.any(fn(i) { i.code == "W401" }))
@@ -212,6 +218,8 @@ test "check_cues accepts aligned cue timing" {
     max_duration_ms: 7000,
     min_gap_frames: 2,
     frame_rate: Some(Fps25),
+    max_wps: None,
+    max_line_imbalance: None,
   }
   let issues = check_cues(cues, profile)
   assert_false(issues.any(fn(i) { i.code == "W401" }))
@@ -233,6 +241,8 @@ test "check_cues detects small gap at frame rate" {
     max_duration_ms: 7000,
     min_gap_frames: 2,
     frame_rate: Some(Fps25),
+    max_wps: None,
+    max_line_imbalance: None,
   }
   let issues = check_cues(cues, profile)
   assert_true(issues.any(fn(i) { i.code == "W402" }))
@@ -250,6 +260,8 @@ test "check_cues accepts sufficient gap at frame rate" {
     max_duration_ms: 7000,
     min_gap_frames: 2,
     frame_rate: Some(Fps25),
+    max_wps: None,
+    max_line_imbalance: None,
   }
   let issues = check_cues(cues, profile)
   assert_false(issues.any(fn(i) { i.code == "W402" }))
@@ -274,6 +286,8 @@ test "check_cues detects issues across multiple cues" {
     max_duration_ms: 7000,
     min_gap_frames: 2,
     frame_rate: None,
+    max_wps: None,
+    max_line_imbalance: None,
   }
   let issues = check_cues(cues, profile)
   assert_true(issues.any(fn(i) { i.code == "E201" }))
@@ -321,4 +335,216 @@ test "default profile has no frame rate" {
 test "streaming profile has 25fps" {
   let profile = streaming_profile()
   assert_true(profile.frame_rate == Some(Fps25))
+}
+
+// ── W205: leading/trailing whitespace ──
+
+///|
+test "W205 flags leading space" {
+  let cues = [cue(1, 0, 2000, [" Hello"])]
+  let profile = QcProfile::{
+    max_cpl: Some(42),
+    max_cps: 20,
+    max_lines: 2,
+    min_duration_ms: 500,
+    max_duration_ms: 7000,
+    min_gap_frames: 1,
+    frame_rate: None,
+    max_wps: None,
+    max_line_imbalance: None,
+  }
+  let issues = check_cues(cues, profile)
+  let codes = issue_codes(issues)
+  assert_true(codes.contains("W205"))
+}
+
+///|
+test "W205 flags trailing space" {
+  let cues = [cue(1, 0, 2000, ["Hello "])]
+  let profile = QcProfile::{
+    max_cpl: Some(42),
+    max_cps: 20,
+    max_lines: 2,
+    min_duration_ms: 500,
+    max_duration_ms: 7000,
+    min_gap_frames: 1,
+    frame_rate: None,
+    max_wps: None,
+    max_line_imbalance: None,
+  }
+  let issues = check_cues(cues, profile)
+  let codes = issue_codes(issues)
+  assert_true(codes.contains("W205"))
+}
+
+///|
+test "W205 does not flag clean line" {
+  let cues = [cue(1, 0, 2000, ["Hello"])]
+  let profile = QcProfile::{
+    max_cpl: Some(42),
+    max_cps: 20,
+    max_lines: 2,
+    min_duration_ms: 500,
+    max_duration_ms: 7000,
+    min_gap_frames: 1,
+    frame_rate: None,
+    max_wps: None,
+    max_line_imbalance: None,
+  }
+  let issues = check_cues(cues, profile)
+  let codes = issue_codes(issues)
+  assert_false(codes.contains("W205"))
+}
+
+// ── W206: consecutive blank lines ──
+
+///|
+test "W206 flags consecutive blank lines" {
+  let cues = [cue(1, 0, 2000, ["Hello", "", ""])]
+  let profile = QcProfile::{
+    max_cpl: Some(42),
+    max_cps: 20,
+    max_lines: 5,
+    min_duration_ms: 500,
+    max_duration_ms: 7000,
+    min_gap_frames: 1,
+    frame_rate: None,
+    max_wps: None,
+    max_line_imbalance: None,
+  }
+  let issues = check_cues(cues, profile)
+  let codes = issue_codes(issues)
+  assert_true(codes.contains("W206"))
+}
+
+///|
+test "W206 does not flag single blank line" {
+  let cues = [cue(1, 0, 2000, ["Hello", ""])]
+  let profile = QcProfile::{
+    max_cpl: Some(42),
+    max_cps: 20,
+    max_lines: 5,
+    min_duration_ms: 500,
+    max_duration_ms: 7000,
+    min_gap_frames: 1,
+    frame_rate: None,
+    max_wps: None,
+    max_line_imbalance: None,
+  }
+  let issues = check_cues(cues, profile)
+  let codes = issue_codes(issues)
+  assert_false(codes.contains("W206"))
+}
+
+// ── W207: whitespace-only line ──
+
+///|
+test "W207 flags whitespace-only line" {
+  let cues = [cue(1, 0, 2000, ["Hello", "   "])]
+  let profile = QcProfile::{
+    max_cpl: Some(42),
+    max_cps: 20,
+    max_lines: 5,
+    min_duration_ms: 500,
+    max_duration_ms: 7000,
+    min_gap_frames: 1,
+    frame_rate: None,
+    max_wps: None,
+    max_line_imbalance: None,
+  }
+  let issues = check_cues(cues, profile)
+  let codes = issue_codes(issues)
+  assert_true(codes.contains("W207"))
+}
+
+// ── W208: line imbalance ──
+
+///|
+test "W208 flags large line imbalance" {
+  let cues = [cue(1, 0, 2000, ["Hi", "This is a very long line of text"])]
+  let profile = QcProfile::{
+    max_cpl: Some(60),
+    max_cps: 20,
+    max_lines: 2,
+    min_duration_ms: 500,
+    max_duration_ms: 7000,
+    min_gap_frames: 1,
+    frame_rate: None,
+    max_wps: None,
+    max_line_imbalance: Some(2),
+  }
+  let issues = check_cues(cues, profile)
+  let codes = issue_codes(issues)
+  assert_true(codes.contains("W208"))
+}
+
+///|
+test "W208 does not flag balanced lines" {
+  let cues = [cue(1, 0, 2000, ["Hello world", "Hi there"])]
+  let profile = QcProfile::{
+    max_cpl: Some(42),
+    max_cps: 20,
+    max_lines: 2,
+    min_duration_ms: 500,
+    max_duration_ms: 7000,
+    min_gap_frames: 1,
+    frame_rate: None,
+    max_wps: None,
+    max_line_imbalance: Some(2),
+  }
+  let issues = check_cues(cues, profile)
+  let codes = issue_codes(issues)
+  assert_false(codes.contains("W208"))
+}
+
+// ── W311: Words Per Second ──
+
+///|
+test "W311 flags excessive words per second" {
+  // 6 words in 1000ms = 6 wps, exceeds max_wps=3
+  let cues = [cue(1, 0, 1000, ["one two three four five six"])]
+  let profile = QcProfile::{
+    max_cpl: Some(60),
+    max_cps: 30,
+    max_lines: 2,
+    min_duration_ms: 500,
+    max_duration_ms: 7000,
+    min_gap_frames: 1,
+    frame_rate: None,
+    max_wps: Some(3),
+    max_line_imbalance: None,
+  }
+  let issues = check_cues(cues, profile)
+  let codes = issue_codes(issues)
+  assert_true(codes.contains("W311"))
+}
+
+///|
+test "W311 disabled when max_wps is None" {
+  let cues = [cue(1, 0, 500, ["one two three four five six seven"])]
+  let profile = QcProfile::{
+    max_cpl: Some(60),
+    max_cps: 30,
+    max_lines: 2,
+    min_duration_ms: 500,
+    max_duration_ms: 7000,
+    min_gap_frames: 1,
+    frame_rate: None,
+    max_wps: None,
+    max_line_imbalance: None,
+  }
+  let issues = check_cues(cues, profile)
+  let codes = issue_codes(issues)
+  assert_false(codes.contains("W311"))
+}
+
+// ── helpers ──
+
+///|
+fn issue_codes(issues : Array[QcIssue]) -> Array[String] {
+  let codes : Array[String] = []
+  for issue in issues {
+    codes.push(issue.code)
+  }
+  codes
 }

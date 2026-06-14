@@ -39,11 +39,36 @@ fn explain_code(code : String) -> Array[String] {
         "W204 [Warning] Too many lines", "", "The cue has more text lines than the profile allows.",
         "", "Fix: Reduce the number of lines or split into multiple cues.",
       ]
+    "W205" =>
+      [
+        "W205 [Warning] Leading or trailing whitespace", "", "A text line begins or ends with a space or tab. This may cause",
+        "inconsistent rendering or spacing on different players.", "", "Fix: Remove the leading/trailing whitespace from the line.",
+      ]
+    "W206" =>
+      [
+        "W206 [Warning] Consecutive blank lines", "", "The cue text contains two or more blank lines in a row, which",
+        "usually indicates a formatting error.", "", "Fix: Remove the extra blank line(s).",
+      ]
+    "W207" =>
+      [
+        "W207 [Warning] Whitespace-only line", "", "A line inside the cue contains only spaces or tabs (not truly empty",
+        "but visually blank).", "", "Fix: Remove the whitespace-only line or replace with actual content.",
+      ]
+    "W208" =>
+      [
+        "W208 [Warning] Line length imbalance", "", "The longest visible line is much longer than the shortest visible",
+        "line in the same cue, creating visual imbalance on screen.", "", "Fix: Rebalance the text so the two lines are closer in length.",
+      ]
     // 阅读速度
     "W310" =>
       [
         "W310 [Warning] Reading speed exceeds CPS limit", "", "Characters Per Second (CPS) exceeds the profile's maximum. The",
         "subtitle may be too fast to read comfortably.", "", "Fix: Shorten the text or extend the cue duration.",
+      ]
+    "W311" =>
+      [
+        "W311 [Warning] Words Per Second exceeds WPS limit", "", "Words Per Second (WPS) for Latin-script text exceeds the profile's",
+        "maximum. This is the English-reading-speed counterpart to CPS.", "", "Fix: Shorten the text or extend the cue duration.",
       ]
     // 帧网格和间隔
     "W401" =>
@@ -191,7 +216,7 @@ fn explain_code(code : String) -> Array[String] {
         "Valid code ranges:",
         "  E1xx   Timecode hard errors",
         "  E2xx   Text hard errors",
-        "  W2xx   Duration and line warnings",
+        "  W2xx   Duration, line, and whitespace warnings",
         "  W3xx   Reading speed warnings",
         "  W4xx   Frame grid and gap warnings",
         "  W5xx   Text style warnings",

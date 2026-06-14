@@ -187,6 +187,8 @@ fn srt_source_qc_profile() -> @qc.QcProfile {
     max_duration_ms: 7000,
     min_gap_frames: 2,
     frame_rate: None,
+    max_wps: None,
+    max_line_imbalance: Some(2),
   }
 }
 
@@ -200,6 +202,8 @@ fn dcp_source_srt_qc_profile() -> @qc.QcProfile {
     max_duration_ms: 6000,
     min_gap_frames: 2,
     frame_rate: None,
+    max_wps: None,
+    max_line_imbalance: Some(2),
   }
 }
 
@@ -239,6 +243,118 @@ pub fn dcp_frame_strict_subtitle_profile() -> DeliverySubtitleProfile {
   }
 }
 
+/// China long-form video platform profiles.
+/// Reference: GY/T 357-2024 电视剧母版制作规范 (NRTA standard) and
+/// industry practice (close to Netflix Timed Text Style Guide with CJK tuning).
+
+///|
+fn iqiyi_qc_profile() -> @qc.QcProfile {
+  {
+    max_cpl: Some(18),
+    max_cps: 14,
+    max_lines: 2,
+    min_duration_ms: 1000,
+    max_duration_ms: 7000,
+    min_gap_frames: 2,
+    frame_rate: Some(Fps25),
+    max_wps: None,
+    max_line_imbalance: Some(2),
+  }
+}
+
+///|
+fn youku_qc_profile() -> @qc.QcProfile {
+  {
+    max_cpl: Some(20),
+    max_cps: 15,
+    max_lines: 2,
+    min_duration_ms: 1000,
+    max_duration_ms: 7000,
+    min_gap_frames: 2,
+    frame_rate: Some(Fps25),
+    max_wps: None,
+    max_line_imbalance: Some(2),
+  }
+}
+
+///|
+fn tencent_qc_profile() -> @qc.QcProfile {
+  {
+    max_cpl: Some(18),
+    max_cps: 14,
+    max_lines: 2,
+    min_duration_ms: 1000,
+    max_duration_ms: 7000,
+    min_gap_frames: 2,
+    frame_rate: Some(Fps25),
+    max_wps: None,
+    max_line_imbalance: Some(2),
+  }
+}
+
+///|
+fn nrta_qc_profile() -> @qc.QcProfile {
+  {
+    max_cpl: Some(15),
+    max_cps: 12,
+    max_lines: 2,
+    min_duration_ms: 1200,
+    max_duration_ms: 7000,
+    min_gap_frames: 2,
+    frame_rate: Some(Fps25),
+    max_wps: None,
+    max_line_imbalance: Some(2),
+  }
+}
+
+///|
+pub fn iqiyi_subtitle_profile() -> DeliverySubtitleProfile {
+  {
+    name: "iqiyi",
+    version: "v1",
+    description: "iQIYI (爱奇艺) Chinese long-form subtitle delivery profile",
+    qc_profile: iqiyi_qc_profile(),
+    text_style: @qc.zh_text_style_profile(),
+    srt_policy: None,
+  }
+}
+
+///|
+pub fn youku_subtitle_profile() -> DeliverySubtitleProfile {
+  {
+    name: "youku",
+    version: "v1",
+    description: "Youku (优酷) Chinese long-form subtitle delivery profile",
+    qc_profile: youku_qc_profile(),
+    text_style: @qc.zh_text_style_profile(),
+    srt_policy: None,
+  }
+}
+
+///|
+pub fn tencent_subtitle_profile() -> DeliverySubtitleProfile {
+  {
+    name: "tencent",
+    version: "v1",
+    description: "Tencent Video (腾讯视频) Chinese long-form subtitle delivery profile",
+    qc_profile: tencent_qc_profile(),
+    text_style: @qc.zh_text_style_profile(),
+    srt_policy: None,
+  }
+}
+
+///|
+pub fn nrta_subtitle_profile() -> DeliverySubtitleProfile {
+  {
+    name: "nrta",
+    version: "v1",
+    description: "NRTA GY/T 357-2024 compliant subtitle profile for broadcast submission",
+    qc_profile: nrta_qc_profile(),
+    text_style: @qc.zh_text_style_profile(),
+    srt_policy: None,
+  }
+}
+
 ///|
 pub fn delivery_subtitle_profiles() -> Array[DeliverySubtitleProfile] {
   [
@@ -248,6 +364,10 @@ pub fn delivery_subtitle_profiles() -> Array[DeliverySubtitleProfile] {
     srt_basic_subtitle_profile(),
     dcp_source_srt_subtitle_profile(),
     dcp_frame_strict_subtitle_profile(),
+    iqiyi_subtitle_profile(),
+    youku_subtitle_profile(),
+    tencent_subtitle_profile(),
+    nrta_subtitle_profile(),
   ]
 }
 
@@ -262,6 +382,10 @@ pub fn delivery_subtitle_profile_by_name(
     "srt-basic" => Some(srt_basic_subtitle_profile())
     "dcp-source-srt" | "dcp-srt" => Some(dcp_source_srt_subtitle_profile())
     "dcp-frame-strict" => Some(dcp_frame_strict_subtitle_profile())
+    "iqiyi" => Some(iqiyi_subtitle_profile())
+    "youku" => Some(youku_subtitle_profile())
+    "tencent" | "tencent-video" => Some(tencent_subtitle_profile())
+    "nrta" | "nrtasub" => Some(nrta_subtitle_profile())
     _ => None
   }
 }

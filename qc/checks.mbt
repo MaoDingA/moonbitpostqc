@@ -31,6 +31,109 @@ fn is_empty_text(text : Array[String]) -> Bool {
 }
 
 ///|
+/// Check W205: line has leading or trailing whitespace (excluding the trim itself).
+/// Triggers when a line starts or ends with a space/tab but is not entirely blank.
+fn has_leading_trailing_space(line : String) -> Bool {
+  let len = line.length()
+  if len == 0 {
+    return false
+  }
+  // Consider only non-empty trimmed lines: leading/trailing space is suspicious
+  let trimmed = line.trim().to_owned()
+  if trimmed.is_empty() {
+    return false
+  }
+  // Compare first and last code units
+  let first = line[0]
+  let last = line[len - 1]
+  first == ' ' || first == '\t' || last == ' ' || last == '\t'
+}
+
+///|
+/// Check W206: cue text contains consecutive blank lines.
+fn has_consecutive_blank_lines(text : Array[String]) -> Bool {
+  let mut prev_blank = false
+  for line in text {
+    let is_blank = line.trim().to_owned().is_empty()
+    if is_blank && prev_blank {
+      return true
+    }
+    prev_blank = is_blank
+  }
+  false
+}
+
+///|
+/// Check W207: cue has a line that is only whitespace (not empty string but spaces/tabs).
+fn has_whitespace_only_line(text : Array[String]) -> Bool {
+  for line in text {
+    if !line.is_empty() && line.trim().to_owned().is_empty() {
+      return true
+    }
+  }
+  false
+}
+
+///|
+/// Count Latin-script words in a string (rough estimate by whitespace runs).
+fn count_words(line : String) -> Int {
+  let mut count = 0
+  let mut in_word = false
+  for ch in line.iter() {
+    if ch.is_whitespace() {
+      if in_word {
+        count += 1
+        in_word = false
+      }
+    } else {
+      in_word = true
+    }
+  }
+  if in_word {
+    count + 1
+  } else {
+    count
+  }
+}
+
+///|
+/// Total word count across all cue lines.
+fn cue_word_count(text : Array[String]) -> Int {
+  let mut total = 0
+  for line in text {
+    total += count_words(line)
+  }
+  total
+}
+
+///|
+/// Check W208: line imbalance — the longest visible line is more than
+/// `max_ratio` times longer (by character count) than the shortest visible line.
+/// Only compares non-blank lines. Returns the ratio*100 (integer) or 0 if not applicable.
+fn line_imbalance_ratio(text : Array[String]) -> Int {
+  let mut min_len = -1
+  let mut max_len = 0
+  for line in text {
+    let trimmed = line.trim().to_owned()
+    if trimmed.is_empty() {
+      continue
+    }
+    let len = trimmed.iter().count()
+    if min_len < 0 || len < min_len {
+      min_len = len
+    }
+    if len > max_len {
+      max_len = len
+    }
+  }
+  if min_len <= 0 || max_len == 0 || min_len == max_len {
+    return 0
+  }
+  // ratio = max_len / min_len, scaled by 100 to keep it integer
+  max_len * 100 / min_len
+}
+
+///|
 fn push_issue(
   issues : Array[QcIssue],
   severity : Severity,
@@ -88,6 +191,25 @@ fn check_single_cue(
         "\{cps} cps exceeds max \{profile.max_cps}",
       )
     }
+    // W311: Words Per Second (for Latin-script text)
+    match profile.max_wps {
+      Some(max_wps) => {
+        let words = cue_word_count(cue.text)
+        if words > 0 {
+          let wps = (words * 1000 + duration / 2) / duration
+          if wps > max_wps {
+            push_issue(
+              issues,
+              Warning,
+              "W311",
+              label,
+              "\{wps} wps exceeds max \{max_wps}",
+            )
+          }
+        }
+      }
+      None => ()
+    }
   }
   if is_empty_text(cue.text) {
     push_issue(issues, Error, "E201", label, "empty cue text")
@@ -100,6 +222,53 @@ fn check_single_cue(
       label,
       "\{cue.text.length()} lines exceeds max \{profile.max_lines}",
     )
+  }
+  // W205/W206/W207: whitespace hygiene
+  for line_index in 0..<cue.text.length() {
+    let line = cue.text[line_index]
+    if has_leading_trailing_space(line) {
+      push_issue(
+        issues,
+        Warning,
+        "W205",
+        label,
+        "line \{line_index + 1}: leading or trailing whitespace",
+      )
+    }
+  }
+  if has_whitespace_only_line(cue.text) {
+    push_issue(
+      issues,
+      Warning,
+      "W207",
+      label,
+      "cue contains a whitespace-only line",
+    )
+  } else if has_consecutive_blank_lines(cue.text) {
+    push_issue(
+      issues,
+      Warning,
+      "W206",
+      label,
+      "cue contains consecutive blank lines",
+    )
+  }
+  // W208: line imbalance
+  match profile.max_line_imbalance {
+    Some(max_ratio) => {
+      let ratio = line_imbalance_ratio(cue.text)
+      // ratio is scaled by 100; max_ratio is the integer ratio (e.g. 2 means 2.0x)
+      if ratio > max_ratio * 100 {
+        push_issue(
+          issues,
+          Warning,
+          "W208",
+          label,
+          "line length imbalance ratio \{ratio / 100}.\{ratio % 100}x exceeds max \{max_ratio}x",
+        )
+      }
+    }
+    None => ()
   }
   match profile.max_cpl {
     Some(max_cpl) =>

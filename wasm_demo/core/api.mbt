@@ -119,6 +119,8 @@ fn make_profile_with_fps(
         max_duration_ms: profile.max_duration_ms,
         min_gap_frames: profile.min_gap_frames,
         frame_rate: Some(rate),
+        max_wps: profile.max_wps,
+        max_line_imbalance: profile.max_line_imbalance,
       }
     None => profile
   }

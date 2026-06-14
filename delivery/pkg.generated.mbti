@@ -32,7 +32,11 @@ pub fn delivery_subtitle_profiles() -> Array[DeliverySubtitleProfile]
 
 pub fn distribution_profile() -> DeliveryProfile
 
+pub fn iqiyi_subtitle_profile() -> DeliverySubtitleProfile
+
 pub fn language_from_subtitle_name(String) -> String?
+
+pub fn nrta_subtitle_profile() -> DeliverySubtitleProfile
 
 pub fn ott_zh_subtitle_profile() -> DeliverySubtitleProfile
 
@@ -45,6 +49,10 @@ pub fn parse_manifest(String) -> Result[DeliveryManifest, String]
 pub fn sha256_hex(BytesView) -> String
 
 pub fn srt_basic_subtitle_profile() -> DeliverySubtitleProfile
+
+pub fn tencent_subtitle_profile() -> DeliverySubtitleProfile
+
+pub fn youku_subtitle_profile() -> DeliverySubtitleProfile
 
 // Errors
 

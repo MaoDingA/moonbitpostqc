@@ -134,6 +134,8 @@ pub(all) struct QcProfile {
   max_duration_ms : Int
   min_gap_frames : Int
   frame_rate : @timecode.FrameRate?
+  max_wps : Int?
+  max_line_imbalance : Int?
 } derive(Eq, @debug.Debug)
 
 pub(all) struct QcReportContext {

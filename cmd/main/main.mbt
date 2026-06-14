@@ -214,6 +214,8 @@ fn profile_from_name(
       Some(rate) => Some(rate)
       None => base.frame_rate
     },
+    max_wps: base.max_wps,
+    max_line_imbalance: base.max_line_imbalance,
   }
 }
 

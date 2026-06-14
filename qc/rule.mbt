@@ -13,6 +13,11 @@ pub(all) struct QcProfile {
   max_duration_ms : Int
   min_gap_frames : Int
   frame_rate : @timecode.FrameRate?
+  /// Maximum Words Per Second (for Latin-script text). None disables WPS check.
+  max_wps : Int?
+  /// Maximum allowed ratio between the longest and shortest line in a cue.
+  /// None disables the line imbalance check (W208).
+  max_line_imbalance : Int?
 } derive(Eq, Debug)
 
 ///|
@@ -33,6 +38,8 @@ pub fn default_profile() -> QcProfile {
     max_duration_ms: 7000,
     min_gap_frames: 2,
     frame_rate: None,
+    max_wps: None,
+    max_line_imbalance: Some(2),
   }
 }
 
@@ -46,6 +53,8 @@ pub fn streaming_profile() -> QcProfile {
     max_duration_ms: 7000,
     min_gap_frames: 2,
     frame_rate: Some(Fps25),
+    max_wps: Some(3),
+    max_line_imbalance: Some(2),
   }
 }
 
@@ -59,6 +68,8 @@ pub fn cinema_profile() -> QcProfile {
     max_duration_ms: 6000,
     min_gap_frames: 2,
     frame_rate: Some(Fps24),
+    max_wps: Some(3),
+    max_line_imbalance: Some(2),
   }
 }
 
@@ -72,6 +83,8 @@ pub fn social_video_profile() -> QcProfile {
     max_duration_ms: 5000,
     min_gap_frames: 1,
     frame_rate: Some(Fps30),
+    max_wps: Some(4),
+    max_line_imbalance: None,
   }
 }
 

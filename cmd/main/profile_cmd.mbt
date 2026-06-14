@@ -34,6 +34,18 @@ fn profile_list_lines(scope : String) -> Array[String] {
       "  dcp-frame-strict DCP 帧网格严格检查 (24fps, 2帧间隔)",
     )
     lines.push("")
+    lines.push("China long-form video platform profiles:")
+    lines.push(
+      "  iqiyi          爱奇艺 (CPL=18, CPS=14, 1000~7000ms, 25fps)",
+    )
+    lines.push("  youku          优酷 (CPL=20, CPS=15, 1000~7000ms, 25fps)")
+    lines.push(
+      "  tencent        腾讯视频 (CPL=18, CPS=14, 1000~7000ms, 25fps)",
+    )
+    lines.push(
+      "  nrta           广电送审 GY/T 357-2024 (CPL=15, CPS=12, 1200~7000ms)",
+    )
+    lines.push("")
     lines.push("Delivery package profiles:")
     lines.push(
       "  distribution     要求 video + subtitle + metadata + checksum",
