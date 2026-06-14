@@ -396,6 +396,45 @@ test "W205 does not flag clean line" {
   assert_false(codes.contains("W205"))
 }
 
+///|
+test "W205 is Unicode-safe for CJK lines (no false positive)" {
+  // Leading CJK char must not be misread as a space via raw code-unit compare.
+  let cues = [cue(1, 0, 2000, ["你好世界"])]
+  let profile = QcProfile::{
+    max_cpl: Some(42),
+    max_cps: 20,
+    max_lines: 2,
+    min_duration_ms: 500,
+    max_duration_ms: 7000,
+    min_gap_frames: 1,
+    frame_rate: None,
+    max_wps: None,
+    max_line_imbalance: None,
+  }
+  let issues = check_cues(cues, profile)
+  let codes = issue_codes(issues)
+  assert_false(codes.contains("W205"))
+}
+
+///|
+test "W205 flags leading space before CJK text" {
+  let cues = [cue(1, 0, 2000, [" 你好"])]
+  let profile = QcProfile::{
+    max_cpl: Some(42),
+    max_cps: 20,
+    max_lines: 2,
+    min_duration_ms: 500,
+    max_duration_ms: 7000,
+    min_gap_frames: 1,
+    frame_rate: None,
+    max_wps: None,
+    max_line_imbalance: None,
+  }
+  let issues = check_cues(cues, profile)
+  let codes = issue_codes(issues)
+  assert_true(codes.contains("W205"))
+}
+
 // ── W206: consecutive blank lines ──
 
 ///|

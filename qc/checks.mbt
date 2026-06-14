@@ -34,19 +34,18 @@ fn is_empty_text(text : Array[String]) -> Bool {
 /// Check W205: line has leading or trailing whitespace (excluding the trim itself).
 /// Triggers when a line starts or ends with a space/tab but is not entirely blank.
 fn has_leading_trailing_space(line : String) -> Bool {
-  let len = line.length()
-  if len == 0 {
-    return false
-  }
-  // Consider only non-empty trimmed lines: leading/trailing space is suspicious
+  // Consider only non-empty trimmed lines: leading/trailing space is suspicious.
   let trimmed = line.trim().to_owned()
   if trimmed.is_empty() {
     return false
   }
-  // Compare first and last code units
-  let first = line[0]
-  let last = line[len - 1]
-  first == ' ' || first == '\t' || last == ' ' || last == '\t'
+  // Use prefix/suffix check so it is Unicode-safe across the UTF-16 boundary.
+  // Space and tab are single-code-unit ASCII, so has_prefix/has_suffix work
+  // correctly even when the first/last visible char is a multi-unit CJK glyph.
+  line.has_prefix(" ") ||
+  line.has_prefix("\t") ||
+  line.has_suffix(" ") ||
+  line.has_suffix("\t")
 }
 
 ///|
