@@ -6,6 +6,7 @@ English | <a href="README.md">简体中文</a>
 
 <p align="left">
   <a href="https://github.com/MaoDingA/moonbitpostqc/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/MaoDingA/moonbitpostqc/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://maodinga.github.io/moonbitpostqc/"><img alt="Live Demo" src="https://img.shields.io/badge/demo-live-0f766e?style=flat-square"></a>
   <a href="README.en.md"><img alt="English current" src="https://img.shields.io/badge/English-current-0f766e?style=flat-square"></a>
   <a href="README.md"><img alt="简体中文 README" src="https://img.shields.io/badge/%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-README-64748b?style=flat-square"></a>
   <img alt="MoonBit native" src="https://img.shields.io/badge/MoonBit-native-8b5cf6?style=flat-square">
@@ -578,11 +579,17 @@ Snap cue timing to a frame grid:
 moon run cmd/main --target native -- retime examples/good.srt --snap-fps 25 -o snapped.srt
 ```
 
-## Browser-Local Wasm Demo
+## Browser Wasm Demo
 
-MoonPost includes a small browser demo for local subtitle QC. The demo loads
-the MoonBit `wasm-gc` build and runs QC in the browser. Subtitle text stays in
-the local browser session.
+MoonPost includes a browser demo for subtitle QC. The demo loads the MoonBit
+`wasm-gc` build and runs QC in the browser. Subtitle text stays in the local
+browser session and is never uploaded.
+
+**Live Demo**: [https://maodinga.github.io/moonbitpostqc/](https://maodinga.github.io/moonbitpostqc/)
+
+> Requires a browser with WebAssembly GC support (Chrome 119+ / Firefox 120+ / Edge 119+)
+
+Build and run locally:
 
 Build the Wasm asset:
 

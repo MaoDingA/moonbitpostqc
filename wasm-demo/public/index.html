@@ -10,8 +10,11 @@
     <main class="app-shell">
       <header class="topbar">
         <div>
-          <p class="eyebrow">MoonPost</p>
+          <p class="eyebrow">MoonPost · MoonBit</p>
           <h1>Subtitle QC</h1>
+          <p class="tagline">
+            SRT / WebVTT / ASS 字幕质检、清洗与转换 · 浏览器本地运行，不上传文件
+          </p>
         </div>
         <div class="status" id="runtime-status" aria-live="polite">
           Loading Wasm
@@ -98,6 +101,22 @@
           </div>
         </div>
       </section>
+
+      <footer class="app-footer">
+        <div class="footer-grid">
+          <div>
+            <strong>MoonPost</strong> — Pure MoonBit toolkit for subtitles,
+            timecode, and post-production QC.
+          </div>
+          <div class="footer-links">
+            <a href="https://github.com/MaoDingA/moonbitpostqc" target="_blank" rel="noopener">GitHub</a>
+            <span>SRT · WebVTT · ASS</span>
+            <span>24 QC rules</span>
+            <span>18 profiles</span>
+            <span>Wasm GC</span>
+          </div>
+        </div>
+      </footer>
     </main>
 
     <script type="module" src="./app.js"></script>

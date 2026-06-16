@@ -66,6 +66,10 @@ const profiles = {
     { value: "srt-basic", label: "SRT 基础" },
     { value: "dcp-source-srt", label: "DCP 源 SRT" },
     { value: "dcp-frame-strict", label: "DCP 帧严格" },
+    { value: "iqiyi", label: "爱奇艺" },
+    { value: "youku", label: "优酷" },
+    { value: "tencent", label: "腾讯视频" },
+    { value: "nrta", label: "广电送审" },
   ],
   qc: [
     { value: "default", label: "Default" },
