@@ -6,7 +6,6 @@
 
 <p align="left">
   <a href="https://github.com/MaoDingA/moonbitpostqc/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/MaoDingA/moonbitpostqc/actions/workflows/ci.yml/badge.svg"></a>
-  <a href="https://maodinga.github.io/moonbitpostqc/"><img alt="Live Demo" src="https://img.shields.io/badge/demo-live-0f766e?style=flat-square"></a>
   <a href="README.md"><img alt="简体中文 current" src="https://img.shields.io/badge/%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-current-0f766e?style=flat-square"></a>
   <a href="README.en.md"><img alt="English README" src="https://img.shields.io/badge/English-README-64748b?style=flat-square"></a>
   <img alt="MoonBit native" src="https://img.shields.io/badge/MoonBit-native-8b5cf6?style=flat-square">
@@ -47,7 +46,7 @@ MoonPost 是**原创 MoonBit 项目**，不是对任何特定第三方库的移�
 | GitLink 仓库 | 已与 GitHub 同步 |
 | 项目申报书 | 已提交（2026 MoonBit 国产基础软件开源大赛） |
 | mooncakes.io | [`moon add MaoDingA/moonpost`](https://mooncakes.io/MaoDingA/moonpost) |
-| 在线 Demo | [maodinga.github.io/moonbitpostqc](https://maodinga.github.io/moonbitpostqc/) |
+| 本地 Demo | `./wasm-demo/build.sh && python3 -m http.server 8765 -d wasm-demo/public` |
 | 评委验收指南 | [SHOWCASE.md](SHOWCASE.md) |
 
 ## 功能
@@ -582,16 +581,12 @@ moon run cmd/main --target native -- retime examples/good.srt --from-fps 23.976 
 moon run cmd/main --target native -- retime examples/good.srt --snap-fps 25 -o snapped.srt
 ```
 
-## 浏览器 Wasm Demo
+## 浏览器 Wasm Demo（本地运行）
 
 MoonPost 包含一个字幕 QC 浏览器 demo。该 demo 加载 MoonBit `wasm-gc`
 构建产物，并在浏览器中运行 QC。字幕文本保留在本地浏览器会话中，不上传服务器。
 
-**在线 Demo**：[https://maodinga.github.io/moonbitpostqc/](https://maodinga.github.io/moonbitpostqc/)
-
 > 需要支持 WebAssembly GC 的浏览器（Chrome 119+ / Firefox 120+ / Edge 119+）
-
-本地构建和运行：
 
 构建 Wasm 产物：
 

@@ -15,15 +15,19 @@ MoonPost 是一个用 MoonBit 编写的字幕/时间码/后期质检 CLI + WASM 
 
 ---
 
-## 在线 Demo
+## 浏览器 Demo（本地运行）
 
-**地址**：[https://maodinga.github.io/moonbitpostqc/](https://maodinga.github.io/moonbitpostqc/)
+```bash
+./wasm-demo/build.sh
+python3 -m http.server 8765 -d wasm-demo/public
+# 浏览器打开 http://localhost:8765/
+```
 
 > 需要支持 WebAssembly GC 的浏览器（Chrome 119+ / Firefox 120+ / Edge 119+）
 
 ### 场景 1：Creator 字幕清洗
 
-1. 打开在线 Demo
+1. 打开 http://localhost:8765/
 2. 选择 **Creator** 标签页，Profile 选"抖音"
 3. 点击 **Sample** 加载 AI 字幕示例
 4. 点击 **Check** 查看问题，再点 **Clean** 查看自动修复结果
@@ -86,7 +90,7 @@ _build/native/debug/build/cmd/main/main.exe timecode convert 01:00:00:00 --from 
 | 单元测试 (wasm-gc) | 286 个，全部通过 |
 | 端到端验收测试 | 8 个场景，35 个检查（`./scripts/e2e-acceptance.sh` 本地一键运行） |
 | CLI 冒烟测试 | 覆盖所有子命令（[ci.yml](.github/workflows/ci.yml)） |
-| WASM Demo 构建 | CI 自动验证（[deploy-demo.yml](.github/workflows/deploy-demo.yml)） |
+| WASM Demo 构建 | CI 自动验证（`wasm-demo` job in [ci.yml](.github/workflows/ci.yml)） |
 | 代码行数 | ~15,600 行 MoonBit |
 | 源文件 | 76 个 .mbt 文件 |
 
@@ -103,7 +107,7 @@ CI 状态：[![CI](https://github.com/MaoDingA/moonbitpostqc/actions/workflows/c
 | 3 | 源码结构清晰 | ✅ | 11 个包，分层架构 |
 | 4 | README 完整 | ✅ | 双语 README ~800 行 |
 | 5 | CI 覆盖 check/build/test | ✅ | 4-job CI + e2e 验收 |
-| 6 | 至少一个可运行示例 | ✅ | 37 个示例文件 + 在线 Demo |
+| 6 | 至少一个可运行示例 | ✅ | 37 个示例文件 + 本地 Wasm Demo |
 | 7 | 测试覆盖核心功能 | ✅ | 621 个测试 |
 | 8 | 发布到 mooncakes.io | ✅ | `moon add MaoDingA/moonpost` |
 | 9 | OSI 许可证 | ✅ | Apache-2.0 |
