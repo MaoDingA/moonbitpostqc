@@ -68,6 +68,14 @@ _build/native/debug/build/cmd/main/main.exe delivery check examples/delivery-pac
 _build/native/debug/build/cmd/main/main.exe timecode convert 01:00:00:00 --from 23.976 --to 25
 ```
 
+### 一键端到端验收（本地可跑）
+
+```bash
+# 8 个场景，35 个检查，覆盖格式转换、全 profile QC、AI 清洗、
+# 交付包验收、时间码、双语字幕、新 QC 规则、explain 全覆盖
+./scripts/e2e-acceptance.sh
+```
+
 ---
 
 ## 测试与 CI
@@ -76,7 +84,7 @@ _build/native/debug/build/cmd/main/main.exe timecode convert 01:00:00:00 --from 
 |---|---|
 | 单元测试 (native) | 335 个，全部通过 |
 | 单元测试 (wasm-gc) | 286 个，全部通过 |
-| 端到端验收测试 | 8 个场景（[e2e-acceptance.yml](.github/workflows/e2e-acceptance.yml)） |
+| 端到端验收测试 | 8 个场景，35 个检查（`./scripts/e2e-acceptance.sh` 本地一键运行） |
 | CLI 冒烟测试 | 覆盖所有子命令（[ci.yml](.github/workflows/ci.yml)） |
 | WASM Demo 构建 | CI 自动验证（[deploy-demo.yml](.github/workflows/deploy-demo.yml)） |
 | 代码行数 | ~15,600 行 MoonBit |
