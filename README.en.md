@@ -41,9 +41,23 @@ the post-production infrastructure layer that can be implemented
 deterministically in MoonBit: parsers, data models, QC rules, reports, CLI
 tools, and Wasm-ready core packages.
 
-MoonPost is an original MoonBit project rather than a port of a specific
-third-party library. If future work references or ports another open-source
-project, the source, license, and scope will be documented.
+MoonPost is an **original MoonBit project**, not a port or rewrite of any
+specific third-party library. The industry standards it follows (SMPTE
+timecode, SRT/WebVTT/ASS subtitle formats, Netflix TTSG, China NRTA
+GY/T 357-2024, etc.) are all public specifications and involve no
+third-party source porting. If future work references or ports another
+open-source project, the source, license, and scope will be documented.
+
+### Repository & contest status
+
+| Item | Status |
+|---|---|
+| GitHub repo | [MaoDingA/moonbitpostqc](https://github.com/MaoDingA/moonbitpostqc) |
+| GitLink repo | synced with GitHub |
+| Project proposal | submitted (2026 MoonBit Open-Source Competition) |
+| mooncakes.io | [`moon add MaoDingA/moonpost`](https://mooncakes.io/MaoDingA/moonpost) |
+| Live demo | [maodinga.github.io/moonbitpostqc](https://maodinga.github.io/moonbitpostqc/) |
+| Judge guide | [SHOWCASE.md](SHOWCASE.md) |
 
 ## Features
 

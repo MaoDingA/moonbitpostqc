@@ -34,8 +34,21 @@ MoonPost 不做视频解码、转码或 FFmpeg 封装。项目关注的是适合
 确定性实现的后期基础设施层：parser、数据模型、QC 规则、报告、CLI 工具
 和 Wasm-ready 核心包。
 
-MoonPost 是原创 MoonBit 项目，不是对特定第三方库的移植；如后续参考或
-移植其他开源项目，会在文档中注明来源、许可证和参考范围。
+MoonPost 是**原创 MoonBit 项目**，不是对任何特定第三方库的移植或重写。
+项目所采用的行业标准（SMPTE 时间码、SRT/WebVTT/ASS 字幕格式、Netflix TTSG、
+广电 GY/T 357-2024 等）均为公开规范，不涉及第三方源码移植。如后续参考或
+移植其他开源项目，会在文档中明确注明来源、许可证和参考范围。
+
+### 仓库与赛事状态
+
+| 项目 | 状态 |
+|---|---|
+| GitHub 仓库 | [MaoDingA/moonbitpostqc](https://github.com/MaoDingA/moonbitpostqc) |
+| GitLink 仓库 | 已与 GitHub 同步 |
+| 项目申报书 | 已提交（2026 MoonBit 国产基础软件开源大赛） |
+| mooncakes.io | [`moon add MaoDingA/moonpost`](https://mooncakes.io/MaoDingA/moonpost) |
+| 在线 Demo | [maodinga.github.io/moonbitpostqc](https://maodinga.github.io/moonbitpostqc/) |
+| 评委验收指南 | [SHOWCASE.md](SHOWCASE.md) |
 
 ## 功能
 
