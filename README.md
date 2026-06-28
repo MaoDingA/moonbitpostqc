@@ -47,7 +47,7 @@ MoonPost 是**原创 MoonBit 项目**，不是对任何特定第三方库的移�
 | 项目申报书 | 已提交（2026 MoonBit 国产基础软件开源大赛） |
 | mooncakes.io | [`moon add MaoDingA/moonpost`](https://mooncakes.io/MaoDingA/moonpost) |
 | 本地 Demo | `./wasm-demo/build.sh && python3 -m http.server 8765 -d wasm-demo/public` |
-| 评委验收指南 | [SHOWCASE.md](SHOWCASE.md) |
+| 用户体验指南 | [user-experience/README.md](user-experience/README.md) |
 
 ## 功能
 
@@ -151,7 +151,7 @@ let tc = parse_timecode("01:00:00:00", FrameRate::fps_25())
 let issues = check_cues(track.cues, default_profile())
 ```
 
-可用的子包包括 `MaoDingA/moonpost/subtitle`、`MaoDingA/moonpost/timecode`、`MaoDingA/moonpost/qc`、`MaoDingA/moonpost/creator`、`MaoDingA/moonpost/delivery`、`MaoDingA/moonpost/retime` 和 `MaoDingA/moonpost/align`。完整 API 参考 README 中的"核心公开 API"章节。
+可用的子包包括 `MaoDingA/moonpost/subtitle`、`MaoDingA/moonpost/timecode`、`MaoDingA/moonpost/qc`、`MaoDingA/moonpost/creator`、`MaoDingA/moonpost/delivery`、`MaoDingA/moonpost/dcp`、`MaoDingA/moonpost/retime` 和 `MaoDingA/moonpost/align`。完整 API 参考 README 中的"核心公开 API"章节，稳定性边界见 [API_STABILITY.md](API_STABILITY.md)。
 
 ## 快速开始
 
@@ -176,6 +176,19 @@ moon run cmd/main --target native --
 
 下面的示例都会使用这个前缀。如果之后发布独立二进制，可以把该前缀替换为
 `moonpost`。
+
+### 5 分钟用户体验路径
+
+```bash
+moon build cmd/main --target native
+./scripts/e2e-acceptance.sh
+_build/native/debug/build/cmd/main/main.exe subtitle convert examples/good.srt --to ass
+_build/native/debug/build/cmd/main/main.exe creator clean examples/creator/ai-clean-bad.srt --verbose
+_build/native/debug/build/cmd/main/main.exe delivery subtitle-check examples/bad.srt --profile nrta --fail-on-warning
+```
+
+这条路径覆盖格式转换、AI 字幕清洗、国内长视频交付 profile 和完整 e2e 用户流程；
+如果需要浏览器体验，再运行 `./wasm-demo/build.sh` 并打开本地 demo。
 
 ### Creator / Delivery 示例
 
@@ -619,6 +632,8 @@ MoonPost 由多个小型 MoonBit package 组成。公开 API 可参考生成的
 | `MaoDingA/moonpost/subtitle` | SRT/WebVTT/ASS 解析、时间戳格式化、字幕写出。 |
 | `MaoDingA/moonpost/qc` | QC profiles、issue 模型、cue 检查、报告格式化。 |
 | `MaoDingA/moonpost/creator` | 创作者字幕 profile、文本检查和清洗流程。 |
+| `MaoDingA/moonpost/delivery` | 交付目录资产、manifest、checksum 和字幕 profile。 |
+| `MaoDingA/moonpost/dcp` | DCP AssetMap、PKL、CPL 的轻量模型和一致性检查。 |
 | `MaoDingA/moonpost/retime` | cue 的整体偏移、帧率转换和帧吸附。 |
 | `MaoDingA/moonpost/align` | 双语字幕合并和拆分 helpers。 |
 | `MaoDingA/moonpost/cli` | CLI 参数解析。 |
@@ -735,6 +750,17 @@ merge_bilingual(Array[Cue], Array[Cue], tolerance_ms~ : Int) -> Array[Cue]
 split_bilingual(Array[Cue]) -> BilingualSplit
 ```
 
+DCP:
+
+```text
+parse_asset_map(String) -> Result[Array[DcpAsset], DcpParseError]
+parse_packing_list(String) -> Result[Array[DcpAsset], DcpParseError]
+parse_composition_playlist(String) -> Result[DcpComposition, DcpParseError]
+check_dcp_package(DcpPackage) -> Array[DcpIssue]
+has_dcp_errors(Array[DcpIssue]) -> Bool
+classify_dcp_path(String) -> DcpAssetKind
+```
+
 Wasm demo core:
 
 ```text
@@ -753,6 +779,7 @@ moonpost/
 ├── retime/          整体偏移、帧率转换和帧吸附
 ├── align/           双语字幕 merge/split helpers
 ├── delivery/        单集交付预检模型和 manifest 解析
+├── dcp/             DCP AssetMap、PKL、CPL 轻量解析和一致性检查
 ├── cli/             CLI 参数模型和命令解析
 ├── cmd/main/        Native CLI 入口和文件系统 I/O
 ├── wasm_demo/core/  MoonBit Wasm 导出包

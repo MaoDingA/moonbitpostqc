@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# MoonPost E2E acceptance script — runs all 8 judge-facing scenarios.
+# MoonPost E2E user workflow script — runs all 8 user-facing scenarios.
 #
 # Usage:
 #   ./scripts/e2e-acceptance.sh
@@ -59,7 +59,7 @@ check_status() {
   fi
 }
 
-echo "MoonPost E2E Acceptance"
+echo "MoonPost E2E User Workflows"
 echo "Binary: $EXE"
 echo ""
 
@@ -103,7 +103,7 @@ check "Clean C601 就是就是" "C601.*就是就是.*就是" "$TMP/creator-clean
 check "Clean C602 [Music]"  "C602.*\[Music\]"      "$TMP/creator-clean.txt"
 echo ""
 
-# ── Scenario 4: Delivery package acceptance ─────────────────────────
+# ── Scenario 4: Delivery package workflow ───────────────────────────
 echo "Scenario 4: Delivery package"
 "$EXE" delivery check examples/delivery-package/good --profile distribution --subtitle-profile ott-zh > "$TMP/pkg-good.txt"
 check "Good package passes" "0 errors, 0 warnings" "$TMP/pkg-good.txt"

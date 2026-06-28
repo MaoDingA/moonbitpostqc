@@ -1,0 +1,85 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "MaoDingA/moonpost/dcp"
+
+import {
+  "MaoDingA/moonpost/timecode",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn check_dcp_package(DcpPackage) -> Array[DcpIssue]
+
+pub fn classify_dcp_path(String) -> DcpAssetKind
+
+pub fn has_dcp_errors(Array[DcpIssue]) -> Bool
+
+pub fn parse_asset_map(String) -> Result[Array[DcpAsset], DcpParseError]
+
+pub fn parse_composition_playlist(String) -> Result[DcpComposition, DcpParseError]
+
+pub fn parse_packing_list(String) -> Result[Array[DcpAsset], DcpParseError]
+
+// Errors
+
+// Types and methods
+pub(all) struct DcpAsset {
+  id : String
+  path : String
+  kind : DcpAssetKind
+  hash : String
+  size : String
+  annotation : String
+  edit_rate : String
+  intrinsic_duration : String
+} derive(Eq, @debug.Debug)
+pub fn DcpAsset::is_subtitle(Self) -> Bool
+
+pub(all) enum DcpAssetKind {
+  AssetMapAsset
+  VolumeIndexAsset
+  PackingListAsset
+  CompositionPlaylistAsset
+  PictureAsset
+  SoundAsset
+  SubtitleAsset
+  CaptionAsset
+  UnknownAsset
+} derive(Eq, @debug.Debug)
+pub fn DcpAssetKind::label(Self) -> String
+
+pub(all) struct DcpComposition {
+  id : String
+  annotation : String
+  assets : Array[DcpAsset]
+} derive(Eq, @debug.Debug)
+pub fn DcpComposition::asset_count(Self) -> Int
+pub fn DcpComposition::subtitle_asset_count(Self) -> Int
+
+pub(all) struct DcpIssue {
+  severity : DcpIssueSeverity
+  code : String
+  asset_id : String?
+  message : String
+} derive(Eq, @debug.Debug)
+
+pub(all) enum DcpIssueSeverity {
+  DcpError
+  DcpWarning
+} derive(Eq, @debug.Debug)
+
+pub(all) struct DcpPackage {
+  asset_map : Array[DcpAsset]
+  packing_list : Array[DcpAsset]
+  composition : DcpComposition?
+} derive(Eq, @debug.Debug)
+pub fn DcpPackage::asset_count(Self) -> Int
+
+pub(all) enum DcpParseError {
+  XmlError(@timecode.XmlError)
+  MissingElement(String)
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits
+

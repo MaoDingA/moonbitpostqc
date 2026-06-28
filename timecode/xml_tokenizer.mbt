@@ -43,7 +43,7 @@ fn xml_unescape(raw : String) -> String {
 ///|
 /// Returns true for XML name start characters.
 fn is_name_start(c : UInt16) -> Bool {
-  c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+  c == '_' || c == ':' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
 }
 
 ///|

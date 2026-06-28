@@ -1,4 +1,4 @@
-name: E2E Acceptance
+name: E2E User Workflows
 
 on:
   push:
@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   acceptance:
-    name: Judge acceptance scenarios
+    name: User workflow scenarios
     runs-on: ubuntu-latest
     timeout-minutes: 25
 
@@ -41,8 +41,8 @@ jobs:
         shell: bash
         run: moon build cmd/main --target native
 
-      # All 8 acceptance scenarios live in scripts/e2e-acceptance.sh
+      # All 8 user workflow scenarios live in scripts/e2e-acceptance.sh
       # so they can be run both locally and in CI from a single source.
-      - name: Run E2E acceptance script
+      - name: Run E2E user workflow script
         shell: bash
         run: ./scripts/e2e-acceptance.sh

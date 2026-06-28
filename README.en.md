@@ -56,7 +56,7 @@ open-source project, the source, license, and scope will be documented.
 | Project proposal | submitted (2026 MoonBit Open-Source Competition) |
 | mooncakes.io | [`moon add MaoDingA/moonpost`](https://mooncakes.io/MaoDingA/moonpost) |
 | Local demo | `./wasm-demo/build.sh && python3 -m http.server 8765 -d wasm-demo/public` |
-| Judge guide | [SHOWCASE.md](SHOWCASE.md) |
+| User experience guide | [user-experience/README.md](user-experience/README.md) |
 
 ## Features
 
@@ -174,7 +174,7 @@ let tc = parse_timecode("01:00:00:00", FrameRate::fps_25())
 let issues = check_cues(track.cues, default_profile())
 ```
 
-Available sub-packages: `MaoDingA/moonpost/subtitle`, `MaoDingA/moonpost/timecode`, `MaoDingA/moonpost/qc`, `MaoDingA/moonpost/creator`, `MaoDingA/moonpost/delivery`, `MaoDingA/moonpost/retime`, and `MaoDingA/moonpost/align`. See the "Core Public API" section for the full API reference.
+Available sub-packages: `MaoDingA/moonpost/subtitle`, `MaoDingA/moonpost/timecode`, `MaoDingA/moonpost/qc`, `MaoDingA/moonpost/creator`, `MaoDingA/moonpost/delivery`, `MaoDingA/moonpost/dcp`, `MaoDingA/moonpost/retime`, and `MaoDingA/moonpost/align`. See the "Core Public API" section for the full API reference and [API_STABILITY.md](API_STABILITY.md) for stability boundaries.
 
 ## Quick Start
 
@@ -199,6 +199,20 @@ moon run cmd/main --target native --
 
 The examples below use that prefix. If the command is packaged as a standalone
 binary later, replace the prefix with `moonpost`.
+
+### Five-Minute User Path
+
+```bash
+moon build cmd/main --target native
+./scripts/e2e-acceptance.sh
+_build/native/debug/build/cmd/main/main.exe subtitle convert examples/good.srt --to ass
+_build/native/debug/build/cmd/main/main.exe creator clean examples/creator/ai-clean-bad.srt --verbose
+_build/native/debug/build/cmd/main/main.exe delivery subtitle-check examples/bad.srt --profile nrta --fail-on-warning
+```
+
+This path covers format conversion, AI-caption cleanup, China long-form delivery
+profiles, and the complete e2e user workflow suite. For a browser pass, run
+`./wasm-demo/build.sh` and open the local demo.
 
 ### Creator / Delivery Examples
 
@@ -631,6 +645,8 @@ the generated `pkg.generated.mbti` files.
 | `MaoDingA/moonpost/subtitle` | SRT/WebVTT/ASS parsing, timestamp formatting, subtitle writing. |
 | `MaoDingA/moonpost/qc` | QC profiles, issue model, cue checks, report formatting. |
 | `MaoDingA/moonpost/creator` | Creator subtitle profiles, text checks, and cleanup workflows. |
+| `MaoDingA/moonpost/delivery` | Delivery folder assets, manifests, checksums, and subtitle profiles. |
+| `MaoDingA/moonpost/dcp` | Lightweight DCP AssetMap, PKL, CPL models and consistency checks. |
 | `MaoDingA/moonpost/retime` | Offset, frame-rate conversion, frame snapping for cues. |
 | `MaoDingA/moonpost/align` | Bilingual merge and split helpers. |
 | `MaoDingA/moonpost/cli` | CLI argument parser. |
@@ -747,6 +763,17 @@ merge_bilingual(Array[Cue], Array[Cue], tolerance_ms~ : Int) -> Array[Cue]
 split_bilingual(Array[Cue]) -> BilingualSplit
 ```
 
+DCP:
+
+```text
+parse_asset_map(String) -> Result[Array[DcpAsset], DcpParseError]
+parse_packing_list(String) -> Result[Array[DcpAsset], DcpParseError]
+parse_composition_playlist(String) -> Result[DcpComposition, DcpParseError]
+check_dcp_package(DcpPackage) -> Array[DcpIssue]
+has_dcp_errors(Array[DcpIssue]) -> Bool
+classify_dcp_path(String) -> DcpAssetKind
+```
+
 Wasm demo core:
 
 ```text
@@ -766,6 +793,7 @@ moonpost/
 ├── retime/          Offset, frame-rate conversion, and frame snapping
 ├── align/           Bilingual subtitle merge/split helpers
 ├── delivery/        Single-episode delivery preflight models and manifest parsing
+├── dcp/             Lightweight DCP AssetMap, PKL, CPL parsing and checks
 ├── cli/             CLI argument model and parser
 ├── cmd/main/        Native CLI entry point and filesystem I/O
 ├── wasm_demo/core/  MoonBit Wasm export package
