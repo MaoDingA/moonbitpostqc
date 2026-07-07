@@ -168,7 +168,7 @@ jobs:
         shell: bash
         run: |
           _build/native/debug/build/cmd/main/main.exe qc examples/bad.srt --fps 25 --profile streaming > /tmp/qc-report.txt
-          grep -q 'summary: 3 errors, 7 warnings' /tmp/qc-report.txt
+          grep -q 'summary: 3 errors, 8 warnings' /tmp/qc-report.txt
           grep -q 'ERROR E101 cue#1' /tmp/qc-report.txt
           cat > /tmp/mixed-style.srt <<'EOF'
           1
@@ -215,4 +215,4 @@ jobs:
           _build/native/debug/build/cmd/main/main.exe creator clean /tmp/mixed.srt --profile douyin > /tmp/creator-clean.srt
           grep -q '你好，世界！' /tmp/creator-clean.srt
           _build/native/debug/build/cmd/main/main.exe delivery subtitle-check examples/bad.srt --profile ott-zh --fps 25 > /tmp/delivery-subtitle.txt
-          grep -q 'summary: 3 errors, 7 warnings' /tmp/delivery-subtitle.txt
+          grep -q 'summary: 3 errors, 8 warnings' /tmp/delivery-subtitle.txt

@@ -349,10 +349,11 @@ _build/native/debug/build/cmd/main/main.exe qc examples/bad.srt --fail-on-error
 
 ```text
 examples/bad.srt
-summary: 3 errors, 7 warnings
+summary: 3 errors, 8 warnings
 
 WARN W201 cue#1 | duration 377ms below minimum 800ms
 WARN W310 cue#1 | 225 cps exceeds max 20
+WARN W311 cue#1 | 34 wps exceeds max 3
 WARN W203 cue#1 | line 1: 85 chars, max 42
 WARN W401 cue#1 | cue timing is not aligned to 40ms frame grid
 WARN W202 cue#2 | duration 7600ms above maximum 7000ms
