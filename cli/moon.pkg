@@ -1,4 +1,4 @@
 import {
-  "moonbitlang/core/string" @string,
-  "MaoDingA/moonpost/timecode" @timecode,
+  "moonbitlang/core/string",
+  "MaoDingA/moonpost/timecode",
 }

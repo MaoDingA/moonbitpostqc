@@ -1,5 +1,5 @@
 import {
-  "moonbitlang/core/json" @json,
-  "MaoDingA/moonpost/qc" @qc,
-  "MaoDingA/moonpost/timecode" @timecode,
+  "moonbitlang/core/json",
+  "MaoDingA/moonpost/qc",
+  "MaoDingA/moonpost/timecode",
 }

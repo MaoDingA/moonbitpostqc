@@ -1,9 +1,9 @@
 import {
-  "MaoDingA/moonpost/qc" @qc,
-  "MaoDingA/moonpost/subtitle" @subtitle,
-  "MaoDingA/moonpost/creator" @creator,
-  "MaoDingA/moonpost/delivery" @delivery,
-  "MaoDingA/moonpost/timecode" @timecode,
+  "MaoDingA/moonpost/qc",
+  "MaoDingA/moonpost/subtitle",
+  "MaoDingA/moonpost/creator",
+  "MaoDingA/moonpost/delivery",
+  "MaoDingA/moonpost/timecode",
 }
 
 options(

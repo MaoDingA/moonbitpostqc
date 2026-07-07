@@ -1,17 +1,17 @@
 import {
   "moonbitlang/async",
   "moonbitlang/core/json",
-  "moonbitlang/core/env" @env,
-  "moonbitlang/async/fs" @fs,
+  "moonbitlang/core/env",
+  "moonbitlang/async/fs",
   "moonbitlang/async/io",
-  "MaoDingA/moonpost/align" @align,
-  "MaoDingA/moonpost/cli" @cli,
-  "MaoDingA/moonpost/creator" @creator,
-  "MaoDingA/moonpost/delivery" @delivery,
-  "MaoDingA/moonpost/qc" @qc,
-  "MaoDingA/moonpost/retime" @retime,
-  "MaoDingA/moonpost/subtitle" @subtitle,
-  "MaoDingA/moonpost/timecode" @timecode,
+  "MaoDingA/moonpost/align",
+  "MaoDingA/moonpost/cli",
+  "MaoDingA/moonpost/creator",
+  "MaoDingA/moonpost/delivery",
+  "MaoDingA/moonpost/qc",
+  "MaoDingA/moonpost/retime",
+  "MaoDingA/moonpost/subtitle",
+  "MaoDingA/moonpost/timecode",
 }
 
 supported_targets = "+native"

@@ -1,0 +1,36 @@
+name = "MaoDingA/moonpost"
+
+version = "0.2.0"
+
+import {
+  "moonbitlang/async@0.20.1",
+}
+
+readme = "README.md"
+
+repository = "https://github.com/MaoDingA/moonbitpostqc"
+
+license = "Apache-2.0"
+
+keywords = [
+  "subtitle",
+  "timecode",
+  "smpte",
+  "drop-frame",
+  "frame-rate",
+  "media",
+  "broadcast",
+  "qc",
+  "post-production",
+  "webvtt",
+  "srt",
+  "ass",
+  "ssa",
+  "creator",
+  "delivery",
+  "dcp",
+  "fcpxml",
+  "imf",
+]
+
+description = "Pure MoonBit toolkit for subtitles, timecode, creator cleanup, delivery checks, and post-production QC."

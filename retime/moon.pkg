@@ -1,4 +1,4 @@
 import {
-  "MaoDingA/moonpost/subtitle" @subtitle,
-  "MaoDingA/moonpost/timecode" @timecode,
+  "MaoDingA/moonpost/subtitle",
+  "MaoDingA/moonpost/timecode",
 }
