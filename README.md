@@ -797,15 +797,26 @@ request 和手动触发时运行。
 
 CI 覆盖：
 
-- `moon fmt` 后检查是否产生未提交 diff。
-- `moon info` 后检查 `pkg.generated.mbti` 等生成接口摘要是否同步。
-- `moon check --target native` 和 `moon check --target wasm-gc`。
+- 大赛预验收严格入口：`./scripts/competition-check.sh`。
+- 当前 MoonBit CLI 不支持裸 `moon fmt --deny-warn` 和
+  `moon info --deny-warn`；CI 使用 `moon fmt --check`、
+  `moon check --fmt --deny-warn`、`moon info` 加
+  `git diff --exit-code -- .` 作为兼容严格检查。
+- `moon check --target native --deny-warn` 和
+  `moon check --target wasm-gc --deny-warn`。
 - `moon build --target native` 和 `moon build --target wasm-gc`。
-- `moon test --target native` 和 `moon test --target wasm-gc`。
+- `moon test --target native --deny-warn` 和
+  `moon test --target wasm-gc --deny-warn`。
 - Wasm demo release 构建和 `wasm-demo/public/moonpost_qc.wasm` 产物检查。
 - CLI 冒烟测试：timecode、subtitle convert、QC report。
 
 ## 开发
+
+运行大赛预验收本地门禁：
+
+```bash
+./scripts/competition-check.sh
+```
 
 运行 native 测试：
 
@@ -829,13 +840,15 @@ moon check --target wasm-gc
 格式化源码：
 
 ```bash
-moon fmt
+moon fmt --check
+moon check --fmt --deny-warn
 ```
 
-重新生成公开接口摘要：
+重新生成并检查公开接口摘要：
 
 ```bash
 moon info
+git diff --exit-code -- .
 ```
 
 构建 Wasm demo core：

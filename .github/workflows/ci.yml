@@ -36,25 +36,12 @@ jobs:
         shell: bash
         run: moon update
 
-      - name: Check formatting
+      # Current MoonBit CLI does not support raw `moon fmt --deny-warn`
+      # or `moon info --deny-warn`. The script uses supported strict
+      # equivalents and runs deny-warn checks/tests for both targets.
+      - name: Competition strict preflight
         shell: bash
-        run: |
-          moon fmt
-          git diff --exit-code -- .
-
-      - name: Check generated package interfaces
-        shell: bash
-        run: |
-          moon info
-          git diff --exit-code -- .
-
-      - name: Check native target
-        shell: bash
-        run: moon check --target native
-
-      - name: Check wasm-gc target
-        shell: bash
-        run: moon check --target wasm-gc
+        run: ./scripts/competition-check.sh
 
   build-and-test:
     name: Build and test (${{ matrix.target }})

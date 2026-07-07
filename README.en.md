@@ -811,15 +811,26 @@ request, and manual dispatch.
 
 CI covers:
 
-- Run `moon fmt` and fail if formatting produces an uncommitted diff.
-- Run `moon info` and fail if generated package interfaces are out of sync.
-- Run `moon check --target native` and `moon check --target wasm-gc`.
+- Competition preflight entrypoint: `./scripts/competition-check.sh`.
+- The current MoonBit CLI does not support raw `moon fmt --deny-warn` or
+  `moon info --deny-warn`; CI uses `moon fmt --check`,
+  `moon check --fmt --deny-warn`, `moon info`, and
+  `git diff --exit-code -- .` as the compatible strict gate.
+- Run `moon check --target native --deny-warn` and
+  `moon check --target wasm-gc --deny-warn`.
 - Run `moon build --target native` and `moon build --target wasm-gc`.
-- Run `moon test --target native` and `moon test --target wasm-gc`.
+- Run `moon test --target native --deny-warn` and
+  `moon test --target wasm-gc --deny-warn`.
 - Build the Wasm demo release asset and verify `wasm-demo/public/moonpost_qc.wasm`.
 - Run CLI smoke tests for timecode, subtitle conversion, and QC reports.
 
 ## Development
+
+Run the local competition preflight gate:
+
+```bash
+./scripts/competition-check.sh
+```
 
 Run all native tests:
 
@@ -843,13 +854,15 @@ moon check --target wasm-gc
 Format source:
 
 ```bash
-moon fmt
+moon fmt --check
+moon check --fmt --deny-warn
 ```
 
-Regenerate public interface summaries:
+Regenerate and check public interface summaries:
 
 ```bash
 moon info
+git diff --exit-code -- .
 ```
 
 Build the Wasm demo core:
