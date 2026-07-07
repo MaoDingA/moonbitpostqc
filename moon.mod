@@ -1,6 +1,6 @@
 name = "MaoDingA/moonpost"
 
-version = "0.2.0"
+version = "0.2.1"
 
 import {
   "moonbitlang/async@0.20.1",
